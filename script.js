@@ -1,7 +1,7 @@
 // ============================================
 // GLOBAL CONFIGURATION - Neocities Compatible
 // ============================================
-const API_BASE_URL = '/proxy/https://Arnav0928.pythonanywhere.com';
+const API_BASE_URL = 'https://Arnav0928.pythonanywhere.com';
 // ============================================
 
 // DOM Elements
@@ -384,4 +384,5 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Start the app
+
 document.addEventListener('DOMContentLoaded', init);
