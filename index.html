@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧙‍♂️ Wizard.AI - Magical Assistant</title>
+    
+    <!-- Simplified CSP - allows everything needed -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src * 'unsafe-inline' 'unsafe-eval';
+        connect-src *;
+        style-src * 'unsafe-inline';
+        script-src * 'unsafe-inline' 'unsafe-eval';
+        img-src * data: blob:;
+        font-src *;
+    ">
+    
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="description" content="Wizard.AI - Your magical AI companion with multiple personalities">
+    <meta name="author" content="Arnav">
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="twinkling"></div>
+    
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="wizard-profile">
+                <div class="wizard-avatar">🧙‍♂️</div>
+                <h1>Wizard.AI</h1>
+                <p class="tagline">Your magical AI companion</p>
+                <div class="status-badge" id="status-badge">
+                    <span class="status-dot"></span>
+                    <span id="status-text">Connecting...</span>
+                </div>
+            </div>
+            
+            <div class="mode-selector">
+                <h2>Personality Mode</h2>
+                <select id="mode-select" class="mode-dropdown" aria-label="Select AI personality mode">
+                    <!-- Options will be loaded by JavaScript -->
+                </select>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Active Model</span>
+                    <span class="stat-value" id="current-model">✨ loading...</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Messages</span>
+                    <span class="stat-value" id="message-count">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Response Time</span>
+                    <span class="stat-value" id="response-time">-</span>
+                </div>
+            </div>
+            
+            <!-- Model Status Container -->
+            <div class="model-status" id="model-status">
+                <h2>📦 Available Models</h2>
+                <div class="model-list" id="model-list">
+                    <div class="loading-models">Loading models...</div>
+                </div>
+            </div>
+            
+            <button id="reset-btn" class="reset-button" aria-label="Clear chat history">
+                <span>🧹</span> Clear Chat
+            </button>
+            
+            <div class="footer-note">
+                <p>Created by Arnav ✨</p>
+                <p class="version">v2.0 - Live Edition</p>
+            </div>
+        </div>
+        
+        <!-- Chat Area -->
+        <div class="chat-area">
+            <div class="chat-header">
+                <h2>Your Chats</h2>
+            </div>
+            
+            <div id="chat-history" class="chat-history" role="log" aria-live="polite">
+                <!-- Messages will appear here -->
+            </div>
+            
+            <div class="input-area">
+                <input 
+                    type="text" 
+                    id="chat-input" 
+                    placeholder="Type your message here..."
+                    autocomplete="off"
+                    aria-label="Your message"
+                >
+                <button id="send-btn" class="send-button" aria-label="Send message">
+                    <span>Send</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
