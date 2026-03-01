@@ -1,4 +1,4 @@
-// ============================================
+// ============================================+
 // GLOBAL CONFIGURATION
 // ============================================
 const API_BASE_URL = 'https://Arnav0928.pythonanywhere.com';
@@ -963,4 +963,5 @@ window.addEventListener('scroll', () => {
 
 // Start the app
 document.addEventListener('DOMContentLoaded', init);
+
 
