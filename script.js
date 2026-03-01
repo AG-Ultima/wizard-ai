@@ -8,7 +8,6 @@ const API_BASE_URL = 'https://Arnav0928.pythonanywhere.com';
 const chatHistory = document.getElementById('chat-history');
 const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
-const resetBtn = document.getElementById('reset-btn');
 const messageCount = document.getElementById('message-count');
 const currentModel = document.getElementById('current-model');
 const responseTimeEl = document.getElementById('response-time');
@@ -22,6 +21,21 @@ const dropdownBtn = document.getElementById('dropdown-btn');
 const dropdownContent = document.getElementById('dropdown-content');
 const selectedDisplay = document.getElementById('selected-mode-display');
 
+// Chat Sidebar Elements
+const chatsList = document.getElementById('chats-list');
+const newChatBtn = document.getElementById('new-chat-btn');
+const currentChatName = document.getElementById('current-chat-name');
+const currentChatEmoji = document.getElementById('current-chat-emoji');
+const renameChatBtn = document.getElementById('rename-chat-btn');
+const deleteChatBtn = document.getElementById('delete-chat-btn');
+const resetCurrentBtn = document.getElementById('reset-current-btn');
+
+// Modal Elements
+const renameModal = document.getElementById('rename-modal');
+const renameInput = document.getElementById('rename-input');
+const modalSave = document.getElementById('modal-save');
+const modalCancel = document.getElementById('modal-cancel');
+
 // Generate unique session ID
 const sessionId = 'session_' + Math.random().toString(36).substr(2, 9);
 
@@ -32,6 +46,12 @@ let currentMode = 'JARVIS';
 let turboMode = false;
 let tooltipEl = null;
 let tooltipTimeout = null;
+
+// Multi-Chat State
+let chats = {};
+let chatIds = ['default'];
+let activeChatId = 'default';
+let chatToRename = null;
 
 // Mode data with descriptions and tooltips
 const modeData = {
@@ -110,13 +130,307 @@ async function init() {
     console.log('🔗 Backend URL:', API_BASE_URL);
     
     createTooltip();
+    initializeChats();
     updateConnectionStatus('connecting');
     await loadModes();
     await checkSystemStatus();
     setupDropdown();
     setupEventListeners();
     addTurboToggle();
+    setupModal();
+    loadActiveChat();
     addMessage('wizard', '✨ Welcome to Wizard.AI! Select a mode and toggle Turbo for extra speed!', false, true);
+}
+
+// Initialize chats from localStorage
+function initializeChats() {
+    const savedChats = localStorage.getItem('wizardChats');
+    const savedChatIds = localStorage.getItem('wizardChatIds');
+    const savedActiveChat = localStorage.getItem('wizardActiveChat');
+    
+    if (savedChats && savedChatIds) {
+        chats = JSON.parse(savedChats);
+        chatIds = JSON.parse(savedChatIds);
+        activeChatId = savedActiveChat || 'default';
+    } else {
+        // Create default chat
+        const defaultChat = {
+            id: 'default',
+            name: 'Main Chat',
+            messages: [],
+            emoji: '🧙',
+            createdAt: new Date().toISOString(),
+            lastActive: new Date().toISOString()
+        };
+        chats = { 'default': defaultChat };
+        chatIds = ['default'];
+        activeChatId = 'default';
+    }
+    
+    renderChatsList();
+}
+
+// Save chats to localStorage
+function saveChats() {
+    localStorage.setItem('wizardChats', JSON.stringify(chats));
+    localStorage.setItem('wizardChatIds', JSON.stringify(chatIds));
+    localStorage.setItem('wizardActiveChat', activeChatId);
+}
+
+// Render chats list in sidebar
+function renderChatsList() {
+    if (!chatsList) return;
+    
+    chatsList.innerHTML = '';
+    
+    chatIds.forEach(chatId => {
+        const chat = chats[chatId];
+        if (!chat) return;
+        
+        // Format time
+        const lastActive = new Date(chat.lastActive);
+        const now = new Date();
+        const diffMs = now - lastActive;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        
+        let timeStr = 'now';
+        if (diffMins > 0 && diffMins < 60) timeStr = `${diffMins}m`;
+        if (diffHours > 0 && diffHours < 24) timeStr = `${diffHours}h`;
+        if (diffDays > 0) timeStr = `${diffDays}d`;
+        
+        const chatItem = document.createElement('div');
+        chatItem.className = `chat-item ${chatId === activeChatId ? 'active' : ''}`;
+        chatItem.dataset.chatId = chatId;
+        
+        chatItem.innerHTML = `
+            <span class="chat-emoji">${chat.emoji || '💬'}</span>
+            <span class="chat-name">${chat.name}</span>
+            <div class="chat-item-actions">
+                <button class="rename-chat-item" data-chat-id="${chatId}" title="Rename">✏️</button>
+                <button class="delete-chat-item" data-chat-id="${chatId}" title="Delete">🗑️</button>
+            </div>
+            <span class="chat-time">${timeStr}</span>
+        `;
+        
+        chatItem.addEventListener('click', (e) => {
+            // Don't switch if clicking on buttons
+            if (e.target.classList.contains('rename-chat-item') || 
+                e.target.classList.contains('delete-chat-item')) {
+                return;
+            }
+            switchChat(chatId);
+        });
+        
+        // Rename button in chat item
+        const renameBtn = chatItem.querySelector('.rename-chat-item');
+        renameBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openRenameModal(chatId);
+        });
+        
+        // Delete button in chat item
+        const deleteBtn = chatItem.querySelector('.delete-chat-item');
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteChat(chatId);
+        });
+        
+        chatsList.appendChild(chatItem);
+    });
+    
+    // Update current chat display
+    if (currentChatName && chats[activeChatId]) {
+        currentChatName.textContent = chats[activeChatId].name;
+    }
+    if (currentChatEmoji && chats[activeChatId]) {
+        currentChatEmoji.textContent = chats[activeChatId].emoji || '🧙';
+    }
+}
+
+// Switch to a different chat
+function switchChat(chatId) {
+    if (!chats[chatId]) return;
+    
+    // Save current chat messages
+    if (chats[activeChatId]) {
+        chats[activeChatId].messages = [...messages];
+        chats[activeChatId].lastActive = new Date().toISOString();
+    }
+    
+    // Switch to new chat
+    activeChatId = chatId;
+    chats[activeChatId].lastActive = new Date().toISOString();
+    
+    // Load messages from new chat
+    messages = chats[activeChatId].messages ? [...chats[activeChatId].messages] : [];
+    
+    // Clear and rebuild chat history
+    chatHistory.innerHTML = '';
+    
+    // Add welcome message if chat is empty
+    if (messages.length === 0) {
+        addMessage('wizard', `✨ Welcome to ${chats[activeChatId].name}! Select a mode and start chatting!`, false, true);
+    } else {
+        // Re-render all messages
+        messages.forEach(msg => {
+            addMessage(msg.sender, msg.text, false, true);
+        });
+    }
+    
+    // Update UI
+    renderChatsList();
+    updateMessageCount();
+    saveChats();
+}
+
+// Create new chat
+function createNewChat() {
+    const chatNumber = chatIds.length + 1;
+    const chatId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    
+    // Random emoji for new chat
+    const emojis = ['💬', '🤖', '🌟', '⭐', '✨', '🎯', '🎲', '🎮', '📚', '🎨'];
+    const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+    
+    const newChat = {
+        id: chatId,
+        name: `Chat ${chatNumber}`,
+        messages: [],
+        emoji: randomEmoji,
+        createdAt: new Date().toISOString(),
+        lastActive: new Date().toISOString()
+    };
+    
+    chats[chatId] = newChat;
+    chatIds.push(chatId);
+    
+    // Switch to new chat
+    switchChat(chatId);
+    
+    saveChats();
+}
+
+// Delete a chat
+function deleteChat(chatId) {
+    if (chatIds.length <= 1) {
+        alert('Cannot delete the last chat');
+        return;
+    }
+    
+    if (!confirm(`Are you sure you want to delete "${chats[chatId].name}"?`)) {
+        return;
+    }
+    
+    const currentIndex = chatIds.indexOf(chatId);
+    
+    // Remove from chats
+    delete chats[chatId];
+    chatIds = chatIds.filter(id => id !== chatId);
+    
+    // Switch to another chat
+    if (chatId === activeChatId) {
+        const newIndex = Math.min(currentIndex, chatIds.length - 1);
+        switchChat(chatIds[newIndex]);
+    }
+    
+    saveChats();
+    renderChatsList();
+}
+
+// Open rename modal
+function openRenameModal(chatId) {
+    chatToRename = chatId;
+    const chat = chats[chatId];
+    if (!chat) return;
+    
+    renameInput.value = chat.name;
+    renameModal.classList.add('show');
+    renameInput.focus();
+    renameInput.select();
+}
+
+// Rename chat
+function renameChat(chatId, newName) {
+    if (!newName.trim()) return;
+    
+    const chat = chats[chatId];
+    if (!chat) return;
+    
+    chat.name = newName.trim();
+    
+    if (chatId === activeChatId && currentChatName) {
+        currentChatName.textContent = chat.name;
+    }
+    
+    saveChats();
+    renderChatsList();
+}
+
+// Setup modal event listeners
+function setupModal() {
+    if (!renameModal) return;
+    
+    modalSave.addEventListener('click', () => {
+        if (chatToRename) {
+            renameChat(chatToRename, renameInput.value);
+            renameModal.classList.remove('show');
+            chatToRename = null;
+        }
+    });
+    
+    modalCancel.addEventListener('click', () => {
+        renameModal.classList.remove('show');
+        chatToRename = null;
+    });
+    
+    window.addEventListener('click', (e) => {
+        if (e.target === renameModal) {
+            renameModal.classList.remove('show');
+            chatToRename = null;
+        }
+    });
+    
+    renameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            modalSave.click();
+        }
+    });
+}
+
+// Load active chat messages
+function loadActiveChat() {
+    if (chats[activeChatId] && chats[activeChatId].messages) {
+        messages = [...chats[activeChatId].messages];
+        
+        // Re-render messages
+        messages.forEach(msg => {
+            addMessage(msg.sender, msg.text, false, true);
+        });
+    }
+}
+
+// Update message count in sidebar
+function updateMessageCount() {
+    if (messageCount) {
+        messageCount.textContent = messages.length;
+    }
+}
+
+// Reset current chat
+function resetCurrentChat() {
+    if (!confirm('Clear all messages in this chat?')) return;
+    
+    messages = [];
+    chatHistory.innerHTML = '';
+    if (chats[activeChatId]) {
+        chats[activeChatId].messages = [];
+        chats[activeChatId].lastActive = new Date().toISOString();
+    }
+    updateMessageCount();
+    addMessage('wizard', `🧹 Chat cleared! Ready for new messages.`, false, true);
+    saveChats();
 }
 
 // Create global tooltip element
@@ -135,13 +449,11 @@ function showTooltip(modeKey, event) {
     const mode = modeData[modeKey];
     if (!mode) return;
     
-    // Clear any pending hide timeout
     if (tooltipTimeout) {
         clearTimeout(tooltipTimeout);
         tooltipTimeout = null;
     }
     
-    // Set tooltip content
     tooltipEl.innerHTML = `
         <div style="display: flex; align-items: flex-start; gap: 12px;">
             <div style="font-size: 32px; line-height: 1;">${mode.emoji}</div>
@@ -156,11 +468,9 @@ function showTooltip(modeKey, event) {
         </div>
     `;
     
-    // Position tooltip near mouse
     const x = event.clientX + 15;
     const y = event.clientY - 20;
     
-    // Keep tooltip within window bounds
     const tooltipRect = tooltipEl.getBoundingClientRect();
     const maxX = window.innerWidth - tooltipRect.width - 10;
     const maxY = window.innerHeight - tooltipRect.height - 10;
@@ -186,28 +496,23 @@ function hideTooltip() {
 function setupDropdown() {
     if (!dropdown || !dropdownContent) return;
     
-    // Clear existing content
     dropdownContent.innerHTML = '';
     
-    // Create dropdown items from modeData
     Object.keys(modeData).forEach(modeKey => {
         const mode = modeData[modeKey];
         const item = document.createElement('div');
         item.className = `dropdown-item ${modeKey === currentMode ? 'selected' : ''}`;
         item.setAttribute('data-mode', modeKey);
         
-        // Item content (without inline tooltip)
         item.innerHTML = `
             <span style="font-size: 18px;">${mode.emoji}</span>
             <span>${modeKey}</span>
         `;
         
-        // Mouse enter - show tooltip
         item.addEventListener('mouseenter', (e) => {
             showTooltip(modeKey, e);
         });
         
-        // Mouse move - update tooltip position
         item.addEventListener('mousemove', (e) => {
             if (tooltipEl && tooltipEl.style.display === 'block') {
                 const x = e.clientX + 15;
@@ -222,56 +527,45 @@ function setupDropdown() {
             }
         });
         
-        // Mouse leave - hide tooltip
         item.addEventListener('mouseleave', () => {
             hideTooltip();
         });
         
-        // Click handler
         item.addEventListener('click', () => {
-            // Update selected mode
             currentMode = modeKey;
             selectedDisplay.innerHTML = `${mode.emoji} ${modeKey}`;
             
-            // Update selected class
             document.querySelectorAll('.dropdown-item').forEach(el => {
                 el.classList.remove('selected');
             });
             item.classList.add('selected');
             
-            // Close dropdown
             dropdown.classList.remove('open');
             
-            // Hide tooltip immediately
             if (tooltipEl) {
                 tooltipEl.style.display = 'none';
             }
             
-            // Show mode change message
             const greeting = modeGreetings[modeKey] || `Switched to ${modeKey} mode!`;
             addMessage('wizard', `🔄 ${greeting}`, false, true);
             
-            // Update model display
             updateModelInfo();
         });
         
         dropdownContent.appendChild(item);
     });
     
-    // Toggle dropdown on button click
     dropdownBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         dropdown.classList.toggle('open');
     });
     
-    // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
         if (!dropdown.contains(e.target)) {
             dropdown.classList.remove('open');
         }
     });
     
-    // Set initial display
     const initialMode = modeData[currentMode];
     selectedDisplay.innerHTML = `${initialMode.emoji} ${currentMode}`;
 }
@@ -321,7 +615,6 @@ async function checkSystemStatus() {
         
         updateConnectionStatus('connected');
         
-        // Update model list with accurate info
         if (modelList) {
             modelList.innerHTML = `
                 <div class="model-item">
@@ -381,7 +674,25 @@ function setupEventListeners() {
         }
     });
     
-    resetBtn.addEventListener('click', resetChat);
+    if (newChatBtn) {
+        newChatBtn.addEventListener('click', createNewChat);
+    }
+    
+    if (renameChatBtn) {
+        renameChatBtn.addEventListener('click', () => {
+            openRenameModal(activeChatId);
+        });
+    }
+    
+    if (deleteChatBtn) {
+        deleteChatBtn.addEventListener('click', () => {
+            deleteChat(activeChatId);
+        });
+    }
+    
+    if (resetCurrentBtn) {
+        resetCurrentBtn.addEventListener('click', resetCurrentChat);
+    }
 }
 
 // Add message to chat
@@ -429,6 +740,13 @@ function addMessage(sender, text, isThinkingMsg = false, instant = false) {
         if (messageCount) {
             messageCount.textContent = messages.length;
         }
+        
+        // Save to chats
+        if (chats[activeChatId]) {
+            chats[activeChatId].messages = [...messages];
+            chats[activeChatId].lastActive = new Date().toISOString();
+            saveChats();
+        }
     }
     
     return { div: messageDiv, textSpan: textSpan };
@@ -443,15 +761,10 @@ async function typeMessage(messageDiv, textSpan, fullText, baseSpeed = 20) {
         const textLength = fullText.length;
         let speed = baseSpeed;
         
-        if (textLength > 2000) {
-            speed = 5;
-        } else if (textLength > 1000) {
-            speed = 8;
-        } else if (textLength > 500) {
-            speed = 12;
-        } else if (textLength > 200) {
-            speed = 15;
-        }
+        if (textLength > 2000) speed = 5;
+        else if (textLength > 1000) speed = 8;
+        else if (textLength > 500) speed = 12;
+        else if (textLength > 200) speed = 15;
         
         if (turboMode) {
             speed = Math.max(3, speed / 2);
@@ -543,17 +856,21 @@ async function sendMessage() {
         chatHistory.scrollTop = chatHistory.scrollHeight;
         
         let baseSpeed = 20;
-        if (currentMode === 'Fast') {
-            baseSpeed = 12;
-        } else if (currentMode === 'Nerd' || currentMode === 'ORACLE') {
-            baseSpeed = 25;
-        }
+        if (currentMode === 'Fast') baseSpeed = 12;
+        else if (currentMode === 'Nerd' || currentMode === 'ORACLE') baseSpeed = 25;
         
         await typeMessage(wizardMsgDiv, textSpan, data.reply, baseSpeed);
         
         messages.push({ sender: 'wizard', text: data.reply });
         if (messageCount) {
             messageCount.textContent = messages.length;
+        }
+        
+        // Save to chats
+        if (chats[activeChatId]) {
+            chats[activeChatId].messages = [...messages];
+            chats[activeChatId].lastActive = new Date().toISOString();
+            saveChats();
         }
         
         if (data.model && currentModel) {
@@ -568,7 +885,6 @@ async function sendMessage() {
         }
         
         let errorMessage = '⚠️ Connection error! Please try again.';
-        
         if (error.message.includes('Failed to fetch')) {
             errorMessage = '⚠️ Cannot reach the backend. Make sure the server is running.';
         } else if (error.message.includes('500')) {
@@ -586,59 +902,13 @@ async function sendMessage() {
     }
 }
 
-// Reset chat
-async function resetChat() {
-    try {
-        const msgs = document.querySelectorAll('.message');
-        msgs.forEach(msg => {
-            msg.style.transition = 'opacity 0.3s, transform 0.3s';
-            msg.style.opacity = '0';
-            msg.style.transform = 'translateY(-10px)';
-        });
-        
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        chatHistory.innerHTML = '';
-        messages = [];
-        
-        if (messageCount) {
-            messageCount.textContent = '0';
-        }
-        
-        await fetch(`${API_BASE_URL}/reset`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ session_id: sessionId })
-        });
-        
-        const greeting = modeGreetings[currentMode] || 'Ready for new adventures!';
-        addMessage('wizard', `🧹 Memory wiped! ${greeting}`, false, true);
-        
-        await checkSystemStatus();
-        
-    } catch (error) {
-        console.error('Reset failed:', error);
-        chatHistory.innerHTML = '';
-        messages = [];
-        if (messageCount) messageCount.textContent = '0';
-        addMessage('wizard', '🧹 Memory wiped locally!', false, true);
-    }
-}
-
 // Add Turbo Mode Toggle
 function addTurboToggle() {
-    const sidebar = document.querySelector('.sidebar');
-    if (!sidebar) return;
+    const container = document.getElementById('turbo-toggle-container');
+    if (!container) return;
     
     const turboDiv = document.createElement('div');
     turboDiv.className = 'mode-selector';
-    turboDiv.style.marginTop = '10px';
-    turboDiv.style.marginBottom = '15px';
-    turboDiv.style.padding = '10px';
-    turboDiv.style.background = 'rgba(139, 92, 246, 0.15)';
-    turboDiv.style.borderRadius = '12px';
-    turboDiv.style.border = '1px solid #8b5cf6';
-    
     turboDiv.innerHTML = `
         <h3 style="color: #c4b5fd; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
             <span>⚡</span> TURBO MODE
@@ -651,10 +921,7 @@ function addTurboToggle() {
         </p>
     `;
     
-    const modeSelector = document.querySelector('.mode-selector');
-    if (modeSelector) {
-        modeSelector.parentNode.insertBefore(turboDiv, modeSelector.nextSibling);
-    }
+    container.appendChild(turboDiv);
     
     const turboBtn = document.getElementById('turbo-btn');
     if (turboBtn) {
