@@ -639,6 +639,7 @@ body {
 }
 
 /* Tooltip on hover - positioned to the left */
+/* Tooltip on hover - positioned above */
 .dropdown-item {
     position: relative;
 }
@@ -655,10 +656,11 @@ body {
     box-shadow: 0 10px 30px rgba(0,0,0,0.4);
     position: absolute;
     z-index: 1001;
-    /* Position to the left instead of right */
-    top: 50%;
-    right: 105%;  /* Changed from left: 105% to right: 105% */
-    transform: translateY(-50%);
+    /* Position above */
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 10px;
     opacity: 0;
     transition: opacity 0.3s, visibility 0.3s;
     pointer-events: none;
@@ -667,23 +669,22 @@ body {
     backdrop-filter: blur(10px);
 }
 
-/* Tooltip arrow - now points right */
+/* Tooltip arrow - pointing down */
 .dropdown-item .tooltip::before {
     content: '';
     position: absolute;
-    top: 50%;
-    left: 100%;  /* Changed from right: 100% to left: 100% */
-    margin-top: -8px;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
     border-width: 8px;
     border-style: solid;
-    border-color: transparent transparent transparent #8b5cf6;  /* Arrow points right */
+    border-color: #8b5cf6 transparent transparent transparent;
 }
 
 .dropdown-item:hover .tooltip {
     visibility: visible;
     opacity: 1;
 }
-
 .tooltip-emoji {
     font-size: 24px;
     margin-right: 10px;
