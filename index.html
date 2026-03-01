@@ -6,15 +6,13 @@
     <title>🧙‍♂️ Wizard.AI - Magical Assistant</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <meta name="description" content="Wizard.AI - Your magical AI companion with multiple personalities">
-    <meta name="author" content="Arnav">
 </head>
 <body>
     <div class="stars"></div>
     <div class="twinkling"></div>
     
     <div class="app-container">
-        <!-- Sidebar -->
+        <!-- Left Sidebar - Wizard Profile & Settings -->
         <div class="sidebar">
             <div class="wizard-profile">
                 <div class="wizard-avatar">🧙‍♂️</div>
@@ -28,14 +26,13 @@
             
             <div class="mode-selector">
                 <h2>Personality Mode</h2>
-                <!-- Custom dropdown for tooltips -->
                 <div class="custom-dropdown" id="mode-dropdown">
                     <div class="custom-dropdown-btn" id="dropdown-btn">
                         <span id="selected-mode-display">🎩 JARVIS</span>
                         <span class="dropdown-arrow">▼</span>
                     </div>
                     <div class="custom-dropdown-content" id="dropdown-content">
-                        <!-- Options will be loaded by JavaScript -->
+                        <!-- Options loaded by JavaScript -->
                     </div>
                 </div>
             </div>
@@ -55,7 +52,6 @@
                 </div>
             </div>
             
-            <!-- Model Status Container -->
             <div class="model-status" id="model-status">
                 <h2>📦 Available Models</h2>
                 <div class="model-list" id="model-list">
@@ -63,20 +59,41 @@
                 </div>
             </div>
             
-            <button id="reset-btn" class="reset-button" aria-label="Clear chat history">
+            <button id="reset-btn" class="reset-button" aria-label="Clear current chat">
                 <span>🧹</span> Clear Chat
             </button>
             
             <div class="footer-note">
                 <p>Created by Arnav ✨</p>
-                <p class="version">v2.0 - Live Edition</p>
+                <p class="version">v3.0 - Multi-Chat Edition</p>
             </div>
         </div>
         
-        <!-- Chat Area -->
+        <!-- Middle Sidebar - Your Chats (NEW!) -->
+        <div class="chats-sidebar">
+            <div class="chats-header">
+                <h2>💬 Your Chats</h2>
+                <button id="new-chat-btn" class="new-chat-btn" title="New Chat">➕</button>
+            </div>
+            
+            <div class="chats-list" id="chats-list">
+                <!-- Chat items will be loaded here -->
+                <div class="chat-item active" data-chat-id="default">
+                    <span class="chat-emoji">🧙</span>
+                    <span class="chat-name">Main Chat</span>
+                    <span class="chat-time">now</span>
+                </div>
+            </div>
+            
+            <div class="chats-footer">
+                <button id="delete-chat-btn" class="delete-chat-btn" disabled>🗑️ Delete Chat</button>
+            </div>
+        </div>
+        
+        <!-- Main Chat Area -->
         <div class="chat-area">
             <div class="chat-header">
-                <h2>Your Chats</h2>
+                <h2 id="current-chat-name">Main Chat</h2>
             </div>
             
             <div id="chat-history" class="chat-history" role="log" aria-live="polite">
@@ -100,6 +117,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Turbo Mode Toggle (will be moved by JS) -->
+    <div id="turbo-toggle-container" style="display: none;"></div>
 
     <script src="script.js"></script>
 </body>
