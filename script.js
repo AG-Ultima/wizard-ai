@@ -51,6 +51,15 @@ const logoutBtn = document.getElementById('logout-btn');
 const saveCloudBtn = document.getElementById('save-cloud-btn');
 const loadCloudBtn = document.getElementById('load-cloud-btn');
 
+// NEW: Name fields and verification
+const firstNameGroup = document.getElementById('first-name-group');
+const lastNameGroup = document.getElementById('last-name-group');
+const firstNameInput = document.getElementById('first-name');
+const lastNameInput = document.getElementById('last-name');
+const verificationGroup = document.getElementById('verification-group');
+const verificationInput = document.getElementById('verification-code');
+const resendCodeBtn = document.getElementById('resend-code-btn');
+
 // Rename Modal
 const renameModal = document.getElementById('rename-modal');
 const renameInput = document.getElementById('rename-input');
@@ -74,6 +83,8 @@ let chatToRename = null;
 
 // Auth State
 let isLoginMode = true;
+let signupEmail = '';
+let signupData = {};
 
 // ============================================
 // MODE DATA - With Hidden WIZARD Mode
@@ -176,7 +187,7 @@ function addWizardMessage(text) {
     
     const iconSpan = document.createElement('span');
     iconSpan.className = 'message-icon';
-    iconSpan.textContent = '🧙'; // ALWAYS wizard emoji for system messages
+    iconSpan.textContent = '🧙';
     
     const textSpan = document.createElement('span');
     textSpan.className = 'message-text';
@@ -239,16 +250,180 @@ function updateUIForAuth() {
 
 function showAuthModal(loginMode = true) {
     isLoginMode = loginMode;
-    authModalTitle.textContent = loginMode ? 'Login to Wizard.AI' : 'Create Wizard.AI Account';
-    authSubmit.textContent = loginMode ? 'Login' : 'Sign Up';
-    authSwitchText.textContent = loginMode ? "Don't have an account?" : "Already have an account?";
-    authSwitchBtn.textContent = loginMode ? 'Sign Up' : 'Login';
-    authConfirmGroup.style.display = loginMode ? 'none' : 'block';
+    
+    // Reset form
     authEmail.value = '';
     authPassword.value = '';
     authConfirm.value = '';
+    if (firstNameInput) firstNameInput.value = '';
+    if (lastNameInput) lastNameInput.value = '';
+    if (verificationInput) verificationInput.value = '';
+    
+    // Show/hide fields based on mode
+    if (loginMode) {
+        authModalTitle.textContent = 'Login to Wizard.AI';
+        authSubmit.textContent = 'Login';
+        authSwitchText.textContent = "Don't have an account?";
+        authSwitchBtn.textContent = 'Sign Up';
+        
+        if (firstNameGroup) firstNameGroup.style.display = 'none';
+        if (lastNameGroup) lastNameGroup.style.display = 'none';
+        if (verificationGroup) verificationGroup.style.display = 'none';
+        authConfirmGroup.style.display = 'none';
+        if (resendCodeBtn) resendCodeBtn.style.display = 'none';
+    } else {
+        authModalTitle.textContent = 'Create Wizard.AI Account';
+        authSubmit.textContent = 'Sign Up';
+        authSwitchText.textContent = "Already have an account?";
+        authSwitchBtn.textContent = 'Login';
+        
+        if (firstNameGroup) firstNameGroup.style.display = 'block';
+        if (lastNameGroup) lastNameGroup.style.display = 'block';
+        if (verificationGroup) verificationGroup.style.display = 'none';
+        authConfirmGroup.style.display = 'block';
+        if (resendCodeBtn) resendCodeBtn.style.display = 'none';
+    }
+    
     authError.textContent = '';
     authModal.classList.add('show');
+}
+
+async function handleSignupStep1() {
+    const firstName = firstNameInput.value.trim();
+    const lastName = lastNameInput.value.trim();
+    const email = authEmail.value.trim();
+    const password = authPassword.value.trim();
+    const confirm = authConfirm.value.trim();
+    
+    // Validate
+    if (!firstName || !lastName || !email || !password || !confirm) {
+        authError.textContent = 'Please fill all fields';
+        return;
+    }
+    
+    if (password !== confirm) {
+        authError.textContent = 'Passwords do not match';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/register/init`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                firstName,
+                lastName,
+                email,
+                password
+            }),
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Store email for verification
+            signupEmail = email;
+            signupData = { firstName, lastName };
+            
+            // Switch to verification UI
+            authModalTitle.textContent = 'Verify Your Email';
+            authSubmit.textContent = 'Verify Code';
+            if (firstNameGroup) firstNameGroup.style.display = 'none';
+            if (lastNameGroup) lastNameGroup.style.display = 'none';
+            authConfirmGroup.style.display = 'none';
+            if (verificationGroup) verificationGroup.style.display = 'block';
+            if (resendCodeBtn) resendCodeBtn.style.display = 'block';
+            authError.textContent = `Verification code sent to ${email}`;
+            authError.style.color = '#10b981';
+        } else {
+            authError.textContent = data.error || 'Signup failed';
+            authError.style.color = '#ef4444';
+        }
+    } catch (error) {
+        authError.textContent = 'Connection error';
+        authError.style.color = '#ef4444';
+    }
+}
+
+async function handleSignupStep2() {
+    const code = verificationInput.value.trim();
+    
+    if (!code || code.length !== 6) {
+        authError.textContent = 'Please enter 6-digit verification code';
+        authError.style.color = '#ef4444';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/register/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: signupEmail,
+                code
+            }),
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            currentUser = data.user;
+            authModal.classList.remove('show');
+            updateUIForAuth();
+            
+            // Initialize chats
+            chats = {};
+            chatIds = [];
+            
+            if (data.chats && data.chats.length > 0) {
+                data.chats.forEach(chat => {
+                    chats[chat.chat_id] = chat;
+                    chatIds.push(chat.chat_id);
+                });
+                activeChatId = chatIds[0];
+                currentMode = chats[activeChatId].mode || 'JARVIS';
+            } else {
+                initializeNewUserChats();
+            }
+            
+            renderChatsList();
+            updateModeDisplay();
+            loadActiveChatMessages();
+            addWizardMessage(`✨ Welcome to Wizard.AI, ${currentUser.first_name}!`);
+        } else {
+            authError.textContent = data.error || 'Invalid verification code';
+            authError.style.color = '#ef4444';
+        }
+    } catch (error) {
+        authError.textContent = 'Connection error';
+        authError.style.color = '#ef4444';
+    }
+}
+
+async function resendVerificationCode() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/resend-code`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: signupEmail }),
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            authError.textContent = 'New verification code sent!';
+            authError.style.color = '#10b981';
+        } else {
+            authError.textContent = data.error || 'Failed to resend code';
+            authError.style.color = '#ef4444';
+        }
+    } catch (error) {
+        authError.textContent = 'Connection error';
+        authError.style.color = '#ef4444';
+    }
 }
 
 async function handleLogin() {
@@ -274,54 +449,28 @@ async function handleLogin() {
             currentUser = data.user;
             authModal.classList.remove('show');
             updateUIForAuth();
-            loadUserChats();
-            addWizardMessage(`✨ Welcome back, ${currentUser.email}!`);
+            
+            // Load user's chats
+            chats = {};
+            chatIds = [];
+            
+            data.chats.forEach(chat => {
+                chats[chat.chat_id] = chat;
+                chatIds.push(chat.chat_id);
+            });
+            
+            activeChatId = chatIds[0];
+            currentMode = chats[activeChatId].mode || 'JARVIS';
+            
+            renderChatsList();
+            updateModeDisplay();
+            loadActiveChatMessages();
+            addWizardMessage(`✨ Welcome back, ${currentUser.first_name}!`);
         } else {
             authError.textContent = data.error || 'Login failed';
         }
     } catch (error) {
         authError.textContent = 'Connection error';
-        console.error(error);
-    }
-}
-
-async function handleSignup() {
-    const email = authEmail.value.trim();
-    const password = authPassword.value.trim();
-    const confirm = authConfirm.value.trim();
-    
-    if (!email || !password || !confirm) {
-        authError.textContent = 'Please fill all fields';
-        return;
-    }
-    
-    if (password !== confirm) {
-        authError.textContent = 'Passwords do not match';
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
-            credentials: 'include'
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            currentUser = data.user;
-            authModal.classList.remove('show');
-            updateUIForAuth();
-            initializeNewUserChats();
-            addWizardMessage(`✨ Welcome to Wizard.AI, ${currentUser.email}!`);
-        } else {
-            authError.textContent = data.error || 'Signup failed';
-        }
-    } catch (error) {
-        authError.textContent = 'Connection error';
-        console.error(error);
     }
 }
 
@@ -383,7 +532,6 @@ function initializeNewUserChats() {
     updateModeDisplay();
     clearChatDisplay();
     addWizardMessage('✨ Welcome to Wizard.AI! Select a mode from the dropdown and start your magical journey!');
-    saveUserChats();
 }
 
 async function loadUserChats() {
@@ -398,7 +546,6 @@ async function loadUserChats() {
             const data = await response.json();
             
             if (data.chats && data.chats.length > 0) {
-                // Rebuild chats object
                 chats = {};
                 chatIds = [];
                 
@@ -413,15 +560,10 @@ async function loadUserChats() {
                 renderChatsList();
                 updateModeDisplay();
                 loadActiveChatMessages();
-            } else {
-                initializeNewUserChats();
             }
-        } else {
-            initializeNewUserChats();
         }
     } catch (error) {
         console.error('Failed to load chats:', error);
-        initializeNewUserChats();
     }
 }
 
@@ -465,7 +607,6 @@ function loadActiveChatMessages() {
         chatHistory.scrollTop = chatHistory.scrollHeight;
         updateMessageCount();
     } else {
-        // No messages, show welcome message
         addWizardMessage(`✨ Welcome to ${chats[activeChatId].name}! Select a mode to begin.`);
     }
 }
@@ -508,7 +649,6 @@ function renderWizardMessage(text, mode = null) {
     const iconSpan = document.createElement('span');
     iconSpan.className = 'message-icon';
     
-    // Use mode emoji if provided, otherwise use wizard
     if (mode && modeData[mode]) {
         iconSpan.textContent = modeData[mode].emoji;
     } else {
@@ -541,7 +681,6 @@ function renderChatsList() {
         const chat = chats[chatId];
         if (!chat) return;
         
-        // Format time
         const lastActive = chat.updated_at ? new Date(chat.updated_at) : new Date();
         const now = new Date();
         const diffMs = now - lastActive;
@@ -602,22 +741,18 @@ function renderChatsList() {
 function switchChat(chatId) {
     if (!chats[chatId]) return;
     
-    // Save current chat
     if (chats[activeChatId]) {
         chats[activeChatId].messages = [...messages];
         chats[activeChatId].mode = currentMode;
         chats[activeChatId].updated_at = new Date().toISOString();
     }
     
-    // Switch to new chat
     activeChatId = chatId;
     const newChat = chats[activeChatId];
     newChat.updated_at = new Date().toISOString();
     
-    // Load new chat's mode
     currentMode = newChat.mode || 'JARVIS';
     
-    // Update UI
     updateModeDisplay();
     loadActiveChatMessages();
     renderChatsList();
@@ -777,7 +912,7 @@ function setupDropdown() {
     
     Object.keys(modeData).forEach(modeKey => {
         const mode = modeData[modeKey];
-        if (mode.hidden) return; // Skip hidden WIZARD mode
+        if (mode.hidden) return;
         
         const item = document.createElement('div');
         item.className = `dropdown-item ${modeKey === currentMode ? 'selected' : ''}`;
@@ -937,13 +1072,11 @@ async function sendMessage() {
     const text = chatInput.value.trim();
     if (!text) return;
     
-    // Add user message
     renderUserMessage(text);
     messages.push({ sender: 'user', text });
     chatInput.value = '';
     updateMessageCount();
     
-    // Save to chat
     if (chats[activeChatId]) {
         chats[activeChatId].messages = [...messages];
         chats[activeChatId].updated_at = new Date().toISOString();
@@ -958,7 +1091,6 @@ async function sendMessage() {
     sendBtn.disabled = true;
     sendBtn.classList.add('loading');
     
-    // Show thinking indicator (using wizard emoji)
     const thinkingDiv = document.createElement('div');
     thinkingDiv.className = 'message wizard thinking';
     
@@ -1006,10 +1138,8 @@ async function sendMessage() {
             responseTimeEl.textContent = `${responseTime}s`;
         }
         
-        // Remove thinking indicator
         thinkingDiv.remove();
         
-        // Create wizard response with current mode emoji
         const mode = modeData[currentMode] || { emoji: '🧙' };
         
         const wizardMsgDiv = document.createElement('div');
@@ -1039,14 +1169,12 @@ async function sendMessage() {
         chatHistory.appendChild(wizardMsgDiv);
         chatHistory.scrollTop = chatHistory.scrollHeight;
         
-        // Type response
         let baseSpeed = 20;
         if (currentMode === 'Fast') baseSpeed = 12;
         else if (currentMode === 'Nerd' || currentMode === 'ORACLE') baseSpeed = 25;
         
         await typeMessage(wizardMsgDiv, respTextSpan, data.reply, baseSpeed);
         
-        // Save message with mode
         messages.push({ 
             sender: 'wizard', 
             text: data.reply,
@@ -1055,7 +1183,6 @@ async function sendMessage() {
         
         updateMessageCount();
         
-        // Save to chat
         if (chats[activeChatId]) {
             chats[activeChatId].messages = [...messages];
             chats[activeChatId].updated_at = new Date().toISOString();
@@ -1187,10 +1314,8 @@ async function init() {
     createTooltip();
     updateConnectionStatus('connecting');
     
-    // Check auth status
     await checkAuth();
     
-    // If not logged in, initialize local chats
     if (!currentUser) {
         initializeLocalChats();
     }
@@ -1257,9 +1382,18 @@ function setupEventListeners() {
             if (isLoginMode) {
                 handleLogin();
             } else {
-                handleSignup();
+                // Check if we're in verification mode
+                if (authModalTitle.textContent === 'Verify Your Email') {
+                    handleSignupStep2();
+                } else {
+                    handleSignupStep1();
+                }
             }
         });
+    }
+    
+    if (resendCodeBtn) {
+        resendCodeBtn.addEventListener('click', resendVerificationCode);
     }
     
     if (logoutBtn) {
@@ -1306,7 +1440,6 @@ function setupEventListeners() {
         });
     }
     
-    // Close modals on outside click
     window.addEventListener('click', (e) => {
         if (e.target === authModal) {
             authModal.classList.remove('show');
@@ -1331,12 +1464,10 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// Hide tooltip when scrolling
 window.addEventListener('scroll', () => {
     if (tooltipEl) {
         tooltipEl.style.display = 'none';
     }
 });
 
-// Start the app
 document.addEventListener('DOMContentLoaded', init);
