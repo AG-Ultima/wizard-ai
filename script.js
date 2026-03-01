@@ -1,4 +1,4 @@
-// ============================================+
+// ============================================
 // GLOBAL CONFIGURATION
 // ============================================
 const API_BASE_URL = 'https://Arnav0928.pythonanywhere.com';
@@ -139,7 +139,11 @@ async function init() {
     addTurboToggle();
     setupModal();
     loadActiveChat();
-    addMessage('wizard', '✨ Welcome to Wizard.AI! Select a mode and toggle Turbo for extra speed!', false, true);
+    
+    // Add welcome message only if chat is empty
+    if (messages.length === 0) {
+        addMessage('wizard', `✨ Welcome to ${chats[activeChatId].name}! Select a mode and start chatting!`, false, true);
+    }
 }
 
 // Initialize chats from localStorage
@@ -152,13 +156,21 @@ function initializeChats() {
         chats = JSON.parse(savedChats);
         chatIds = JSON.parse(savedChatIds);
         activeChatId = savedActiveChat || 'default';
+        
+        // Ensure all chats have a mode property (for backward compatibility)
+        Object.keys(chats).forEach(chatId => {
+            if (!chats[chatId].mode) {
+                chats[chatId].mode = 'JARVIS';
+            }
+        });
     } else {
-        // Create default chat
+        // Create default chat with mode
         const defaultChat = {
             id: 'default',
             name: 'Main Chat',
             messages: [],
             emoji: '🧙',
+            mode: 'JARVIS',
             createdAt: new Date().toISOString(),
             lastActive: new Date().toISOString()
         };
@@ -167,11 +179,23 @@ function initializeChats() {
         activeChatId = 'default';
     }
     
+    // Set current mode from active chat
+    if (chats[activeChatId] && chats[activeChatId].mode) {
+        currentMode = chats[activeChatId].mode;
+    }
+    
     renderChatsList();
+    updateModeDisplay();
 }
 
 // Save chats to localStorage
 function saveChats() {
+    // Make sure current chat's mode is saved
+    if (chats[activeChatId]) {
+        chats[activeChatId].mode = currentMode;
+        chats[activeChatId].lastActive = new Date().toISOString();
+    }
+    
     localStorage.setItem('wizardChats', JSON.stringify(chats));
     localStorage.setItem('wizardChatIds', JSON.stringify(chatIds));
     localStorage.setItem('wizardActiveChat', activeChatId);
@@ -253,30 +277,63 @@ function renderChatsList() {
 function switchChat(chatId) {
     if (!chats[chatId]) return;
     
-    // Save current chat messages
+    // Save current chat messages AND mode
     if (chats[activeChatId]) {
         chats[activeChatId].messages = [...messages];
+        chats[activeChatId].mode = currentMode;
         chats[activeChatId].lastActive = new Date().toISOString();
     }
     
     // Switch to new chat
     activeChatId = chatId;
-    chats[activeChatId].lastActive = new Date().toISOString();
+    const newChat = chats[activeChatId];
+    newChat.lastActive = new Date().toISOString();
+    
+    // Load new chat's mode
+    currentMode = newChat.mode || 'JARVIS';
     
     // Load messages from new chat
-    messages = chats[activeChatId].messages ? [...chats[activeChatId].messages] : [];
+    messages = newChat.messages ? [...newChat.messages] : [];
+    
+    // Update UI to reflect new mode
+    updateModeDisplay();
     
     // Clear and rebuild chat history
     chatHistory.innerHTML = '';
     
-    // Add welcome message if chat is empty
-    if (messages.length === 0) {
-        addMessage('wizard', `✨ Welcome to ${chats[activeChatId].name}! Select a mode and start chatting!`, false, true);
-    } else {
-        // Re-render all messages
+    // Re-render all messages
+    if (messages.length > 0) {
         messages.forEach(msg => {
-            addMessage(msg.sender, msg.text, false, true);
+            // Use the stored mode for wizard messages
+            const wizardMsgDiv = document.createElement('div');
+            wizardMsgDiv.className = `message wizard`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'message-icon';
+            // For old messages, we don't know which mode, so use default
+            iconSpan.textContent = msg.sender === 'wizard' ? '🧙' : '👤';
+            
+            const textSpan = document.createElement('span');
+            textSpan.className = 'message-text';
+            textSpan.textContent = msg.text;
+            
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'message-time';
+            // We don't store time, so use current time
+            const now = new Date();
+            timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            contentDiv.appendChild(iconSpan);
+            contentDiv.appendChild(textSpan);
+            wizardMsgDiv.appendChild(contentDiv);
+            wizardMsgDiv.appendChild(timeSpan);
+            
+            chatHistory.appendChild(wizardMsgDiv);
         });
+        chatHistory.scrollTop = chatHistory.scrollHeight;
     }
     
     // Update UI
@@ -299,6 +356,7 @@ function createNewChat() {
         name: `Chat ${chatNumber}`,
         messages: [],
         emoji: randomEmoji,
+        mode: 'JARVIS',
         createdAt: new Date().toISOString(),
         lastActive: new Date().toISOString()
     };
@@ -406,8 +464,33 @@ function loadActiveChat() {
         
         // Re-render messages
         messages.forEach(msg => {
-            addMessage(msg.sender, msg.text, false, true);
+            const wizardMsgDiv = document.createElement('div');
+            wizardMsgDiv.className = `message wizard`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'message-icon';
+            iconSpan.textContent = msg.sender === 'wizard' ? '🧙' : '👤';
+            
+            const textSpan = document.createElement('span');
+            textSpan.className = 'message-text';
+            textSpan.textContent = msg.text;
+            
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'message-time';
+            const now = new Date();
+            timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            contentDiv.appendChild(iconSpan);
+            contentDiv.appendChild(textSpan);
+            wizardMsgDiv.appendChild(contentDiv);
+            wizardMsgDiv.appendChild(timeSpan);
+            
+            chatHistory.appendChild(wizardMsgDiv);
         });
+        chatHistory.scrollTop = chatHistory.scrollHeight;
     }
 }
 
@@ -426,11 +509,32 @@ function resetCurrentChat() {
     chatHistory.innerHTML = '';
     if (chats[activeChatId]) {
         chats[activeChatId].messages = [];
+        // Keep the mode!
         chats[activeChatId].lastActive = new Date().toISOString();
     }
     updateMessageCount();
     addMessage('wizard', `🧹 Chat cleared! Ready for new messages.`, false, true);
     saveChats();
+}
+
+// Update mode display in dropdown
+function updateModeDisplay() {
+    const mode = modeData[currentMode] || modeData['JARVIS'];
+    if (selectedDisplay) {
+        selectedDisplay.innerHTML = `${mode.emoji} ${currentMode}`;
+    }
+    
+    // Update selected class in dropdown
+    document.querySelectorAll('.dropdown-item').forEach(el => {
+        const itemMode = el.getAttribute('data-mode');
+        if (itemMode === currentMode) {
+            el.classList.add('selected');
+        } else {
+            el.classList.remove('selected');
+        }
+    });
+    
+    updateModelInfo();
 }
 
 // Create global tooltip element
@@ -533,12 +637,9 @@ function setupDropdown() {
         
         item.addEventListener('click', () => {
             currentMode = modeKey;
-            selectedDisplay.innerHTML = `${mode.emoji} ${modeKey}`;
             
-            document.querySelectorAll('.dropdown-item').forEach(el => {
-                el.classList.remove('selected');
-            });
-            item.classList.add('selected');
+            // Update UI
+            updateModeDisplay();
             
             dropdown.classList.remove('open');
             
@@ -546,10 +647,14 @@ function setupDropdown() {
                 tooltipEl.style.display = 'none';
             }
             
+            // Save mode to current chat
+            if (chats[activeChatId]) {
+                chats[activeChatId].mode = currentMode;
+                saveChats();
+            }
+            
             const greeting = modeGreetings[modeKey] || `Switched to ${modeKey} mode!`;
             addMessage('wizard', `🔄 ${greeting}`, false, true);
-            
-            updateModelInfo();
         });
         
         dropdownContent.appendChild(item);
@@ -566,8 +671,7 @@ function setupDropdown() {
         }
     });
     
-    const initialMode = modeData[currentMode];
-    selectedDisplay.innerHTML = `${initialMode.emoji} ${currentMode}`;
+    updateModeDisplay();
 }
 
 // Update connection status
@@ -963,5 +1067,3 @@ window.addEventListener('scroll', () => {
 
 // Start the app
 document.addEventListener('DOMContentLoaded', init);
-
-
