@@ -1,6 +1,6 @@
-// ============================================
+
 // GLOBAL CONFIGURATION
-// ============================================
+
 const API_BASE_URL = 'https://Arnav0928.pythonanywhere.com';
 // ============================================
 
@@ -606,3 +606,4 @@ document.addEventListener('keydown', (e) => {
 
 // Start the app
 document.addEventListener('DOMContentLoaded', init);
+
