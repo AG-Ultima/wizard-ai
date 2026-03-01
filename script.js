@@ -48,7 +48,6 @@ const userInfo = document.getElementById('user-info');
 const authButtons = document.getElementById('auth-buttons');
 const userEmail = document.getElementById('user-email');
 const logoutBtn = document.getElementById('logout-btn');
-const cloudActions = document.getElementById('cloud-actions');
 const saveCloudBtn = document.getElementById('save-cloud-btn');
 const loadCloudBtn = document.getElementById('load-cloud-btn');
 
@@ -57,9 +56,6 @@ const renameModal = document.getElementById('rename-modal');
 const renameInput = document.getElementById('rename-input');
 const modalSave = document.getElementById('modal-save');
 const modalCancel = document.getElementById('modal-cancel');
-
-// Generate unique session ID
-const sessionId = 'session_' + Math.random().toString(36).substr(2, 9);
 
 // State
 let messages = [];
@@ -83,7 +79,6 @@ let isLoginMode = true;
 // MODE DATA - With Hidden WIZARD Mode
 // ============================================
 const modeData = {
-    // Hidden WIZARD mode - for system messages only
     'WIZARD': {
         emoji: '🧙',
         name: 'The Wizard',
@@ -170,11 +165,9 @@ const modeGreetings = {
 };
 
 // ============================================
-// WIZARD MESSAGE FUNCTIONS (Always uses 🧙)
+// WIZARD MESSAGE FUNCTION - ALWAYS USES 🧙
 // ============================================
-
-// Special function for wizard system messages (always uses 🧙)
-function addWizardMessage(text, instant = false) {
+function addWizardMessage(text) {
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message wizard';
     
@@ -183,7 +176,7 @@ function addWizardMessage(text, instant = false) {
     
     const iconSpan = document.createElement('span');
     iconSpan.className = 'message-icon';
-    iconSpan.textContent = '🧙'; // Always wizard emoji
+    iconSpan.textContent = '🧙'; // ALWAYS wizard emoji for system messages
     
     const textSpan = document.createElement('span');
     textSpan.className = 'message-text';
@@ -206,60 +199,44 @@ function addWizardMessage(text, instant = false) {
 }
 
 // ============================================
-// ACCOUNT FUNCTIONS
+// AUTH FUNCTIONS
 // ============================================
 
-// Load users from localStorage
-function loadUsers() {
-    const users = localStorage.getItem('wizardUsers');
-    return users ? JSON.parse(users) : {};
-}
-
-// Save users to localStorage
-function saveUsers(users) {
-    localStorage.setItem('wizardUsers', JSON.stringify(users));
-}
-
-// Load current user
-function loadCurrentUser() {
-    const userJson = localStorage.getItem('wizardCurrentUser');
-    if (userJson) {
-        currentUser = JSON.parse(userJson);
-        updateUIBasedOnAuth();
-        loadUserChats();
+async function checkAuth() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/check-auth`, {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            currentUser = data.user;
+            updateUIForAuth();
+            loadUserChats();
+        } else {
+            updateUIForAuth();
+        }
+    } catch (error) {
+        console.error('Auth check failed:', error);
+        updateUIForAuth();
     }
 }
 
-// Save current user
-function saveCurrentUser(user) {
-    currentUser = user;
-    localStorage.setItem('wizardCurrentUser', JSON.stringify(user));
-    updateUIBasedOnAuth();
-}
-
-// Clear current user
-function clearCurrentUser() {
-    currentUser = null;
-    localStorage.removeItem('wizardCurrentUser');
-    updateUIBasedOnAuth();
-    initializeChats(); // Reset to default chats
-}
-
-// Update UI based on auth state
-function updateUIBasedOnAuth() {
+function updateUIForAuth() {
     if (currentUser) {
         userInfo.style.display = 'flex';
         authButtons.style.display = 'none';
         userEmail.textContent = currentUser.email;
-        cloudActions.style.display = 'flex';
+        if (saveCloudBtn) saveCloudBtn.style.display = 'block';
+        if (loadCloudBtn) loadCloudBtn.style.display = 'block';
     } else {
         userInfo.style.display = 'none';
         authButtons.style.display = 'flex';
-        cloudActions.style.display = 'none';
+        if (saveCloudBtn) saveCloudBtn.style.display = 'none';
+        if (loadCloudBtn) loadCloudBtn.style.display = 'none';
     }
 }
 
-// Show auth modal
 function showAuthModal(loginMode = true) {
     isLoginMode = loginMode;
     authModalTitle.textContent = loginMode ? 'Login to Wizard.AI' : 'Create Wizard.AI Account';
@@ -274,8 +251,7 @@ function showAuthModal(loginMode = true) {
     authModal.classList.add('show');
 }
 
-// Handle login
-function handleLogin() {
+async function handleLogin() {
     const email = authEmail.value.trim();
     const password = authPassword.value.trim();
     
@@ -284,21 +260,32 @@ function handleLogin() {
         return;
     }
     
-    const users = loadUsers();
-    const user = users[email];
-    
-    if (!user || user.password !== password) {
-        authError.textContent = 'Invalid email or password';
-        return;
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            currentUser = data.user;
+            authModal.classList.remove('show');
+            updateUIForAuth();
+            loadUserChats();
+            addWizardMessage(`✨ Welcome back, ${currentUser.email}!`);
+        } else {
+            authError.textContent = data.error || 'Login failed';
+        }
+    } catch (error) {
+        authError.textContent = 'Connection error';
+        console.error(error);
     }
-    
-    saveCurrentUser({ email, chats: user.chats || {} });
-    authModal.classList.remove('show');
-    loadUserChats();
 }
 
-// Handle signup
-function handleSignup() {
+async function handleSignup() {
     const email = authEmail.value.trim();
     const password = authPassword.value.trim();
     const confirm = authConfirm.value.trim();
@@ -313,118 +300,58 @@ function handleSignup() {
         return;
     }
     
-    const users = loadUsers();
-    
-    if (users[email]) {
-        authError.textContent = 'Email already exists';
-        return;
-    }
-    
-    // Create new user with default chats
-    const defaultChats = getDefaultChats();
-    users[email] = {
-        password,
-        chats: defaultChats,
-        createdAt: new Date().toISOString()
-    };
-    
-    saveUsers(users);
-    saveCurrentUser({ email, chats: defaultChats });
-    authModal.classList.remove('show');
-    loadUserChats();
-}
-
-// Get default chats structure
-function getDefaultChats() {
-    const defaultChat = {
-        id: 'default',
-        name: 'Main Chat',
-        messages: [],
-        emoji: '🧙',
-        mode: 'JARVIS',
-        createdAt: new Date().toISOString(),
-        lastActive: new Date().toISOString()
-    };
-    
-    return {
-        'default': defaultChat,
-        ids: ['default']
-    };
-}
-
-// Load user's chats
-function loadUserChats() {
-    if (!currentUser) return;
-    
-    const users = loadUsers();
-    const userData = users[currentUser.email];
-    
-    if (userData && userData.chats) {
-        chats = userData.chats.chats || {};
-        chatIds = userData.chats.ids || ['default'];
-        activeChatId = userData.chats.activeId || 'default';
-        
-        // Ensure all chats have mode
-        Object.keys(chats).forEach(chatId => {
-            if (!chats[chatId].mode) {
-                chats[chatId].mode = 'JARVIS';
-            }
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+            credentials: 'include'
         });
         
-        // Set current mode from active chat
-        if (chats[activeChatId] && chats[activeChatId].mode) {
-            currentMode = chats[activeChatId].mode;
+        const data = await response.json();
+        
+        if (response.ok) {
+            currentUser = data.user;
+            authModal.classList.remove('show');
+            updateUIForAuth();
+            initializeNewUserChats();
+            addWizardMessage(`✨ Welcome to Wizard.AI, ${currentUser.email}!`);
+        } else {
+            authError.textContent = data.error || 'Signup failed';
         }
-        
-        renderChatsList();
-        updateModeDisplay();
-        loadActiveChatMessages();
-    } else {
-        initializeChats();
+    } catch (error) {
+        authError.textContent = 'Connection error';
+        console.error(error);
     }
 }
 
-// Save user's chats to "cloud" (localStorage)
-function saveUserChats() {
-    if (!currentUser) return;
-    
-    const users = loadUsers();
-    
-    if (users[currentUser.email]) {
-        users[currentUser.email].chats = {
-            chats,
-            ids: chatIds,
-            activeId: activeChatId
-        };
-        saveUsers(users);
-        
-        // Show success message
-        addWizardMessage('☁️ Chats saved to cloud!', true);
+async function handleLogout() {
+    try {
+        await fetch(`${API_BASE_URL}/api/logout`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
     }
-}
-
-// Load user's chats from "cloud" (localStorage)
-function loadFromCloud() {
-    if (!currentUser) return;
     
-    loadUserChats();
-    addWizardMessage('☁️ Chats loaded from cloud!', true);
+    currentUser = null;
+    updateUIForAuth();
+    initializeLocalChats();
+    addWizardMessage('👋 You have been logged out.');
 }
 
 // ============================================
 // CHAT FUNCTIONS
 // ============================================
 
-// Initialize chats
-function initializeChats() {
+function initializeLocalChats() {
     const defaultChat = {
-        id: 'default',
+        chat_id: 'default',
         name: 'Main Chat',
-        messages: [],
         emoji: '🧙',
         mode: 'JARVIS',
-        createdAt: new Date().toISOString(),
-        lastActive: new Date().toISOString()
+        messages: []
     };
     
     chats = { 'default': defaultChat };
@@ -435,17 +362,92 @@ function initializeChats() {
     renderChatsList();
     updateModeDisplay();
     clearChatDisplay();
-    addWizardMessage('✨ Welcome to Wizard.AI! Select a mode from the dropdown and start your magical journey!', true);
+    addWizardMessage('✨ Welcome to Wizard.AI! Select a mode from the dropdown and start your magical journey!');
 }
 
-// Clear chat display
+function initializeNewUserChats() {
+    const defaultChat = {
+        chat_id: 'default',
+        name: 'Main Chat',
+        emoji: '🧙',
+        mode: 'JARVIS',
+        messages: []
+    };
+    
+    chats = { 'default': defaultChat };
+    chatIds = ['default'];
+    activeChatId = 'default';
+    currentMode = 'JARVIS';
+    
+    renderChatsList();
+    updateModeDisplay();
+    clearChatDisplay();
+    addWizardMessage('✨ Welcome to Wizard.AI! Select a mode from the dropdown and start your magical journey!');
+    saveUserChats();
+}
+
+async function loadUserChats() {
+    if (!currentUser) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/chats`, {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (data.chats && data.chats.length > 0) {
+                // Rebuild chats object
+                chats = {};
+                chatIds = [];
+                
+                data.chats.forEach(chat => {
+                    chats[chat.chat_id] = chat;
+                    chatIds.push(chat.chat_id);
+                });
+                
+                activeChatId = chatIds[0];
+                currentMode = chats[activeChatId].mode || 'JARVIS';
+                
+                renderChatsList();
+                updateModeDisplay();
+                loadActiveChatMessages();
+            } else {
+                initializeNewUserChats();
+            }
+        } else {
+            initializeNewUserChats();
+        }
+    } catch (error) {
+        console.error('Failed to load chats:', error);
+        initializeNewUserChats();
+    }
+}
+
+async function saveUserChats() {
+    if (!currentUser) return;
+    
+    const chatsArray = chatIds.map(id => chats[id]);
+    
+    try {
+        await fetch(`${API_BASE_URL}/api/save-chats`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ chats: chatsArray }),
+            credentials: 'include'
+        });
+    } catch (error) {
+        console.error('Failed to save chats:', error);
+    }
+}
+
 function clearChatDisplay() {
     chatHistory.innerHTML = '';
     messages = [];
     updateMessageCount();
 }
 
-// Load active chat messages with correct mode emojis
 function loadActiveChatMessages() {
     chatHistory.innerHTML = '';
     
@@ -454,73 +456,82 @@ function loadActiveChatMessages() {
         
         messages.forEach(msg => {
             if (msg.sender === 'user') {
-                // User message
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'message user';
-                
-                const contentDiv = document.createElement('div');
-                contentDiv.className = 'message-content';
-                
-                const iconSpan = document.createElement('span');
-                iconSpan.className = 'message-icon';
-                iconSpan.textContent = '👤';
-                
-                const textSpan = document.createElement('span');
-                textSpan.className = 'message-text';
-                textSpan.textContent = msg.text;
-                
-                const timeSpan = document.createElement('span');
-                timeSpan.className = 'message-time';
-                const now = new Date();
-                timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                
-                contentDiv.appendChild(iconSpan);
-                contentDiv.appendChild(textSpan);
-                messageDiv.appendChild(contentDiv);
-                messageDiv.appendChild(timeSpan);
-                
-                chatHistory.appendChild(messageDiv);
+                renderUserMessage(msg.text);
             } else {
-                // Wizard message - use stored mode for emoji
-                const mode = msg.mode ? modeData[msg.mode] : modeData['WIZARD'];
-                const emoji = mode ? mode.emoji : '🧙';
-                
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'message wizard';
-                
-                const contentDiv = document.createElement('div');
-                contentDiv.className = 'message-content';
-                
-                const iconSpan = document.createElement('span');
-                iconSpan.className = 'message-icon';
-                iconSpan.textContent = emoji;
-                
-                const textSpan = document.createElement('span');
-                textSpan.className = 'message-text';
-                textSpan.textContent = msg.text;
-                
-                const timeSpan = document.createElement('span');
-                timeSpan.className = 'message-time';
-                const now = new Date();
-                timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                
-                contentDiv.appendChild(iconSpan);
-                contentDiv.appendChild(textSpan);
-                messageDiv.appendChild(contentDiv);
-                messageDiv.appendChild(timeSpan);
-                
-                chatHistory.appendChild(messageDiv);
+                renderWizardMessage(msg.text, msg.mode);
             }
         });
         
         chatHistory.scrollTop = chatHistory.scrollHeight;
         updateMessageCount();
     } else {
-        addWizardMessage(`✨ Welcome to ${chats[activeChatId].name}! Select a mode to begin.`, true);
+        // No messages, show welcome message
+        addWizardMessage(`✨ Welcome to ${chats[activeChatId].name}! Select a mode to begin.`);
     }
 }
 
-// Render chats list
+function renderUserMessage(text) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message user';
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'message-icon';
+    iconSpan.textContent = '👤';
+    
+    const textSpan = document.createElement('span');
+    textSpan.className = 'message-text';
+    textSpan.textContent = text;
+    
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'message-time';
+    const now = new Date();
+    timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    contentDiv.appendChild(iconSpan);
+    contentDiv.appendChild(textSpan);
+    messageDiv.appendChild(contentDiv);
+    messageDiv.appendChild(timeSpan);
+    
+    chatHistory.appendChild(messageDiv);
+}
+
+function renderWizardMessage(text, mode = null) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message wizard';
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'message-icon';
+    
+    // Use mode emoji if provided, otherwise use wizard
+    if (mode && modeData[mode]) {
+        iconSpan.textContent = modeData[mode].emoji;
+    } else {
+        iconSpan.textContent = '🧙';
+    }
+    
+    const textSpan = document.createElement('span');
+    textSpan.className = 'message-text';
+    textSpan.textContent = text;
+    
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'message-time';
+    const now = new Date();
+    timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    contentDiv.appendChild(iconSpan);
+    contentDiv.appendChild(textSpan);
+    messageDiv.appendChild(contentDiv);
+    messageDiv.appendChild(timeSpan);
+    
+    chatHistory.appendChild(messageDiv);
+}
+
 function renderChatsList() {
     if (!chatsList) return;
     
@@ -531,7 +542,7 @@ function renderChatsList() {
         if (!chat) return;
         
         // Format time
-        const lastActive = new Date(chat.lastActive || chat.createdAt);
+        const lastActive = chat.updated_at ? new Date(chat.updated_at) : new Date();
         const now = new Date();
         const diffMs = now - lastActive;
         const diffMins = Math.floor(diffMs / 60000);
@@ -588,7 +599,6 @@ function renderChatsList() {
     }
 }
 
-// Switch to a different chat
 function switchChat(chatId) {
     if (!chats[chatId]) return;
     
@@ -596,13 +606,13 @@ function switchChat(chatId) {
     if (chats[activeChatId]) {
         chats[activeChatId].messages = [...messages];
         chats[activeChatId].mode = currentMode;
-        chats[activeChatId].lastActive = new Date().toISOString();
+        chats[activeChatId].updated_at = new Date().toISOString();
     }
     
     // Switch to new chat
     activeChatId = chatId;
     const newChat = chats[activeChatId];
-    newChat.lastActive = new Date().toISOString();
+    newChat.updated_at = new Date().toISOString();
     
     // Load new chat's mode
     currentMode = newChat.mode || 'JARVIS';
@@ -617,7 +627,6 @@ function switchChat(chatId) {
     }
 }
 
-// Create new chat
 function createNewChat() {
     const chatNumber = chatIds.length + 1;
     const chatId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
@@ -626,13 +635,13 @@ function createNewChat() {
     const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
     
     const newChat = {
-        id: chatId,
+        chat_id: chatId,
         name: `Chat ${chatNumber}`,
-        messages: [],
         emoji: randomEmoji,
         mode: 'JARVIS',
-        createdAt: new Date().toISOString(),
-        lastActive: new Date().toISOString()
+        messages: [],
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
     };
     
     chats[chatId] = newChat;
@@ -645,7 +654,6 @@ function createNewChat() {
     }
 }
 
-// Delete chat
 function deleteChat(chatId) {
     if (chatIds.length <= 1) {
         alert('Cannot delete the last chat');
@@ -673,7 +681,6 @@ function deleteChat(chatId) {
     }
 }
 
-// Rename chat
 function renameChat(chatId, newName) {
     if (!newName.trim()) return;
     
@@ -681,6 +688,7 @@ function renameChat(chatId, newName) {
     if (!chat) return;
     
     chat.name = newName.trim();
+    chat.updated_at = new Date().toISOString();
     
     if (chatId === activeChatId && currentChatName) {
         currentChatName.textContent = chat.name;
@@ -693,7 +701,17 @@ function renameChat(chatId, newName) {
     }
 }
 
-// Reset current chat
+function openRenameModal(chatId) {
+    chatToRename = chatId;
+    const chat = chats[chatId];
+    if (!chat) return;
+    
+    renameInput.value = chat.name;
+    renameModal.classList.add('show');
+    renameInput.focus();
+    renameInput.select();
+}
+
 function resetCurrentChat() {
     if (!confirm('Clear all messages in this chat?')) return;
     
@@ -702,18 +720,17 @@ function resetCurrentChat() {
     
     if (chats[activeChatId]) {
         chats[activeChatId].messages = [];
-        chats[activeChatId].lastActive = new Date().toISOString();
+        chats[activeChatId].updated_at = new Date().toISOString();
     }
     
     updateMessageCount();
-    addWizardMessage(`🧹 Chat cleared! Ready for new messages.`, true);
+    addWizardMessage(`🧹 Chat cleared! Ready for new messages.`);
     
     if (currentUser) {
         saveUserChats();
     }
 }
 
-// Update message count
 function updateMessageCount() {
     if (messageCount) {
         messageCount.textContent = messages.length;
@@ -724,7 +741,6 @@ function updateMessageCount() {
 // MODE FUNCTIONS
 // ============================================
 
-// Update mode display
 function updateModeDisplay() {
     const mode = modeData[currentMode] || modeData['JARVIS'];
     if (selectedDisplay) {
@@ -743,7 +759,6 @@ function updateModeDisplay() {
     updateModelInfo();
 }
 
-// Update model info
 function updateModelInfo() {
     const mode = modeData[currentMode] || { emoji: '✨', model: 'Loading...' };
     if (currentModel) {
@@ -755,7 +770,6 @@ function updateModelInfo() {
 // DROPDOWN SETUP
 // ============================================
 
-// Setup dropdown with tooltips (hiding WIZARD mode)
 function setupDropdown() {
     if (!dropdown || !dropdownContent) return;
     
@@ -786,9 +800,10 @@ function setupDropdown() {
             
             if (chats[activeChatId]) {
                 chats[activeChatId].mode = currentMode;
+                chats[activeChatId].updated_at = new Date().toISOString();
             }
             
-            addWizardMessage(`🔄 Switched to ${modeKey} mode! ${modeGreetings[modeKey] || ''}`, true);
+            addWizardMessage(`🔄 Switched to ${modeKey} mode! ${modeGreetings[modeKey] || ''}`);
             
             if (currentUser) {
                 saveUserChats();
@@ -878,116 +893,9 @@ function hideTooltip() {
 }
 
 // ============================================
-// MESSAGE SENDING
+// TYPING EFFECT
 // ============================================
 
-// Add message to chat
-function addMessage(sender, text, isThinkingMsg = false, instant = false) {
-    if (sender === 'wizard' && !isThinkingMsg && !instant) {
-        // For AI responses, store with current mode
-        messages.push({ 
-            sender, 
-            text, 
-            mode: currentMode,
-            timestamp: new Date().toISOString()
-        });
-    } else if (sender === 'user') {
-        messages.push({ 
-            sender, 
-            text,
-            timestamp: new Date().toISOString()
-        });
-    }
-    
-    // Render the message
-    renderMessage(sender, text, isThinkingMsg, instant);
-    
-    updateMessageCount();
-    
-    // Save to chat
-    if (chats[activeChatId]) {
-        chats[activeChatId].messages = [...messages];
-        chats[activeChatId].lastActive = new Date().toISOString();
-    }
-    
-    if (currentUser) {
-        saveUserChats();
-    }
-}
-
-// Render a single message
-function renderMessage(sender, text, isThinkingMsg = false, instant = false) {
-    if (sender === 'user') {
-        // User message
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message user${isThinkingMsg ? ' thinking' : ''}`;
-        
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content';
-        
-        const iconSpan = document.createElement('span');
-        iconSpan.className = 'message-icon';
-        iconSpan.textContent = '👤';
-        
-        const textSpan = document.createElement('span');
-        textSpan.className = 'message-text';
-        textSpan.textContent = text;
-        
-        const timeSpan = document.createElement('span');
-        timeSpan.className = 'message-time';
-        const now = new Date();
-        timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
-        contentDiv.appendChild(iconSpan);
-        contentDiv.appendChild(textSpan);
-        messageDiv.appendChild(contentDiv);
-        messageDiv.appendChild(timeSpan);
-        
-        chatHistory.appendChild(messageDiv);
-        chatHistory.scrollTop = chatHistory.scrollHeight;
-        
-        return { div: messageDiv, textSpan: textSpan };
-    } else {
-        // Wizard message - use current mode emoji
-        const mode = modeData[currentMode] || { emoji: '🧙' };
-        
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message wizard${isThinkingMsg ? ' thinking' : ''}`;
-        
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content';
-        
-        const iconSpan = document.createElement('span');
-        iconSpan.className = 'message-icon';
-        iconSpan.textContent = isThinkingMsg ? '⏳' : mode.emoji;
-        
-        const textSpan = document.createElement('span');
-        textSpan.className = 'message-text';
-        
-        if (isThinkingMsg || instant) {
-            textSpan.textContent = text;
-        } else {
-            textSpan.textContent = '';
-        }
-        
-        const timeSpan = document.createElement('span');
-        timeSpan.className = 'message-time';
-        const now = new Date();
-        timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
-        contentDiv.appendChild(iconSpan);
-        contentDiv.appendChild(textSpan);
-        messageDiv.appendChild(contentDiv);
-        messageDiv.appendChild(timeSpan);
-        
-        chatHistory.appendChild(messageDiv);
-        chatHistory.scrollTop = chatHistory.scrollHeight;
-        
-        return { div: messageDiv, textSpan: textSpan };
-    }
-}
-
-// Typing effect
 async function typeMessage(messageDiv, textSpan, fullText, baseSpeed = 20) {
     return new Promise((resolve) => {
         let i = 0;
@@ -1019,7 +927,10 @@ async function typeMessage(messageDiv, textSpan, fullText, baseSpeed = 20) {
     });
 }
 
-// Send message
+// ============================================
+// SEND MESSAGE
+// ============================================
+
 async function sendMessage() {
     if (isThinking) return;
     
@@ -1027,15 +938,53 @@ async function sendMessage() {
     if (!text) return;
     
     // Add user message
-    addMessage('user', text);
+    renderUserMessage(text);
+    messages.push({ sender: 'user', text });
     chatInput.value = '';
+    updateMessageCount();
+    
+    // Save to chat
+    if (chats[activeChatId]) {
+        chats[activeChatId].messages = [...messages];
+        chats[activeChatId].updated_at = new Date().toISOString();
+    }
+    
+    if (currentUser) {
+        saveUserChats();
+    }
     
     isThinking = true;
     chatInput.disabled = true;
     sendBtn.disabled = true;
     sendBtn.classList.add('loading');
     
-    const thinkingMsg = renderMessage('wizard', '✨', true, true);
+    // Show thinking indicator (using wizard emoji)
+    const thinkingDiv = document.createElement('div');
+    thinkingDiv.className = 'message wizard thinking';
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'message-icon';
+    iconSpan.textContent = '⏳';
+    
+    const textSpan = document.createElement('span');
+    textSpan.className = 'message-text';
+    textSpan.textContent = '✨';
+    
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'message-time';
+    const now = new Date();
+    timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    contentDiv.appendChild(iconSpan);
+    contentDiv.appendChild(textSpan);
+    thinkingDiv.appendChild(contentDiv);
+    thinkingDiv.appendChild(timeSpan);
+    
+    chatHistory.appendChild(thinkingDiv);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
     
     try {
         const startTime = Date.now();
@@ -1046,7 +995,6 @@ async function sendMessage() {
             body: JSON.stringify({
                 prompt: text,
                 mode: currentMode,
-                session_id: sessionId,
                 turbo: turboMode
             })
         });
@@ -1058,52 +1006,51 @@ async function sendMessage() {
             responseTimeEl.textContent = `${responseTime}s`;
         }
         
-        if (thinkingMsg.div.parentNode) {
-            thinkingMsg.div.remove();
-        }
+        // Remove thinking indicator
+        thinkingDiv.remove();
         
-        // Render the response with typing effect
+        // Create wizard response with current mode emoji
         const mode = modeData[currentMode] || { emoji: '🧙' };
         
         const wizardMsgDiv = document.createElement('div');
         wizardMsgDiv.className = 'message wizard';
         
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content';
+        const respContentDiv = document.createElement('div');
+        respContentDiv.className = 'message-content';
         
-        const iconSpan = document.createElement('span');
-        iconSpan.className = 'message-icon';
-        iconSpan.textContent = mode.emoji;
+        const respIconSpan = document.createElement('span');
+        respIconSpan.className = 'message-icon';
+        respIconSpan.textContent = mode.emoji;
         
-        const textSpan = document.createElement('span');
-        textSpan.className = 'message-text';
-        textSpan.textContent = '';
+        const respTextSpan = document.createElement('span');
+        respTextSpan.className = 'message-text';
+        respTextSpan.textContent = '';
         
-        const timeSpan = document.createElement('span');
-        timeSpan.className = 'message-time';
-        const now = new Date();
-        timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const respTimeSpan = document.createElement('span');
+        respTimeSpan.className = 'message-time';
+        const respNow = new Date();
+        respTimeSpan.textContent = respNow.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         
-        contentDiv.appendChild(iconSpan);
-        contentDiv.appendChild(textSpan);
-        wizardMsgDiv.appendChild(contentDiv);
-        wizardMsgDiv.appendChild(timeSpan);
+        respContentDiv.appendChild(respIconSpan);
+        respContentDiv.appendChild(respTextSpan);
+        wizardMsgDiv.appendChild(respContentDiv);
+        wizardMsgDiv.appendChild(respTimeSpan);
         
         chatHistory.appendChild(wizardMsgDiv);
         chatHistory.scrollTop = chatHistory.scrollHeight;
         
+        // Type response
         let baseSpeed = 20;
         if (currentMode === 'Fast') baseSpeed = 12;
         else if (currentMode === 'Nerd' || currentMode === 'ORACLE') baseSpeed = 25;
         
-        await typeMessage(wizardMsgDiv, textSpan, data.reply, baseSpeed);
+        await typeMessage(wizardMsgDiv, respTextSpan, data.reply, baseSpeed);
         
         // Save message with mode
         messages.push({ 
             sender: 'wizard', 
-            text: data.reply, 
-            mode: currentMode,
-            timestamp: new Date().toISOString()
+            text: data.reply,
+            mode: currentMode
         });
         
         updateMessageCount();
@@ -1111,173 +1058,23 @@ async function sendMessage() {
         // Save to chat
         if (chats[activeChatId]) {
             chats[activeChatId].messages = [...messages];
-            chats[activeChatId].lastActive = new Date().toISOString();
+            chats[activeChatId].updated_at = new Date().toISOString();
         }
         
         if (currentUser) {
             saveUserChats();
         }
         
-        if (data.model && currentModel) {
-            currentModel.innerHTML = `${mode.emoji} ${data.model}`;
-        }
-        
     } catch (error) {
         console.error('Chat error:', error);
-        
-        if (thinkingMsg.div.parentNode) {
-            thinkingMsg.div.remove();
-        }
-        
-        let errorMessage = '⚠️ Connection error! Please try again.';
-        if (error.message.includes('Failed to fetch')) {
-            errorMessage = '⚠️ Cannot reach the backend. Make sure the server is running.';
-        } else if (error.message.includes('500')) {
-            errorMessage = '⚠️ Server error. Please try again later.';
-        }
-        
-        addWizardMessage(errorMessage, true);
-        
+        thinkingDiv.remove();
+        addWizardMessage('⚠️ Connection error! Please try again.');
     } finally {
         isThinking = false;
         chatInput.disabled = false;
         sendBtn.disabled = false;
         sendBtn.classList.remove('loading');
         chatInput.focus();
-    }
-}
-
-// ============================================
-// MODAL FUNCTIONS
-// ============================================
-
-function setupModal() {
-    if (!renameModal) return;
-    
-    modalSave.addEventListener('click', () => {
-        if (chatToRename) {
-            renameChat(chatToRename, renameInput.value);
-            renameModal.classList.remove('show');
-            chatToRename = null;
-        }
-    });
-    
-    modalCancel.addEventListener('click', () => {
-        renameModal.classList.remove('show');
-        chatToRename = null;
-    });
-    
-    window.addEventListener('click', (e) => {
-        if (e.target === renameModal) {
-            renameModal.classList.remove('show');
-            chatToRename = null;
-        }
-    });
-    
-    renameInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            modalSave.click();
-        }
-    });
-}
-
-function openRenameModal(chatId) {
-    chatToRename = chatId;
-    const chat = chats[chatId];
-    if (!chat) return;
-    
-    renameInput.value = chat.name;
-    renameModal.classList.add('show');
-    renameInput.focus();
-    renameInput.select();
-}
-
-// ============================================
-// STATUS FUNCTIONS
-// ============================================
-
-function updateConnectionStatus(status) {
-    if (!statusText || !statusDot) return;
-    
-    if (status === 'connected') {
-        statusText.textContent = 'Connected';
-        statusDot.classList.remove('offline');
-    } else if (status === 'connecting') {
-        statusText.textContent = 'Connecting...';
-        statusDot.classList.add('offline');
-    } else {
-        statusText.textContent = 'Offline';
-        statusDot.classList.add('offline');
-    }
-}
-
-// ============================================
-// BACKEND FUNCTIONS
-// ============================================
-
-async function loadModes() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/modes`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const data = await response.json();
-        console.log('📋 Modes loaded:', data.modes);
-    } catch (error) {
-        console.error('Failed to load modes:', error);
-    }
-}
-
-async function checkSystemStatus() {
-    try {
-        console.log('🔍 Checking backend at:', `${API_BASE_URL}/status`);
-        
-        const response = await fetch(`${API_BASE_URL}/status`, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' }
-        });
-        
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
-        const data = await response.json();
-        console.log('✅ Backend connected:', data);
-        
-        updateConnectionStatus('connected');
-        
-        if (modelList) {
-            modelList.innerHTML = `
-                <div class="model-item">
-                    <div class="model-name">
-                        <span>⚡</span>
-                        <span>Llama 3.1 8B</span>
-                        <span class="model-badge" style="background:#10b981;">FAST</span>
-                    </div>
-                    <span class="model-status-badge">✅</span>
-                </div>
-                <div class="model-item">
-                    <div class="model-name">
-                        <span>🧠</span>
-                        <span>Llama 3.3 70B</span>
-                        <span class="model-badge" style="background:#8b5cf6;">POWERFUL</span>
-                    </div>
-                    <span class="model-status-badge">✅</span>
-                </div>
-            `;
-        }
-        
-    } catch (error) {
-        console.error('❌ Connection failed:', error);
-        updateConnectionStatus('offline');
-        
-        if (modelList) {
-            modelList.innerHTML = `
-                <div style="background:rgba(239,68,68,0.1); border:1px solid #ef4444; border-radius:8px; padding:12px;">
-                    <strong style="color:#ef4444;">⚠️ Cannot Connect</strong>
-                    <div style="color:#fff; font-size:12px; margin:8px 0;">${error.message}</div>
-                    <button onclick="window.location.reload()" style="background:#8b5cf6; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; margin-top:10px;">
-                        🔄 Retry
-                    </button>
-                </div>
-            `;
-        }
     }
 }
 
@@ -1313,13 +1110,69 @@ function addTurboToggle() {
             if (turboMode) {
                 turboBtn.style.background = '#ef4444';
                 turboBtn.innerHTML = '<span>⚡</span> TURBO ON';
-                addWizardMessage('⚡ Turbo mode activated - faster responses, same personality!', true);
+                addWizardMessage('⚡ Turbo mode activated - faster responses, same personality!');
             } else {
                 turboBtn.style.background = '#4b5563';
                 turboBtn.innerHTML = '<span>🔴</span> TURBO OFF';
-                addWizardMessage('✨ Turbo mode deactivated.', true);
+                addWizardMessage('✨ Turbo mode deactivated.');
             }
         });
+    }
+}
+
+// ============================================
+// BACKEND STATUS
+// ============================================
+
+async function checkSystemStatus() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/status`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            updateConnectionStatus('connected');
+            
+            if (modelList) {
+                modelList.innerHTML = `
+                    <div class="model-item">
+                        <div class="model-name">
+                            <span>⚡</span>
+                            <span>Llama 3.1 8B</span>
+                            <span class="model-badge" style="background:#10b981;">FAST</span>
+                        </div>
+                        <span class="model-status-badge">✅</span>
+                    </div>
+                    <div class="model-item">
+                        <div class="model-name">
+                            <span>🧠</span>
+                            <span>Llama 3.3 70B</span>
+                            <span class="model-badge" style="background:#8b5cf6;">POWERFUL</span>
+                        </div>
+                        <span class="model-status-badge">✅</span>
+                    </div>
+                `;
+            }
+        } else {
+            updateConnectionStatus('offline');
+        }
+    } catch (error) {
+        console.error('Status check failed:', error);
+        updateConnectionStatus('offline');
+    }
+}
+
+function updateConnectionStatus(status) {
+    if (!statusText || !statusDot) return;
+    
+    if (status === 'connected') {
+        statusText.textContent = 'Connected';
+        statusDot.classList.remove('offline');
+    } else if (status === 'connecting') {
+        statusText.textContent = 'Connecting...';
+        statusDot.classList.add('offline');
+    } else {
+        statusText.textContent = 'Offline';
+        statusDot.classList.add('offline');
     }
 }
 
@@ -1332,26 +1185,22 @@ async function init() {
     console.log('🔗 Backend URL:', API_BASE_URL);
     
     createTooltip();
-    createTooltip();
     updateConnectionStatus('connecting');
     
-    // Load auth state
-    loadCurrentUser();
+    // Check auth status
+    await checkAuth();
     
-    // If no user, initialize default chats
+    // If not logged in, initialize local chats
     if (!currentUser) {
-        initializeChats();
+        initializeLocalChats();
     }
     
-    await loadModes();
     await checkSystemStatus();
     setupDropdown();
     setupEventListeners();
-    setupModal();
     addTurboToggle();
 }
 
-// Setup event listeners
 function setupEventListeners() {
     sendBtn.addEventListener('click', sendMessage);
     
@@ -1414,24 +1263,57 @@ function setupEventListeners() {
     }
     
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            clearCurrentUser();
-            initializeChats();
-        });
+        logoutBtn.addEventListener('click', handleLogout);
     }
     
     if (saveCloudBtn) {
-        saveCloudBtn.addEventListener('click', saveUserChats);
+        saveCloudBtn.addEventListener('click', () => {
+            saveUserChats();
+            addWizardMessage('☁️ Chats saved to cloud!');
+        });
     }
     
     if (loadCloudBtn) {
-        loadCloudBtn.addEventListener('click', loadFromCloud);
+        loadCloudBtn.addEventListener('click', async () => {
+            await loadUserChats();
+            addWizardMessage('☁️ Chats loaded from cloud!');
+        });
     }
     
-    // Close modal on outside click
+    // Rename modal
+    if (modalSave) {
+        modalSave.addEventListener('click', () => {
+            if (chatToRename) {
+                renameChat(chatToRename, renameInput.value);
+                renameModal.classList.remove('show');
+                chatToRename = null;
+            }
+        });
+    }
+    
+    if (modalCancel) {
+        modalCancel.addEventListener('click', () => {
+            renameModal.classList.remove('show');
+            chatToRename = null;
+        });
+    }
+    
+    if (renameInput) {
+        renameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                modalSave.click();
+            }
+        });
+    }
+    
+    // Close modals on outside click
     window.addEventListener('click', (e) => {
         if (e.target === authModal) {
             authModal.classList.remove('show');
+        }
+        if (e.target === renameModal) {
+            renameModal.classList.remove('show');
+            chatToRename = null;
         }
     });
 }
@@ -1445,7 +1327,7 @@ document.addEventListener('keydown', (e) => {
         sendBtn.disabled = false;
         sendBtn.classList.remove('loading');
         chatInput.focus();
-        addWizardMessage('🔧 Emergency reset - you can type again!', true);
+        addWizardMessage('🔧 Emergency reset - you can type again!');
     }
 });
 
