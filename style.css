@@ -720,13 +720,13 @@ body {
     }
 }
 /* ============================================
-   CHATS SIDEBAR - NEW!
+   CHATS SIDEBAR - RIGHT SIDE
    ============================================ */
 .chats-sidebar {
-    width: 240px;
+    width: 280px;
     background: rgba(15, 10, 25, 0.85);
     backdrop-filter: blur(10px);
-    border-right: 1px solid rgba(139, 92, 246, 0.3);
+    border-left: 1px solid rgba(139, 92, 246, 0.3);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -787,6 +787,7 @@ body {
     gap: 8px;
     transition: all 0.2s ease;
     border: 1px solid transparent;
+    position: relative;
 }
 
 .chat-item:hover {
@@ -814,64 +815,206 @@ body {
     text-overflow: ellipsis;
 }
 
-.chat-time {
-    color: #6b7280;
-    font-size: 10px;
+.chat-item-actions {
+    display: none;
+    gap: 4px;
+    margin-right: 4px;
 }
 
-.chats-footer {
-    padding: 15px;
-    border-top: 1px solid rgba(139, 92, 246, 0.2);
+.chat-item:hover .chat-item-actions {
+    display: flex;
 }
 
-.delete-chat-btn {
-    width: 100%;
-    padding: 8px;
-    background: rgba(239, 68, 68, 0.1);
-    border: 1px solid #ef4444;
-    color: #ef4444;
-    border-radius: 8px;
+.rename-chat-item, .delete-chat-item {
+    background: none;
+    border: none;
+    color: #9ca3af;
     cursor: pointer;
+    padding: 2px 4px;
     font-size: 12px;
+    border-radius: 4px;
     transition: all 0.2s ease;
 }
 
-.delete-chat-btn:hover:not(:disabled) {
-    background: #ef4444;
+.rename-chat-item:hover {
+    color: #c4b5fd;
+    background: rgba(139, 92, 246, 0.2);
+}
+
+.delete-chat-item:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.2);
+}
+
+.chat-time {
+    color: #6b7280;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+/* Chat Header Actions */
+.chat-header {
+    padding: 20px 30px;
+    border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chat-emoji-large {
+    font-size: 24px;
+}
+
+.chat-header h2 {
+    color: #fff;
+    font-size: 18px;
+    font-weight: 500;
+    margin: 0;
+}
+
+.chat-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.chat-action-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.2s ease;
+}
+
+.chat-action-btn:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: #8b5cf6;
+    transform: scale(1.05);
+}
+
+.chat-action-btn.delete-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+}
+
+/* Rename Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 100000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: #2d1a44;
+    border: 1px solid #8b5cf6;
+    border-radius: 16px;
+    padding: 24px;
+    width: 300px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.modal-content h3 {
+    color: #c4b5fd;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.modal-content input:focus {
+    outline: none;
+    border-color: #8b5cf6;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.modal-buttons button {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#modal-save {
+    background: #8b5cf6;
     color: white;
 }
 
-.delete-chat-btn:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
+#modal-save:hover {
+    background: #6d28d9;
+}
+
+#modal-cancel {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+#modal-cancel:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 /* Update main container for 3 columns */
 .app-container {
     display: flex;
-    max-width: 1600px; /* Wider to accommodate new sidebar */
+    max-width: 1600px;
     margin: 20px auto;
-    /* rest of your existing styles */
+    background: rgba(26, 15, 51, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 32px;
+    box-shadow: 0 20px 60px rgba(139, 92, 246, 0.3);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    overflow: hidden;
+    min-height: 90vh;
+    position: relative;
+    z-index: 10;
 }
 
-/* Adjust sidebar width */
-.sidebar {
-    width: 280px; /* Slightly narrower */
-}
-
-/* Responsive adjustment */
-@media (max-width: 1000px) {
+/* Responsive */
+@media (max-width: 1200px) {
     .app-container {
         flex-direction: column;
     }
     
     .chats-sidebar {
         width: 100%;
-        border-right: none;
-        border-bottom: 1px solid rgba(139, 92, 246, 0.3);
-    }
-    
-    .chats-list {
-        max-height: 150px;
+        border-left: none;
+        border-top: 1px solid rgba(139, 92, 246, 0.3);
     }
 }
