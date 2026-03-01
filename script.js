@@ -26,15 +26,15 @@ let isThinking = false;
 let currentMode = 'JARVIS';
 let turboMode = false;
 
-// Model mapping (same as before)
+// Model mapping with updated Groq models
 const modelMap = {
-    'Fast': { name: 'phi3:mini', emoji: '⚡', description: 'Lightning fast' },
-    'Normal': { name: 'phi3:mini', emoji: '✨', description: 'Balanced' },
-    'Fun': { name: 'phi3:mini', emoji: '🎉', description: 'Playful' },
-    'Sarcastic': { name: 'phi3:mini', emoji: '😏', description: 'Witty' },
-    'Nerd': { name: 'gemma:2b', emoji: '🧠', description: 'Smart' },
-    'JARVIS': { name: 'gemma:2b', emoji: '🎩', description: 'Sophisticated' },
-    'ORACLE': { name: 'llama3', emoji: '🔮', description: 'All-knowing' }
+    'Fast': { name: 'llama-3.1-8b-instant', emoji: '⚡', description: 'Lightning fast' },
+    'Normal': { name: 'llama-3.1-8b-instant', emoji: '✨', description: 'Balanced' },
+    'Fun': { name: 'llama-3.1-70b-versatile', emoji: '🎉', description: 'Playful' },
+    'Sarcastic': { name: 'llama-3.1-8b-instant', emoji: '😏', description: 'Witty' },
+    'Nerd': { name: 'llama-3.1-70b-versatile', emoji: '🧠', description: 'Smart' },
+    'JARVIS': { name: 'llama-3.1-8b-instant', emoji: '🎩', description: 'Sophisticated' },
+    'ORACLE': { name: 'llama-3.1-70b-versatile', emoji: '🔮', description: 'All-knowing' }
 };
 
 // Mode greetings
@@ -122,13 +122,13 @@ async function checkSystemStatus() {
         updateConnectionStatus('connected');
         
         // Update model list
-        const modelList = document.getElementById('model-list');
+        // Update model list in sidebar
         if (modelList) {
             modelList.innerHTML = `
                 <div class="model-item">
                     <div class="model-name">
                         <span>⚡</span>
-                        <span>Mixtral 8x7B</span>
+                        <span>Llama 3.1 8B</span>
                         <span class="model-badge" style="background:#10b981;">FAST</span>
                     </div>
                     <span class="model-status-badge">✅</span>
@@ -136,7 +136,7 @@ async function checkSystemStatus() {
                 <div class="model-item">
                     <div class="model-name">
                         <span>🧠</span>
-                        <span>Llama 3 70B</span>
+                        <span>Llama 3.1 70B</span>
                         <span class="model-badge" style="background:#8b5cf6;">POWERFUL</span>
                     </div>
                     <span class="model-status-badge">✅</span>
@@ -144,7 +144,7 @@ async function checkSystemStatus() {
             `;
         }
         
-    } catch (error) {
+     catch (error) {
         console.error('❌ Connection failed:', error);
         updateConnectionStatus('offline');
         
@@ -386,3 +386,4 @@ document.addEventListener('keydown', (e) => {
 // Start the app
 
 document.addEventListener('DOMContentLoaded', init);
+
