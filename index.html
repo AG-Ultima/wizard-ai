@@ -49,7 +49,7 @@
                 </div>
             </div>
             
-            <!-- Turbo Mode Toggle -->
+            <!-- Turbo Mode Toggle Container -->
             <div id="turbo-toggle-container"></div>
             
             <div class="stats">
@@ -86,7 +86,7 @@
             
             <div class="footer-note">
                 <p>Created by Arnav ✨</p>
-                <p class="version">v4.0 - Wizard Account Edition</p>
+                <p class="version">v5.0 - Ultimate Edition</p>
             </div>
         </div>
         
@@ -146,19 +146,42 @@
             </div>
             <div class="modal-body">
                 <div class="auth-form">
+                    <!-- First Name (for signup) -->
+                    <div class="form-group" id="first-name-group" style="display: none;">
+                        <label for="first-name">First Name</label>
+                        <input type="text" id="first-name" placeholder="Enter your first name">
+                    </div>
+
+                    <!-- Last Name (for signup) -->
+                    <div class="form-group" id="last-name-group" style="display: none;">
+                        <label for="last-name">Last Name</label>
+                        <input type="text" id="last-name" placeholder="Enter your last name">
+                    </div>
+                    
                     <div class="form-group">
                         <label for="auth-email">Email</label>
                         <input type="email" id="auth-email" placeholder="Enter your email">
                     </div>
+                    
                     <div class="form-group">
                         <label for="auth-password">Password</label>
                         <input type="password" id="auth-password" placeholder="Enter your password">
                     </div>
+                    
                     <div class="form-group" id="confirm-password-group" style="display: none;">
                         <label for="auth-confirm">Confirm Password</label>
                         <input type="password" id="auth-confirm" placeholder="Confirm your password">
                     </div>
+
+                    <!-- Verification Code (for email verification) -->
+                    <div class="form-group" id="verification-group" style="display: none;">
+                        <label for="verification-code">Verification Code</label>
+                        <input type="text" id="verification-code" placeholder="Enter 6-digit code" maxlength="6">
+                        <button id="resend-code-btn" style="margin-top: 10px; background: none; border: 1px solid #8b5cf6; color: white; padding: 8px; border-radius: 6px; width: 100%; cursor: pointer; transition: all 0.2s;">📧 Resend Code</button>
+                    </div>
+                    
                     <div class="auth-error" id="auth-error"></div>
+                    
                     <button class="auth-submit" id="auth-submit">Login</button>
                 </div>
                 <div class="auth-switch">
