@@ -8,87 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <meta name="description" content="Wizard.AI - Your magical AI companion with multiple personalities">
     <meta name="author" content="Arnav">
-    <style>
-        /* Tooltip styles */
-        .mode-selector {
-            position: relative;
-        }
-        
-        .mode-dropdown {
-            width: 100%;
-            padding: 12px 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            border-radius: 12px;
-            color: #fff;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
-            background-repeat: no-repeat;
-            background-position: right 15px center;
-            background-size: 16px;
-        }
-        
-        .mode-dropdown:hover {
-            background: rgba(139, 92, 246, 0.1);
-            border-color: #8b5cf6;
-        }
-        
-        .mode-dropdown option {
-            background: #1a0f33;
-            color: #fff;
-            padding: 12px;
-            font-size: 14px;
-        }
-        
-        /* Custom tooltip on hover for dropdown options - using title attribute */
-        .mode-dropdown option:hover {
-            background: #8b5cf6;
-            cursor: pointer;
-        }
-        
-        /* Since native option tooltips are limited, we'll add a custom tooltip div */
-        .tooltip-container {
-            margin-top: 8px;
-            padding: 10px;
-            background: rgba(139, 92, 246, 0.15);
-            border-radius: 8px;
-            border-left: 3px solid #8b5cf6;
-            font-size: 12px;
-            color: #c4b5fd;
-            min-height: 60px;
-            transition: all 0.3s ease;
-        }
-        
-        .tooltip-content {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .tooltip-emoji {
-            font-size: 20px;
-        }
-        
-        .tooltip-text {
-            line-height: 1.5;
-        }
-        
-        .tooltip-title {
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 4px;
-        }
-        
-        .tooltip-desc {
-            color: #9ca3af;
-            font-size: 11px;
-        }
-    </style>
 </head>
 <body>
     <div class="stars"></div>
@@ -109,18 +28,14 @@
             
             <div class="mode-selector">
                 <h2>Personality Mode</h2>
-                <select id="mode-select" class="mode-dropdown" aria-label="Select AI personality mode">
-                    <!-- Options will be loaded by JavaScript -->
-                </select>
-                
-                <!-- Tooltip display area -->
-                <div class="tooltip-container" id="mode-tooltip">
-                    <div class="tooltip-content">
-                        <span class="tooltip-emoji">✨</span>
-                        <div class="tooltip-text">
-                            <div class="tooltip-title">Select a mode</div>
-                            <div class="tooltip-desc">Hover over options to see descriptions</div>
-                        </div>
+                <!-- Custom dropdown for tooltips -->
+                <div class="custom-dropdown" id="mode-dropdown">
+                    <div class="custom-dropdown-btn" id="dropdown-btn">
+                        <span id="selected-mode-display">🎩 JARVIS</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </div>
+                    <div class="custom-dropdown-content" id="dropdown-content">
+                        <!-- Options will be loaded by JavaScript -->
                     </div>
                 </div>
             </div>
