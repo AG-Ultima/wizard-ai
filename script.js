@@ -1,5 +1,5 @@
 // ============================================
-// GLOBAL CONFIGURATION - Neocities Compatible
+// GLOBAL CONFIGURATION
 // ============================================
 const API_BASE_URL = 'https://Arnav0928.pythonanywhere.com';
 // ============================================
@@ -13,7 +13,7 @@ const modeSelect = document.getElementById('mode-select');
 const messageCount = document.getElementById('message-count');
 const currentModel = document.getElementById('current-model');
 const responseTimeEl = document.getElementById('response-time');
-const modelStatusEl = document.getElementById('model-status');
+const modelList = document.getElementById('model-list');
 const statusText = document.getElementById('status-text');
 const statusDot = document.querySelector('.status-dot');
 
@@ -26,15 +26,15 @@ let isThinking = false;
 let currentMode = 'JARVIS';
 let turboMode = false;
 
-// Model mapping with updated Groq models
+// Model mapping with CORRECT emojis and info
 const modelMap = {
-    'Fast': { name: 'llama-3.1-8b-instant', emoji: '⚡', description: 'Lightning fast' },
-    'Normal': { name: 'llama-3.1-8b-instant', emoji: '✨', description: 'Balanced' },
-    'Fun': { name: 'llama-3.1-70b-versatile', emoji: '🎉', description: 'Playful' },
-    'Sarcastic': { name: 'llama-3.1-8b-instant', emoji: '😏', description: 'Witty' },
-    'Nerd': { name: 'llama-3.1-70b-versatile', emoji: '🧠', description: 'Smart' },
-    'JARVIS': { name: 'llama-3.1-8b-instant', emoji: '🎩', description: 'Sophisticated' },
-    'ORACLE': { name: 'llama-3.1-70b-versatile', emoji: '🔮', description: 'All-knowing' }
+    'Fast': { name: 'Llama 3.1 8B', emoji: '⚡', description: 'Lightning fast', apiModel: 'llama-3.1-8b-instant' },
+    'Normal': { name: 'Llama 3.1 8B', emoji: '✨', description: 'Balanced', apiModel: 'llama-3.1-8b-instant' },
+    'Fun': { name: 'Llama 3.3 70B', emoji: '🎉', description: 'Creative', apiModel: 'llama-3.3-70b-versatile' },
+    'Sarcastic': { name: 'Llama 3.1 8B', emoji: '😏', description: 'Witty', apiModel: 'llama-3.1-8b-instant' },
+    'Nerd': { name: 'Llama 3.3 70B', emoji: '🧠', description: 'Smart', apiModel: 'llama-3.3-70b-versatile' },
+    'JARVIS': { name: 'Llama 3.1 8B', emoji: '🎩', description: 'Sophisticated', apiModel: 'llama-3.1-8b-instant' },
+    'ORACLE': { name: 'Llama 3.3 70B', emoji: '🔮', description: 'All-knowing', apiModel: 'llama-3.3-70b-versatile' }
 };
 
 // Mode greetings
@@ -63,9 +63,6 @@ async function init() {
 
 // Update connection status
 function updateConnectionStatus(status) {
-    const statusText = document.getElementById('status-text');
-    const statusDot = document.querySelector('.status-dot');
-    
     if (!statusText || !statusDot) return;
     
     if (status === 'connected') {
@@ -80,7 +77,7 @@ function updateConnectionStatus(status) {
     }
 }
 
-// Load modes
+// Load modes from backend
 async function loadModes() {
     try {
         const response = await fetch(`${API_BASE_URL}/modes`);
@@ -105,24 +102,17 @@ async function checkSystemStatus() {
         
         const response = await fetch(`${API_BASE_URL}/status`, {
             method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-            }
+            headers: { 'Accept': 'application/json' }
         });
         
-        console.log('📡 Response status:', response.status);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
         const data = await response.json();
         console.log('✅ Backend connected:', data);
         
         updateConnectionStatus('connected');
         
-        // Update model list
-        // Update model list in sidebar
+        // Update model list with accurate info
         if (modelList) {
             modelList.innerHTML = `
                 <div class="model-item">
@@ -136,7 +126,7 @@ async function checkSystemStatus() {
                 <div class="model-item">
                     <div class="model-name">
                         <span>🧠</span>
-                        <span>Llama 3.1 70B</span>
+                        <span>Llama 3.3 70B</span>
                         <span class="model-badge" style="background:#8b5cf6;">POWERFUL</span>
                     </div>
                     <span class="model-status-badge">✅</span>
@@ -144,17 +134,15 @@ async function checkSystemStatus() {
             `;
         }
         
-     catch (error) {
+    } catch (error) {
         console.error('❌ Connection failed:', error);
         updateConnectionStatus('offline');
         
-        const modelList = document.getElementById('model-list');
         if (modelList) {
             modelList.innerHTML = `
                 <div style="background:rgba(239,68,68,0.1); border:1px solid #ef4444; border-radius:8px; padding:12px;">
                     <strong style="color:#ef4444;">⚠️ Cannot Connect</strong>
                     <div style="color:#fff; font-size:12px; margin:8px 0;">${error.message}</div>
-                    <div style="color:#9ca3af; font-size:11px;">Backend: ${API_BASE_URL}</div>
                     <button onclick="window.location.reload()" style="background:#8b5cf6; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; margin-top:10px;">
                         🔄 Retry
                     </button>
@@ -167,7 +155,8 @@ async function checkSystemStatus() {
 // Update model display
 function updateModelInfo() {
     const mode = modeSelect.value;
-    const info = modelMap[mode] || { emoji: '✨' };
+    const info = modelMap[mode] || { emoji: '✨', name: 'Loading...' };
+    
     if (currentModel) {
         currentModel.innerHTML = `${info.emoji} ${info.name}`;
     }
@@ -194,7 +183,7 @@ function setupEventListeners() {
     });
 }
 
-// Add message
+// Add message to chat
 function addMessage(sender, text, isThinkingMsg = false, instant = false) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}${isThinkingMsg ? ' thinking' : ''}`;
@@ -204,15 +193,28 @@ function addMessage(sender, text, isThinkingMsg = false, instant = false) {
     
     const iconSpan = document.createElement('span');
     iconSpan.className = 'message-icon';
-    iconSpan.textContent = sender === 'user' ? '👤' : (modelMap[modeSelect.value]?.emoji || '🧙');
+    
+    if (sender === 'user') {
+        iconSpan.textContent = '👤';
+    } else {
+        const mode = modeSelect.value;
+        const info = modelMap[mode] || { emoji: '🧙' };
+        iconSpan.textContent = isThinkingMsg ? '⏳' : info.emoji;
+    }
     
     const textSpan = document.createElement('span');
     textSpan.className = 'message-text';
-    textSpan.textContent = text;
+    
+    if (sender === 'user' || isThinkingMsg || instant) {
+        textSpan.textContent = text;
+    } else {
+        textSpan.textContent = '';
+    }
     
     const timeSpan = document.createElement('span');
     timeSpan.className = 'message-time';
-    timeSpan.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const now = new Date();
+    timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
     contentDiv.appendChild(iconSpan);
     contentDiv.appendChild(textSpan);
@@ -222,7 +224,34 @@ function addMessage(sender, text, isThinkingMsg = false, instant = false) {
     chatHistory.appendChild(messageDiv);
     chatHistory.scrollTop = chatHistory.scrollHeight;
     
-    return messageDiv;
+    if (!isThinkingMsg && !instant) {
+        messages.push({ sender, text });
+        if (messageCount) {
+            messageCount.textContent = messages.length;
+        }
+    }
+    
+    return { div: messageDiv, textSpan: textSpan };
+}
+
+// Typing effect
+async function typeMessage(messageDiv, textSpan, fullText, speed = 30) {
+    return new Promise((resolve) => {
+        let i = 0;
+        messageDiv.classList.add('typing-active');
+        
+        const typing = setInterval(() => {
+            if (i < fullText.length) {
+                textSpan.textContent += fullText.charAt(i);
+                i++;
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            } else {
+                clearInterval(typing);
+                messageDiv.classList.remove('typing-active');
+                resolve();
+            }
+        }, speed);
+    });
 }
 
 // Send message
@@ -238,8 +267,9 @@ async function sendMessage() {
     isThinking = true;
     chatInput.disabled = true;
     sendBtn.disabled = true;
+    sendBtn.classList.add('loading');
     
-    const thinkingMsg = addMessage('wizard', '✨', true);
+    const thinkingMsg = addMessage('wizard', '✨', true, true);
     
     try {
         const startTime = Date.now();
@@ -262,22 +292,72 @@ async function sendMessage() {
             responseTimeEl.textContent = `${responseTime}s`;
         }
         
-        if (thinkingMsg.parentNode) {
-            thinkingMsg.remove();
+        if (thinkingMsg.div.parentNode) {
+            thinkingMsg.div.remove();
         }
         
-        addMessage('wizard', data.reply);
+        // Create wizard message
+        const mode = modeSelect.value;
+        const info = modelMap[mode] || { emoji: '🧙' };
+        
+        const wizardMsgDiv = document.createElement('div');
+        wizardMsgDiv.className = 'message wizard';
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+        
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'message-icon';
+        iconSpan.textContent = info.emoji;
+        
+        const textSpan = document.createElement('span');
+        textSpan.className = 'message-text';
+        textSpan.textContent = '';
+        
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'message-time';
+        const now = new Date();
+        timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        contentDiv.appendChild(iconSpan);
+        contentDiv.appendChild(textSpan);
+        wizardMsgDiv.appendChild(contentDiv);
+        wizardMsgDiv.appendChild(timeSpan);
+        
+        chatHistory.appendChild(wizardMsgDiv);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+        
+        // Type response
+        let typingSpeed = turboMode ? 15 : 30;
+        if (mode === 'Nerd' || mode === 'ORACLE') typingSpeed = 40;
+        
+        await typeMessage(wizardMsgDiv, textSpan, data.reply, typingSpeed);
+        
+        messages.push({ sender: 'wizard', text: data.reply });
+        if (messageCount) {
+            messageCount.textContent = messages.length;
+        }
+        
+        // Update model info
+        if (data.model && currentModel) {
+            const info = modelMap[modeSelect.value] || { emoji: '✨' };
+            currentModel.innerHTML = `${info.emoji} ${data.model}`;
+        }
         
     } catch (error) {
         console.error('Chat error:', error);
-        if (thinkingMsg.parentNode) {
-            thinkingMsg.remove();
+        
+        if (thinkingMsg.div.parentNode) {
+            thinkingMsg.div.remove();
         }
-        addMessage('wizard', '⚠️ Connection error!');
+        
+        addMessage('wizard', '⚠️ Connection error! Please try again.', false, true);
+        
     } finally {
         isThinking = false;
         chatInput.disabled = false;
         sendBtn.disabled = false;
+        sendBtn.classList.remove('loading');
         chatInput.focus();
     }
 }
@@ -322,7 +402,7 @@ async function resetChat() {
     }
 }
 
-// Add Turbo toggle
+// Add Turbo Mode Toggle
 function addTurboToggle() {
     const sidebar = document.querySelector('.sidebar');
     if (!sidebar) return;
@@ -337,10 +417,10 @@ function addTurboToggle() {
     turboDiv.style.border = '1px solid #8b5cf6';
     
     turboDiv.innerHTML = `
-        <h2 style="color: #c4b5fd; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
+        <h3 style="color: #c4b5fd; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
             <span>⚡</span> TURBO MODE
-        </h2>
-        <button id="turbo-btn" style="width: 100%; padding: 10px; background: #4b5563; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        </h3>
+        <button id="turbo-btn" style="width: 100%; padding: 10px; background: #4b5563; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
             <span>🔴</span> TURBO OFF
         </button>
         <p style="color: #9ca3af; font-size: 11px; margin-top: 8px; text-align: center;">
@@ -361,11 +441,11 @@ function addTurboToggle() {
             if (turboMode) {
                 turboBtn.style.background = '#ef4444';
                 turboBtn.innerHTML = '<span>⚡</span> TURBO ON';
-                addMessage('wizard', '⚡ Turbo activated!', false, true);
+                addMessage('wizard', '⚡ Turbo mode activated - faster responses!', false, true);
             } else {
                 turboBtn.style.background = '#4b5563';
                 turboBtn.innerHTML = '<span>🔴</span> TURBO OFF';
-                addMessage('wizard', '✨ Turbo deactivated.', false, true);
+                addMessage('wizard', '✨ Turbo mode deactivated.', false, true);
             }
         });
     }
@@ -378,12 +458,68 @@ document.addEventListener('keydown', (e) => {
         isThinking = false;
         chatInput.disabled = false;
         sendBtn.disabled = false;
+        sendBtn.classList.remove('loading');
         chatInput.focus();
         addMessage('wizard', '🔧 Emergency reset - you can type again!', false, true);
     }
 });
 
+// CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .message {
+        animation: slideIn 0.3s ease;
+    }
+    
+    .send-button.loading {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .send-button.loading::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        animation: shimmer 1.5s infinite;
+    }
+    
+    @keyframes shimmer {
+        from { left: -100%; }
+        to { left: 100%; }
+    }
+    
+    .message.thinking .message-icon {
+        animation: spin 2s linear infinite;
+    }
+    
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    .message.wizard.typing-active .message-text::after {
+        content: '|';
+        animation: blink 1s infinite;
+        margin-left: 2px;
+        color: #8b5cf6;
+    }
+    
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+    }
+`;
+
+document.head.appendChild(style);
+
 // Start the app
-
 document.addEventListener('DOMContentLoaded', init);
-
