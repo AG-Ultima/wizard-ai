@@ -1,6 +1,6 @@
-
+// ============================================
 // GLOBAL CONFIGURATION
-
+// ============================================
 const API_BASE_URL = 'https://Arnav0928.pythonanywhere.com';
 // ============================================
 
@@ -30,6 +30,8 @@ let messages = [];
 let isThinking = false;
 let currentMode = 'JARVIS';
 let turboMode = false;
+let tooltipEl = null;
+let tooltipTimeout = null;
 
 // Mode data with descriptions and tooltips
 const modeData = {
@@ -107,6 +109,7 @@ async function init() {
     console.log('🚀 Initializing Wizard.AI...');
     console.log('🔗 Backend URL:', API_BASE_URL);
     
+    createTooltip();
     updateConnectionStatus('connecting');
     await loadModes();
     await checkSystemStatus();
@@ -114,6 +117,69 @@ async function init() {
     setupEventListeners();
     addTurboToggle();
     addMessage('wizard', '✨ Welcome to Wizard.AI! Select a mode and toggle Turbo for extra speed!', false, true);
+}
+
+// Create global tooltip element
+function createTooltip() {
+    tooltipEl = document.createElement('div');
+    tooltipEl.id = 'mode-tooltip';
+    tooltipEl.className = 'mode-tooltip';
+    tooltipEl.style.display = 'none';
+    document.body.appendChild(tooltipEl);
+}
+
+// Show tooltip with mode info
+function showTooltip(modeKey, event) {
+    if (!tooltipEl) return;
+    
+    const mode = modeData[modeKey];
+    if (!mode) return;
+    
+    // Clear any pending hide timeout
+    if (tooltipTimeout) {
+        clearTimeout(tooltipTimeout);
+        tooltipTimeout = null;
+    }
+    
+    // Set tooltip content
+    tooltipEl.innerHTML = `
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <div style="font-size: 32px; line-height: 1;">${mode.emoji}</div>
+            <div style="flex: 1;">
+                <div style="font-weight: bold; color: #c4b5fd; font-size: 16px; margin-bottom: 5px;">${mode.name}</div>
+                <div style="color: #e0e7ff; font-size: 13px; line-height: 1.5; margin-bottom: 10px;">${mode.desc}</div>
+                <div style="display: flex; align-items: center; gap: 8px; padding-top: 8px; border-top: 1px solid rgba(139, 92, 246, 0.3);">
+                    <span style="color: #9ca3af; font-size: 12px;">🧠 ${mode.model}</span>
+                    <span style="background: ${mode.color}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold;">${mode.modelSpeed}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Position tooltip near mouse
+    const x = event.clientX + 15;
+    const y = event.clientY - 20;
+    
+    // Keep tooltip within window bounds
+    const tooltipRect = tooltipEl.getBoundingClientRect();
+    const maxX = window.innerWidth - tooltipRect.width - 10;
+    const maxY = window.innerHeight - tooltipRect.height - 10;
+    
+    tooltipEl.style.left = Math.min(x, maxX) + 'px';
+    tooltipEl.style.top = Math.max(10, Math.min(y, maxY)) + 'px';
+    tooltipEl.style.display = 'block';
+}
+
+// Hide tooltip with delay
+function hideTooltip() {
+    if (tooltipTimeout) {
+        clearTimeout(tooltipTimeout);
+    }
+    tooltipTimeout = setTimeout(() => {
+        if (tooltipEl) {
+            tooltipEl.style.display = 'none';
+        }
+    }, 200);
 }
 
 // Setup custom dropdown with tooltips
@@ -130,24 +196,36 @@ function setupDropdown() {
         item.className = `dropdown-item ${modeKey === currentMode ? 'selected' : ''}`;
         item.setAttribute('data-mode', modeKey);
         
-        // Item content
+        // Item content (without inline tooltip)
         item.innerHTML = `
             <span style="font-size: 18px;">${mode.emoji}</span>
             <span>${modeKey}</span>
-            <div class="tooltip">
-                <div style="display: flex; align-items: flex-start;">
-                    <span class="tooltip-emoji">${mode.emoji}</span>
-                    <div style="flex: 1;">
-                        <div class="tooltip-title">${mode.name}</div>
-                        <div class="tooltip-desc">${mode.desc}</div>
-                        <div class="tooltip-model">
-                            <span>🧠 ${mode.model}</span>
-                            <span class="model-badge-small" style="background: ${mode.color};">${mode.modelSpeed}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
         `;
+        
+        // Mouse enter - show tooltip
+        item.addEventListener('mouseenter', (e) => {
+            showTooltip(modeKey, e);
+        });
+        
+        // Mouse move - update tooltip position
+        item.addEventListener('mousemove', (e) => {
+            if (tooltipEl && tooltipEl.style.display === 'block') {
+                const x = e.clientX + 15;
+                const y = e.clientY - 20;
+                
+                const tooltipRect = tooltipEl.getBoundingClientRect();
+                const maxX = window.innerWidth - tooltipRect.width - 10;
+                const maxY = window.innerHeight - tooltipRect.height - 10;
+                
+                tooltipEl.style.left = Math.min(x, maxX) + 'px';
+                tooltipEl.style.top = Math.max(10, Math.min(y, maxY)) + 'px';
+            }
+        });
+        
+        // Mouse leave - hide tooltip
+        item.addEventListener('mouseleave', () => {
+            hideTooltip();
+        });
         
         // Click handler
         item.addEventListener('click', () => {
@@ -163,6 +241,11 @@ function setupDropdown() {
             
             // Close dropdown
             dropdown.classList.remove('open');
+            
+            // Hide tooltip immediately
+            if (tooltipEl) {
+                tooltipEl.style.display = 'none';
+            }
             
             // Show mode change message
             const greeting = modeGreetings[modeKey] || `Switched to ${modeKey} mode!`;
@@ -209,7 +292,7 @@ function updateConnectionStatus(status) {
     }
 }
 
-// Load modes from backend (keeping for API compatibility)
+// Load modes from backend
 async function loadModes() {
     try {
         const response = await fetch(`${API_BASE_URL}/modes`);
@@ -604,6 +687,12 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+// Hide tooltip when scrolling
+window.addEventListener('scroll', () => {
+    if (tooltipEl) {
+        tooltipEl.style.display = 'none';
+    }
+});
+
 // Start the app
 document.addEventListener('DOMContentLoaded', init);
-
