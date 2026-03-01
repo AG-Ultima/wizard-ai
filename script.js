@@ -963,3 +963,4 @@ window.addEventListener('scroll', () => {
 
 // Start the app
 document.addEventListener('DOMContentLoaded', init);
+
