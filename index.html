@@ -37,6 +37,9 @@
                 </div>
             </div>
             
+            <!-- Turbo Mode Toggle (will be moved here by JS) -->
+            <div id="turbo-toggle-container"></div>
+            
             <div class="stats">
                 <div class="stat-item">
                     <span class="stat-label">Active Model</span>
@@ -59,8 +62,8 @@
                 </div>
             </div>
             
-            <button id="reset-btn" class="reset-button" aria-label="Clear current chat">
-                <span>🧹</span> Clear Chat
+            <button id="reset-current-btn" class="reset-button" aria-label="Clear current chat">
+                <span>🧹</span> Clear Current Chat
             </button>
             
             <div class="footer-note">
@@ -69,31 +72,17 @@
             </div>
         </div>
         
-        <!-- Middle Sidebar - Your Chats (NEW!) -->
-        <div class="chats-sidebar">
-            <div class="chats-header">
-                <h2>💬 Your Chats</h2>
-                <button id="new-chat-btn" class="new-chat-btn" title="New Chat">➕</button>
-            </div>
-            
-            <div class="chats-list" id="chats-list">
-                <!-- Chat items will be loaded here -->
-                <div class="chat-item active" data-chat-id="default">
-                    <span class="chat-emoji">🧙</span>
-                    <span class="chat-name">Main Chat</span>
-                    <span class="chat-time">now</span>
-                </div>
-            </div>
-            
-            <div class="chats-footer">
-                <button id="delete-chat-btn" class="delete-chat-btn" disabled>🗑️ Delete Chat</button>
-            </div>
-        </div>
-        
-        <!-- Main Chat Area -->
+        <!-- Main Chat Area (Center) -->
         <div class="chat-area">
             <div class="chat-header">
-                <h2 id="current-chat-name">Main Chat</h2>
+                <div class="chat-title">
+                    <span id="current-chat-emoji" class="chat-emoji-large">🧙</span>
+                    <h2 id="current-chat-name">Main Chat</h2>
+                </div>
+                <div class="chat-actions">
+                    <button id="rename-chat-btn" class="chat-action-btn" title="Rename Chat">✏️</button>
+                    <button id="delete-chat-btn" class="chat-action-btn delete-btn" title="Delete Chat">🗑️</button>
+                </div>
             </div>
             
             <div id="chat-history" class="chat-history" role="log" aria-live="polite">
@@ -116,10 +105,28 @@
                 </button>
             </div>
         </div>
+        
+        <!-- Right Sidebar - Your Chats -->
+        <div class="chats-sidebar">
+            <div class="chats-header">
+                <h2>💬 Your Chats</h2>
+                <button id="new-chat-btn" class="new-chat-btn" title="New Chat">➕</button>
+            </div>
+            
+            <div class="chats-list" id="chats-list">
+                <!-- Chat items will be loaded here -->
+                <div class="chat-item active" data-chat-id="default">
+                    <span class="chat-emoji">🧙</span>
+                    <span class="chat-name">Main Chat</span>
+                    <div class="chat-item-actions">
+                        <button class="rename-chat-item" title="Rename">✏️</button>
+                        <button class="delete-chat-item" title="Delete">🗑️</button>
+                    </div>
+                    <span class="chat-time">now</span>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <!-- Turbo Mode Toggle (will be moved by JS) -->
-    <div id="turbo-toggle-container" style="display: none;"></div>
 
     <script src="script.js"></script>
 </body>
