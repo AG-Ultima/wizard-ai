@@ -234,11 +234,31 @@ function addMessage(sender, text, isThinkingMsg = false, instant = false) {
     return { div: messageDiv, textSpan: textSpan };
 }
 
-// Typing effect
-async function typeMessage(messageDiv, textSpan, fullText, speed = 30) {
+// Typing effect with dynamic speed based on response length
+async function typeMessage(messageDiv, textSpan, fullText, baseSpeed = 20) {
     return new Promise((resolve) => {
         let i = 0;
         messageDiv.classList.add('typing-active');
+        
+        // Calculate dynamic speed based on text length
+        // Longer text = faster typing so user doesn't wait forever
+        const textLength = fullText.length;
+        let speed = baseSpeed;
+        
+        if (textLength > 2000) {
+            speed = 5; // Super fast for extremely long responses
+        } else if (textLength > 1000) {
+            speed = 8; // Very fast for very long responses
+        } else if (textLength > 500) {
+            speed = 12; // Fast for long responses
+        } else if (textLength > 200) {
+            speed = 15; // Medium-fast
+        }
+        
+        // Turbo mode overrides to be faster
+        if (turboMode) {
+            speed = Math.max(3, speed / 2);
+        }
         
         const typing = setInterval(() => {
             if (i < fullText.length) {
@@ -261,14 +281,17 @@ async function sendMessage() {
     const text = chatInput.value.trim();
     if (!text) return;
     
+    // Add user message instantly
     addMessage('user', text);
     chatInput.value = '';
     
+    // Disable input
     isThinking = true;
     chatInput.disabled = true;
     sendBtn.disabled = true;
     sendBtn.classList.add('loading');
     
+    // Show thinking indicator
     const thinkingMsg = addMessage('wizard', '✨', true, true);
     
     try {
@@ -288,15 +311,17 @@ async function sendMessage() {
         const data = await response.json();
         const responseTime = ((Date.now() - startTime) / 1000).toFixed(1);
         
+        // Update response time in sidebar
         if (responseTimeEl) {
             responseTimeEl.textContent = `${responseTime}s`;
         }
         
+        // Remove thinking indicator
         if (thinkingMsg.div.parentNode) {
             thinkingMsg.div.remove();
         }
         
-        // Create wizard message
+        // Create wizard message container
         const mode = modeSelect.value;
         const info = modelMap[mode] || { emoji: '🧙' };
         
@@ -327,12 +352,19 @@ async function sendMessage() {
         chatHistory.appendChild(wizardMsgDiv);
         chatHistory.scrollTop = chatHistory.scrollHeight;
         
-        // Type response
-        let typingSpeed = turboMode ? 15 : 30;
-        if (mode === 'Nerd' || mode === 'ORACLE') typingSpeed = 40;
+        // Determine base typing speed based on mode
+        let baseSpeed = 20; // Default
         
-        await typeMessage(wizardMsgDiv, textSpan, data.reply, typingSpeed);
+        if (mode === 'Fast') {
+            baseSpeed = 12; // Faster for Fast mode
+        } else if (mode === 'Nerd' || mode === 'ORACLE') {
+            baseSpeed = 25; // Slightly slower for dramatic effect
+        }
         
+        // Type the response with dynamic speed
+        await typeMessage(wizardMsgDiv, textSpan, data.reply, baseSpeed);
+        
+        // Add to messages array
         messages.push({ sender: 'wizard', text: data.reply });
         if (messageCount) {
             messageCount.textContent = messages.length;
@@ -351,7 +383,16 @@ async function sendMessage() {
             thinkingMsg.div.remove();
         }
         
-        addMessage('wizard', '⚠️ Connection error! Please try again.', false, true);
+        // Show user-friendly error message
+        let errorMessage = '⚠️ Connection error! Please try again.';
+        
+        if (error.message.includes('Failed to fetch')) {
+            errorMessage = '⚠️ Cannot reach the backend. Make sure the server is running.';
+        } else if (error.message.includes('500')) {
+            errorMessage = '⚠️ Server error. Please try again later.';
+        }
+        
+        addMessage('wizard', errorMessage, false, true);
         
     } finally {
         isThinking = false;
@@ -365,6 +406,7 @@ async function sendMessage() {
 // Reset chat
 async function resetChat() {
     try {
+        // Fade out messages
         const msgs = document.querySelectorAll('.message');
         msgs.forEach(msg => {
             msg.style.transition = 'opacity 0.3s, transform 0.3s';
@@ -374,6 +416,7 @@ async function resetChat() {
         
         await new Promise(resolve => setTimeout(resolve, 300));
         
+        // Clear chat
         chatHistory.innerHTML = '';
         messages = [];
         
@@ -381,6 +424,7 @@ async function resetChat() {
             messageCount.textContent = '0';
         }
         
+        // Reset on backend
         await fetch(`${API_BASE_URL}/reset`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -391,14 +435,16 @@ async function resetChat() {
         const greeting = modeGreetings[mode] || 'Ready for new adventures!';
         addMessage('wizard', `🧹 Memory wiped! ${greeting}`, false, true);
         
+        // Refresh status
         await checkSystemStatus();
         
     } catch (error) {
         console.error('Reset failed:', error);
+        // Even if backend reset fails, clear local chat
         chatHistory.innerHTML = '';
         messages = [];
         if (messageCount) messageCount.textContent = '0';
-        addMessage('wizard', '🧹 Memory wiped!', false, true);
+        addMessage('wizard', '🧹 Memory wiped locally!', false, true);
     }
 }
 
@@ -420,7 +466,7 @@ function addTurboToggle() {
         <h3 style="color: #c4b5fd; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
             <span>⚡</span> TURBO MODE
         </h3>
-        <button id="turbo-btn" style="width: 100%; padding: 10px; background: #4b5563; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+        <button id="turbo-btn" style="width: 100%; padding: 10px; background: #4b5563; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;">
             <span>🔴</span> TURBO OFF
         </button>
         <p style="color: #9ca3af; font-size: 11px; margin-top: 8px; text-align: center;">
@@ -428,11 +474,13 @@ function addTurboToggle() {
         </p>
     `;
     
+    // Insert after mode selector
     const modeSelector = document.querySelector('.mode-selector');
     if (modeSelector) {
         modeSelector.parentNode.insertBefore(turboDiv, modeSelector.nextSibling);
     }
     
+    // Add event listener
     const turboBtn = document.getElementById('turbo-btn');
     if (turboBtn) {
         turboBtn.addEventListener('click', () => {
@@ -441,7 +489,7 @@ function addTurboToggle() {
             if (turboMode) {
                 turboBtn.style.background = '#ef4444';
                 turboBtn.innerHTML = '<span>⚡</span> TURBO ON';
-                addMessage('wizard', '⚡ Turbo mode activated - faster responses!', false, true);
+                addMessage('wizard', '⚡ Turbo mode activated - faster responses, same personality!', false, true);
             } else {
                 turboBtn.style.background = '#4b5563';
                 turboBtn.innerHTML = '<span>🔴</span> TURBO OFF';
@@ -451,7 +499,7 @@ function addTurboToggle() {
     }
 }
 
-// Emergency reset
+// Emergency reset (F2 key)
 document.addEventListener('keydown', (e) => {
     if (e.key === 'F2') {
         console.log('🔧 Emergency reset triggered');
@@ -464,7 +512,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// CSS animations
+// Add CSS animations
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
@@ -506,6 +554,7 @@ style.textContent = `
         to { transform: rotate(360deg); }
     }
     
+    /* Only show cursor when typing is active */
     .message.wizard.typing-active .message-text::after {
         content: '|';
         animation: blink 1s infinite;
