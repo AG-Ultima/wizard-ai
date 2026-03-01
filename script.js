@@ -9,13 +9,18 @@ const chatHistory = document.getElementById('chat-history');
 const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 const resetBtn = document.getElementById('reset-btn');
-const modeSelect = document.getElementById('mode-select');
 const messageCount = document.getElementById('message-count');
 const currentModel = document.getElementById('current-model');
 const responseTimeEl = document.getElementById('response-time');
 const modelList = document.getElementById('model-list');
 const statusText = document.getElementById('status-text');
 const statusDot = document.querySelector('.status-dot');
+
+// Dropdown Elements
+const dropdown = document.getElementById('mode-dropdown');
+const dropdownBtn = document.getElementById('dropdown-btn');
+const dropdownContent = document.getElementById('dropdown-content');
+const selectedDisplay = document.getElementById('selected-mode-display');
 
 // Generate unique session ID
 const sessionId = 'session_' + Math.random().toString(36).substr(2, 9);
@@ -26,15 +31,64 @@ let isThinking = false;
 let currentMode = 'JARVIS';
 let turboMode = false;
 
-// Model mapping with CORRECT emojis and info
-const modelMap = {
-    'Fast': { name: 'Llama 3.1 8B', emoji: '⚡', description: 'Lightning fast', apiModel: 'llama-3.1-8b-instant' },
-    'Normal': { name: 'Llama 3.1 8B', emoji: '✨', description: 'Balanced', apiModel: 'llama-3.1-8b-instant' },
-    'Fun': { name: 'Llama 3.3 70B', emoji: '🎉', description: 'Creative', apiModel: 'llama-3.3-70b-versatile' },
-    'Sarcastic': { name: 'Llama 3.1 8B', emoji: '😏', description: 'Witty', apiModel: 'llama-3.1-8b-instant' },
-    'Nerd': { name: 'Llama 3.3 70B', emoji: '🧠', description: 'Smart', apiModel: 'llama-3.3-70b-versatile' },
-    'JARVIS': { name: 'Llama 3.1 8B', emoji: '🎩', description: 'Sophisticated', apiModel: 'llama-3.1-8b-instant' },
-    'ORACLE': { name: 'Llama 3.3 70B', emoji: '🔮', description: 'All-knowing', apiModel: 'llama-3.3-70b-versatile' }
+// Mode data with descriptions and tooltips
+const modeData = {
+    'Fast': {
+        emoji: '⚡',
+        name: 'Fast Mode',
+        desc: 'Lightning quick responses for when you need speed. Perfect for casual chat and quick answers.',
+        model: 'Llama 3.1 8B',
+        modelSpeed: 'FAST',
+        color: '#10b981'
+    },
+    'Normal': {
+        emoji: '✨',
+        name: 'Normal Mode',
+        desc: 'Balanced, friendly conversation. Your go-to for everyday chat and general questions.',
+        model: 'Llama 3.1 8B',
+        modelSpeed: 'FAST',
+        color: '#10b981'
+    },
+    'Fun': {
+        emoji: '🎉',
+        name: 'Fun Mode',
+        desc: 'Playful and energetic! Tells jokes, uses emojis, and keeps things light and entertaining.',
+        model: 'Llama 3.3 70B',
+        modelSpeed: 'POWERFUL',
+        color: '#8b5cf6'
+    },
+    'Sarcastic': {
+        emoji: '😏',
+        name: 'Sarcastic Mode',
+        desc: 'Witty and slightly sassy, but still helpful. Adds playful sarcasm to responses.',
+        model: 'Llama 3.1 8B',
+        modelSpeed: 'FAST',
+        color: '#10b981'
+    },
+    'Nerd': {
+        emoji: '🧠',
+        name: 'Nerd Mode',
+        desc: 'Detailed, factual, and academic. Shares interesting facts and explains things thoroughly.',
+        model: 'Llama 3.3 70B',
+        modelSpeed: 'POWERFUL',
+        color: '#8b5cf6'
+    },
+    'JARVIS': {
+        emoji: '🎩',
+        name: 'JARVIS Mode',
+        desc: 'Sophisticated and precise, like Tony Stark\'s AI. Professional, polite, and highly capable.',
+        model: 'Llama 3.1 8B',
+        modelSpeed: 'FAST',
+        color: '#10b981'
+    },
+    'ORACLE': {
+        emoji: '🔮',
+        name: 'ORACLE Mode',
+        desc: 'Mystical and all-knowing. Speaks in riddles and metaphors with profound wisdom.',
+        model: 'Llama 3.3 70B',
+        modelSpeed: 'POWERFUL',
+        color: '#8b5cf6'
+    }
 };
 
 // Mode greetings
@@ -56,9 +110,87 @@ async function init() {
     updateConnectionStatus('connecting');
     await loadModes();
     await checkSystemStatus();
+    setupDropdown();
     setupEventListeners();
     addTurboToggle();
     addMessage('wizard', '✨ Welcome to Wizard.AI! Select a mode and toggle Turbo for extra speed!', false, true);
+}
+
+// Setup custom dropdown with tooltips
+function setupDropdown() {
+    if (!dropdown || !dropdownContent) return;
+    
+    // Clear existing content
+    dropdownContent.innerHTML = '';
+    
+    // Create dropdown items from modeData
+    Object.keys(modeData).forEach(modeKey => {
+        const mode = modeData[modeKey];
+        const item = document.createElement('div');
+        item.className = `dropdown-item ${modeKey === currentMode ? 'selected' : ''}`;
+        item.setAttribute('data-mode', modeKey);
+        
+        // Item content
+        item.innerHTML = `
+            <span style="font-size: 18px;">${mode.emoji}</span>
+            <span>${modeKey}</span>
+            <div class="tooltip">
+                <div style="display: flex; align-items: flex-start;">
+                    <span class="tooltip-emoji">${mode.emoji}</span>
+                    <div style="flex: 1;">
+                        <div class="tooltip-title">${mode.name}</div>
+                        <div class="tooltip-desc">${mode.desc}</div>
+                        <div class="tooltip-model">
+                            <span>🧠 ${mode.model}</span>
+                            <span class="model-badge-small" style="background: ${mode.color};">${mode.modelSpeed}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Click handler
+        item.addEventListener('click', () => {
+            // Update selected mode
+            currentMode = modeKey;
+            selectedDisplay.innerHTML = `${mode.emoji} ${modeKey}`;
+            
+            // Update selected class
+            document.querySelectorAll('.dropdown-item').forEach(el => {
+                el.classList.remove('selected');
+            });
+            item.classList.add('selected');
+            
+            // Close dropdown
+            dropdown.classList.remove('open');
+            
+            // Show mode change message
+            const greeting = modeGreetings[modeKey] || `Switched to ${modeKey} mode!`;
+            addMessage('wizard', `🔄 ${greeting}`, false, true);
+            
+            // Update model display
+            updateModelInfo();
+        });
+        
+        dropdownContent.appendChild(item);
+    });
+    
+    // Toggle dropdown on button click
+    dropdownBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('open');
+    });
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!dropdown.contains(e.target)) {
+            dropdown.classList.remove('open');
+        }
+    });
+    
+    // Set initial display
+    const initialMode = modeData[currentMode];
+    selectedDisplay.innerHTML = `${initialMode.emoji} ${currentMode}`;
 }
 
 // Update connection status
@@ -77,19 +209,13 @@ function updateConnectionStatus(status) {
     }
 }
 
-// Load modes from backend
+// Load modes from backend (keeping for API compatibility)
 async function loadModes() {
     try {
         const response = await fetch(`${API_BASE_URL}/modes`);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
-        
-        modeSelect.innerHTML = data.modes.map(mode => {
-            const info = modelMap[mode] || { emoji: '✨' };
-            return `<option value="${mode}" ${mode === 'JARVIS' ? 'selected' : ''}>${info.emoji} ${mode}</option>`;
-        }).join('');
-        
-        updateModelInfo();
+        console.log('📋 Modes loaded:', data.modes);
     } catch (error) {
         console.error('Failed to load modes:', error);
     }
@@ -154,11 +280,10 @@ async function checkSystemStatus() {
 
 // Update model display
 function updateModelInfo() {
-    const mode = modeSelect.value;
-    const info = modelMap[mode] || { emoji: '✨', name: 'Loading...' };
+    const mode = modeData[currentMode] || { emoji: '✨', model: 'Loading...' };
     
     if (currentModel) {
-        currentModel.innerHTML = `${info.emoji} ${info.name}`;
+        currentModel.innerHTML = `${mode.emoji} ${mode.model}`;
     }
 }
 
@@ -174,13 +299,6 @@ function setupEventListeners() {
     });
     
     resetBtn.addEventListener('click', resetChat);
-    
-    modeSelect.addEventListener('change', () => {
-        const mode = modeSelect.value;
-        updateModelInfo();
-        const greeting = modeGreetings[mode] || `Switched to ${mode} mode!`;
-        addMessage('wizard', `🔄 ${greeting}`, false, true);
-    });
 }
 
 // Add message to chat
@@ -197,9 +315,8 @@ function addMessage(sender, text, isThinkingMsg = false, instant = false) {
     if (sender === 'user') {
         iconSpan.textContent = '👤';
     } else {
-        const mode = modeSelect.value;
-        const info = modelMap[mode] || { emoji: '🧙' };
-        iconSpan.textContent = isThinkingMsg ? '⏳' : info.emoji;
+        const mode = modeData[currentMode] || { emoji: '🧙' };
+        iconSpan.textContent = isThinkingMsg ? '⏳' : mode.emoji;
     }
     
     const textSpan = document.createElement('span');
@@ -234,28 +351,25 @@ function addMessage(sender, text, isThinkingMsg = false, instant = false) {
     return { div: messageDiv, textSpan: textSpan };
 }
 
-// Typing effect with dynamic speed based on response length
+// Typing effect with dynamic speed
 async function typeMessage(messageDiv, textSpan, fullText, baseSpeed = 20) {
     return new Promise((resolve) => {
         let i = 0;
         messageDiv.classList.add('typing-active');
         
-        // Calculate dynamic speed based on text length
-        // Longer text = faster typing so user doesn't wait forever
         const textLength = fullText.length;
         let speed = baseSpeed;
         
         if (textLength > 2000) {
-            speed = 5; // Super fast for extremely long responses
+            speed = 5;
         } else if (textLength > 1000) {
-            speed = 8; // Very fast for very long responses
+            speed = 8;
         } else if (textLength > 500) {
-            speed = 12; // Fast for long responses
+            speed = 12;
         } else if (textLength > 200) {
-            speed = 15; // Medium-fast
+            speed = 15;
         }
         
-        // Turbo mode overrides to be faster
         if (turboMode) {
             speed = Math.max(3, speed / 2);
         }
@@ -281,17 +395,14 @@ async function sendMessage() {
     const text = chatInput.value.trim();
     if (!text) return;
     
-    // Add user message instantly
     addMessage('user', text);
     chatInput.value = '';
     
-    // Disable input
     isThinking = true;
     chatInput.disabled = true;
     sendBtn.disabled = true;
     sendBtn.classList.add('loading');
     
-    // Show thinking indicator
     const thinkingMsg = addMessage('wizard', '✨', true, true);
     
     try {
@@ -302,7 +413,7 @@ async function sendMessage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 prompt: text,
-                mode: modeSelect.value,
+                mode: currentMode,
                 session_id: sessionId,
                 turbo: turboMode
             })
@@ -311,19 +422,15 @@ async function sendMessage() {
         const data = await response.json();
         const responseTime = ((Date.now() - startTime) / 1000).toFixed(1);
         
-        // Update response time in sidebar
         if (responseTimeEl) {
             responseTimeEl.textContent = `${responseTime}s`;
         }
         
-        // Remove thinking indicator
         if (thinkingMsg.div.parentNode) {
             thinkingMsg.div.remove();
         }
         
-        // Create wizard message container
-        const mode = modeSelect.value;
-        const info = modelMap[mode] || { emoji: '🧙' };
+        const mode = modeData[currentMode] || { emoji: '🧙' };
         
         const wizardMsgDiv = document.createElement('div');
         wizardMsgDiv.className = 'message wizard';
@@ -333,7 +440,7 @@ async function sendMessage() {
         
         const iconSpan = document.createElement('span');
         iconSpan.className = 'message-icon';
-        iconSpan.textContent = info.emoji;
+        iconSpan.textContent = mode.emoji;
         
         const textSpan = document.createElement('span');
         textSpan.className = 'message-text';
@@ -352,28 +459,22 @@ async function sendMessage() {
         chatHistory.appendChild(wizardMsgDiv);
         chatHistory.scrollTop = chatHistory.scrollHeight;
         
-        // Determine base typing speed based on mode
-        let baseSpeed = 20; // Default
-        
-        if (mode === 'Fast') {
-            baseSpeed = 12; // Faster for Fast mode
-        } else if (mode === 'Nerd' || mode === 'ORACLE') {
-            baseSpeed = 25; // Slightly slower for dramatic effect
+        let baseSpeed = 20;
+        if (currentMode === 'Fast') {
+            baseSpeed = 12;
+        } else if (currentMode === 'Nerd' || currentMode === 'ORACLE') {
+            baseSpeed = 25;
         }
         
-        // Type the response with dynamic speed
         await typeMessage(wizardMsgDiv, textSpan, data.reply, baseSpeed);
         
-        // Add to messages array
         messages.push({ sender: 'wizard', text: data.reply });
         if (messageCount) {
             messageCount.textContent = messages.length;
         }
         
-        // Update model info
         if (data.model && currentModel) {
-            const info = modelMap[modeSelect.value] || { emoji: '✨' };
-            currentModel.innerHTML = `${info.emoji} ${data.model}`;
+            currentModel.innerHTML = `${mode.emoji} ${data.model}`;
         }
         
     } catch (error) {
@@ -383,7 +484,6 @@ async function sendMessage() {
             thinkingMsg.div.remove();
         }
         
-        // Show user-friendly error message
         let errorMessage = '⚠️ Connection error! Please try again.';
         
         if (error.message.includes('Failed to fetch')) {
@@ -406,7 +506,6 @@ async function sendMessage() {
 // Reset chat
 async function resetChat() {
     try {
-        // Fade out messages
         const msgs = document.querySelectorAll('.message');
         msgs.forEach(msg => {
             msg.style.transition = 'opacity 0.3s, transform 0.3s';
@@ -416,7 +515,6 @@ async function resetChat() {
         
         await new Promise(resolve => setTimeout(resolve, 300));
         
-        // Clear chat
         chatHistory.innerHTML = '';
         messages = [];
         
@@ -424,23 +522,19 @@ async function resetChat() {
             messageCount.textContent = '0';
         }
         
-        // Reset on backend
         await fetch(`${API_BASE_URL}/reset`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ session_id: sessionId })
         });
         
-        const mode = modeSelect.value;
-        const greeting = modeGreetings[mode] || 'Ready for new adventures!';
+        const greeting = modeGreetings[currentMode] || 'Ready for new adventures!';
         addMessage('wizard', `🧹 Memory wiped! ${greeting}`, false, true);
         
-        // Refresh status
         await checkSystemStatus();
         
     } catch (error) {
         console.error('Reset failed:', error);
-        // Even if backend reset fails, clear local chat
         chatHistory.innerHTML = '';
         messages = [];
         if (messageCount) messageCount.textContent = '0';
@@ -474,13 +568,11 @@ function addTurboToggle() {
         </p>
     `;
     
-    // Insert after mode selector
     const modeSelector = document.querySelector('.mode-selector');
     if (modeSelector) {
         modeSelector.parentNode.insertBefore(turboDiv, modeSelector.nextSibling);
     }
     
-    // Add event listener
     const turboBtn = document.getElementById('turbo-btn');
     if (turboBtn) {
         turboBtn.addEventListener('click', () => {
@@ -499,7 +591,7 @@ function addTurboToggle() {
     }
 }
 
-// Emergency reset (F2 key)
+// Emergency reset
 document.addEventListener('keydown', (e) => {
     if (e.key === 'F2') {
         console.log('🔧 Emergency reset triggered');
@@ -511,64 +603,6 @@ document.addEventListener('keydown', (e) => {
         addMessage('wizard', '🔧 Emergency reset - you can type again!', false, true);
     }
 });
-
-// Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .message {
-        animation: slideIn 0.3s ease;
-    }
-    
-    .send-button.loading {
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .send-button.loading::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        animation: shimmer 1.5s infinite;
-    }
-    
-    @keyframes shimmer {
-        from { left: -100%; }
-        to { left: 100%; }
-    }
-    
-    .message.thinking .message-icon {
-        animation: spin 2s linear infinite;
-    }
-    
-    @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
-    }
-    
-    /* Only show cursor when typing is active */
-    .message.wizard.typing-active .message-text::after {
-        content: '|';
-        animation: blink 1s infinite;
-        margin-left: 2px;
-        color: #8b5cf6;
-    }
-    
-    @keyframes blink {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0; }
-    }
-`;
-
-document.head.appendChild(style);
 
 // Start the app
 document.addEventListener('DOMContentLoaded', init);
