@@ -638,7 +638,7 @@ body {
     border-left: 3px solid #8b5cf6;
 }
 
-/* Tooltip on hover */
+/* Tooltip on hover - positioned to the left */
 .dropdown-item {
     position: relative;
 }
@@ -655,8 +655,9 @@ body {
     box-shadow: 0 10px 30px rgba(0,0,0,0.4);
     position: absolute;
     z-index: 1001;
+    /* Position to the left instead of right */
     top: 50%;
-    left: 105%;
+    right: 105%;  /* Changed from left: 105% to right: 105% */
     transform: translateY(-50%);
     opacity: 0;
     transition: opacity 0.3s, visibility 0.3s;
@@ -666,16 +667,16 @@ body {
     backdrop-filter: blur(10px);
 }
 
-/* Tooltip arrow */
+/* Tooltip arrow - now points right */
 .dropdown-item .tooltip::before {
     content: '';
     position: absolute;
     top: 50%;
-    right: 100%;
+    left: 100%;  /* Changed from right: 100% to left: 100% */
     margin-top: -8px;
     border-width: 8px;
     border-style: solid;
-    border-color: transparent #8b5cf6 transparent transparent;
+    border-color: transparent transparent transparent #8b5cf6;  /* Arrow points right */
 }
 
 .dropdown-item:hover .tooltip {
