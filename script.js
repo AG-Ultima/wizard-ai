@@ -1,7 +1,7 @@
 // ============================================
-// WIZARD.AI - JARVIS ULTIMATE EDITION
+// WIZARD.AI - JARVIS ULTIMATE EDITION (WITH MEMORY)
 // Created by Arnav Gupta in 15 hours
-// Features: SUIT UP, Voice Commands, Diagnostic, Easter Eggs
+// Features: SUIT UP, Voice Commands, Diagnostic, Easter Eggs, FULL MEMORY
 // ============================================
 
 // ============================================
@@ -207,6 +207,9 @@ const modeGreetings = {
 function initializeVoiceRecognition() {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
         console.log('Voice recognition not supported in this browser');
+        if (jarvisVoiceBtn) {
+            jarvisVoiceBtn.style.display = 'none';
+        }
         return false;
     }
     
@@ -218,15 +221,19 @@ function initializeVoiceRecognition() {
     
     recognition.onstart = () => {
         isListening = true;
-        jarvisVoiceBtn.classList.add('listening');
-        jarvisVoiceBtn.title = 'Listening... click to stop';
+        if (jarvisVoiceBtn) {
+            jarvisVoiceBtn.classList.add('listening');
+            jarvisVoiceBtn.title = 'Listening... click to stop';
+        }
         addWizardMessage('🎤 Listening, sir...');
     };
     
     recognition.onend = () => {
         isListening = false;
-        jarvisVoiceBtn.classList.remove('listening');
-        jarvisVoiceBtn.title = 'Voice command';
+        if (jarvisVoiceBtn) {
+            jarvisVoiceBtn.classList.remove('listening');
+            jarvisVoiceBtn.title = 'Voice command';
+        }
     };
     
     recognition.onresult = (event) => {
@@ -240,7 +247,9 @@ function initializeVoiceRecognition() {
         console.error('Voice recognition error:', event.error);
         addWizardMessage(`🎤 Sorry, I couldn't hear you. Error: ${event.error}`);
         isListening = false;
-        jarvisVoiceBtn.classList.remove('listening');
+        if (jarvisVoiceBtn) {
+            jarvisVoiceBtn.classList.remove('listening');
+        }
     };
     
     return true;
@@ -257,16 +266,21 @@ function toggleVoiceRecognition() {
     if (isListening) {
         recognition.stop();
     } else {
-        recognition.start();
+        try {
+            recognition.start();
+        } catch (e) {
+            console.error('Voice start error:', e);
+            addWizardMessage('🎤 Could not start voice recognition. Please try again.');
+        }
     }
 }
 
 function performSystemDiagnostic() {
     const now = new Date();
-    const uptime = Math.floor(Math.random() * 24) + 1; // Simulated uptime
-    const activeUsers = Math.floor(Math.random() * 15) + 5; // Simulated users
-    const cpuLoad = Math.floor(Math.random() * 40) + 20; // 20-60%
-    const memoryUsage = Math.floor(Math.random() * 30) + 40; // 40-70%
+    const uptime = Math.floor(Math.random() * 24) + 1;
+    const activeUsers = Math.floor(Math.random() * 15) + 5;
+    const cpuLoad = Math.floor(Math.random() * 40) + 20;
+    const memoryUsage = Math.floor(Math.random() * 30) + 40;
     
     const diagnostic = {
         timestamp: now.toLocaleString(),
@@ -291,19 +305,16 @@ function performSystemDiagnostic() {
 function activateSuitUpMode() {
     document.body.classList.add('jarvis-mode-active');
     
-    // Add JARVIS-specific UI elements
     if (jarvisEasterEgg) {
         jarvisEasterEgg.style.display = 'flex';
     }
     
-    if (jarvisVoiceBtn) {
+    if (jarvisVoiceBtn && currentMode === 'JARVIS') {
         jarvisVoiceBtn.style.display = 'flex';
     }
     
-    // Add subtle haptic feedback simulation
     simulateHapticFeedback();
     
-    // Random JARVIS greeting
     const randomGreeting = jarvisGreetings[Math.floor(Math.random() * jarvisGreetings.length)];
     
     return `🔷 SUIT UP mode activated. ${randomGreeting} All systems are now running in JARVIS configuration.`;
@@ -322,23 +333,26 @@ function deactivateSuitUpMode() {
 }
 
 function simulateHapticFeedback() {
-    // Subtle button feedback simulation
     const buttons = document.querySelectorAll('button');
     buttons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            btn.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                btn.style.transform = 'scale(1)';
-            }, 100);
-        });
+        btn.removeEventListener('click', hapticHandler);
+        btn.addEventListener('click', hapticHandler);
     });
 }
 
+function hapticHandler(e) {
+    const btn = e.currentTarget;
+    btn.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+        btn.style.transform = 'scale(1)';
+    }, 100);
+}
+
 function handleJarvisCommand(text) {
-    const lowerText = text.toLowerCase();
+    const lowerText = text.toLowerCase().trim();
     
     // Diagnostic command
-    if (lowerText.includes('diagnostic') || lowerText.includes('system status')) {
+    if (lowerText.includes('diagnostic') || lowerText.includes('system status') || lowerText.includes('system report')) {
         const diag = performSystemDiagnostic();
         return `🔷 **System Diagnostic Report**\n\n` +
                `• **Time**: ${diag.timestamp}\n` +
@@ -359,31 +373,48 @@ function handleJarvisCommand(text) {
     }
     
     // Suit up command
-    if (lowerText.includes('suit up') || lowerText.includes('jarvis mode')) {
+    if (lowerText.includes('suit up') || lowerText.includes('jarvis mode') || lowerText === 'suit' || lowerText.includes('suit up')) {
         if (!document.body.classList.contains('jarvis-mode-active')) {
+            if (lowerText.includes('suit')) {
+                const suitResponse = `*holographic displays flicker to life*\n\n` +
+                    `🔷 **Initiating Mark LXXXV (Mark 85) suit-up sequence**\n` +
+                    `🔷 **Nanotech particles activating**\n` +
+                    `🔷 **Repulsor tech online**\n` +
+                    `🔷 **Flight systems calibrated**\n` +
+                    `🔷 **Heads-up display engaged**\n\n` +
+                    `I should clarify, sir, that I'm not actually connected to a physical suit – this is purely a visual enhancement. ` +
+                    `But Tony always said presentation is half the battle. Welcome to SUIT UP mode.`;
+                
+                activateSuitUpMode();
+                return suitResponse;
+            }
             return activateSuitUpMode();
         } else {
-            return "We're already in SUIT UP mode, sir. All systems are running at optimal performance.";
+            return "We're already in SUIT UP mode, sir. All systems are running at optimal performance. Would you like me to run a diagnostic?";
+        }
+    }
+    
+    // Voice command help
+    if (lowerText.includes('voice') || lowerText.includes('mic') || lowerText.includes('speak') || lowerText.includes('microphone')) {
+        if (jarvisVoiceBtn && jarvisVoiceBtn.style.display !== 'none') {
+            return `Voice commands are available, sir. Simply click the 🎤 button next to the send button and speak. I'll transcribe your words and process them. Would you like to try it now?`;
+        } else {
+            return `Voice commands are available in JARVIS mode, sir. Please switch to JARVIS mode first, then look for the 🎤 button.`;
         }
     }
     
     // Status command
-    if (lowerText.includes('status') || lowerText.includes('how are you')) {
+    if (lowerText.includes('status') || lowerText.includes('how are you') || lowerText.includes('how's it going')) {
         const diag = performSystemDiagnostic();
         return `I'm functioning optimally, sir. Current system load is ${diag.cpuLoad} with ${diag.activeUsers} active users. Response time is ${diag.responseTime}. Everything is running smoothly. How may I assist you?`;
     }
     
-    // Voice command help
-    if (lowerText.includes('voice') || lowerText.includes('mic') || lowerText.includes('speak')) {
-        return `Voice commands are available, sir. Simply click the 🎤 button next to the send button and speak. I'll transcribe your words and process them. Would you like to try it now?`;
-    }
-    
     // Easter egg hint
-    if (lowerText.includes('easter egg') || lowerText.includes('secret')) {
+    if (lowerText.includes('easter egg') || lowerText.includes('secret') || lowerText.includes('hidden')) {
         return `Ah, curious about secrets, sir? Try saying "diagnostic", "suit up", or "status". Also, keep an eye on the sidebar when in JARVIS mode for additional hints. Tony always said the best features are the ones you discover yourself.`;
     }
     
-    return null; // Not a JARVIS command
+    return null;
 }
 
 // ============================================
@@ -421,13 +452,103 @@ function addWizardMessage(text) {
 }
 
 // ============================================
+// TOOLTIP FUNCTIONS - FIXED POSITIONING
+// ============================================
+
+function createTooltip() {
+    tooltipEl = document.createElement('div');
+    tooltipEl.id = 'mode-tooltip';
+    tooltipEl.className = 'mode-tooltip';
+    tooltipEl.style.display = 'none';
+    tooltipEl.style.position = 'fixed';
+    tooltipEl.style.zIndex = '10000';
+    tooltipEl.style.pointerEvents = 'none';
+    document.body.appendChild(tooltipEl);
+}
+
+function showTooltip(modeKey, event) {
+    if (!tooltipEl) return;
+    
+    const mode = modeData[modeKey];
+    if (!mode) return;
+    
+    clearTimeout(tooltipTimeout);
+    
+    tooltipEl.innerHTML = `
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <div style="font-size: 32px; line-height: 1;">${mode.emoji}</div>
+            <div style="flex: 1;">
+                <div style="font-weight: bold; color: #c4b5fd; font-size: 14px; margin-bottom: 4px;">${mode.name}</div>
+                <div style="color: #e0e7ff; font-size: 12px; line-height: 1.4;">${mode.desc}</div>
+                <div style="color: #9ca3af; font-size: 11px; margin-top: 6px; display: flex; align-items: center; gap: 6px;">
+                    <span>🧠 ${mode.model}</span>
+                    <span style="background: ${mode.color}; color: white; padding: 2px 6px; border-radius: 10px; font-size: 9px;">${mode.modelSpeed}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    positionTooltip(event);
+    tooltipEl.style.display = 'block';
+}
+
+function positionTooltip(event) {
+    if (!tooltipEl) return;
+    
+    const tooltipRect = tooltipEl.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Default: to the right of cursor
+    let left = event.clientX + 20;
+    let top = event.clientY - 30;
+    
+    // Adjust if too far right
+    if (left + tooltipRect.width > viewportWidth - 20) {
+        left = event.clientX - tooltipRect.width - 20;
+    }
+    
+    // Adjust if too far left
+    if (left < 20) {
+        left = 20;
+    }
+    
+    // Adjust if too far bottom
+    if (top + tooltipRect.height > viewportHeight - 20) {
+        top = event.clientY - tooltipRect.height - 20;
+    }
+    
+    // Adjust if too far top
+    if (top < 20) {
+        top = 20;
+    }
+    
+    tooltipEl.style.left = left + 'px';
+    tooltipEl.style.top = top + 'px';
+}
+
+function updateTooltipPosition(event) {
+    if (tooltipEl && tooltipEl.style.display === 'block') {
+        positionTooltip(event);
+    }
+}
+
+function hideTooltip() {
+    clearTimeout(tooltipTimeout);
+    tooltipTimeout = setTimeout(() => {
+        if (tooltipEl) {
+            tooltipEl.style.display = 'none';
+        }
+    }, 200);
+}
+
+// ============================================
 // CHAT FUNCTIONS
 // ============================================
 
 async function saveUserChats() {
     if (!currentUser) return;
     
-    // Build complete chat list with ALL metadata
     const chatsArray = chatIds.map(id => {
         const chat = chats[id];
         return {
@@ -471,7 +592,6 @@ function renderChatsList() {
         const chat = chats[chatId];
         if (!chat) return;
         
-        // Format time
         const lastActive = chat.updated_at ? new Date(chat.updated_at) : new Date();
         const now = new Date();
         const diffMs = now - lastActive;
@@ -532,30 +652,28 @@ function renderChatsList() {
 function switchChat(chatId) {
     if (!chats[chatId]) return;
     
-    // Save current chat
     if (chats[activeChatId]) {
         chats[activeChatId].messages = [...messages];
         chats[activeChatId].mode = currentMode;
         chats[activeChatId].updated_at = new Date().toISOString();
     }
     
-    // Switch to new chat
     activeChatId = chatId;
     const newChat = chats[activeChatId];
     newChat.updated_at = new Date().toISOString();
     
-    // Load new chat's mode
     currentMode = newChat.mode || 'JARVIS';
     
-    // Update UI
     updateModeDisplay();
     loadActiveChatMessages();
     renderChatsList();
     
-    // Handle JARVIS mode activation
     if (currentMode === 'JARVIS') {
         if (!document.body.classList.contains('jarvis-mode-active')) {
             activateSuitUpMode();
+        } else {
+            if (jarvisVoiceBtn) jarvisVoiceBtn.style.display = 'flex';
+            if (jarvisEasterEgg) jarvisEasterEgg.style.display = 'flex';
         }
     } else {
         if (document.body.classList.contains('jarvis-mode-active')) {
@@ -826,7 +944,6 @@ function setupDropdown() {
                 chats[activeChatId].updated_at = new Date().toISOString();
             }
             
-            // Handle JARVIS special mode
             if (currentMode === 'JARVIS') {
                 if (!document.body.classList.contains('jarvis-mode-active')) {
                     addWizardMessage(activateSuitUpMode());
@@ -860,68 +977,6 @@ function setupDropdown() {
     });
     
     updateModeDisplay();
-}
-
-// ============================================
-// TOOLTIP FUNCTIONS
-// ============================================
-
-function createTooltip() {
-    tooltipEl = document.createElement('div');
-    tooltipEl.id = 'mode-tooltip';
-    tooltipEl.className = 'mode-tooltip';
-    tooltipEl.style.display = 'none';
-    document.body.appendChild(tooltipEl);
-}
-
-function showTooltip(modeKey, event) {
-    if (!tooltipEl) return;
-    
-    const mode = modeData[modeKey];
-    if (!mode) return;
-    
-    clearTimeout(tooltipTimeout);
-    
-    tooltipEl.innerHTML = `
-        <div style="display: flex; align-items: flex-start; gap: 12px;">
-            <div style="font-size: 32px;">${mode.emoji}</div>
-            <div>
-                <div style="font-weight: bold; color: #c4b5fd;">${mode.name}</div>
-                <div style="color: #e0e7ff; font-size: 12px;">${mode.desc}</div>
-                <div style="color: #9ca3af; font-size: 11px; margin-top: 4px;">${mode.model}</div>
-            </div>
-        </div>
-    `;
-    
-    positionTooltip(event);
-    tooltipEl.style.display = 'block';
-}
-
-function updateTooltipPosition(event) {
-    if (tooltipEl && tooltipEl.style.display === 'block') {
-        positionTooltip(event);
-    }
-}
-
-function positionTooltip(event) {
-    const x = event.clientX + 15;
-    const y = event.clientY - 20;
-    
-    const tooltipRect = tooltipEl.getBoundingClientRect();
-    const maxX = window.innerWidth - tooltipRect.width - 10;
-    const maxY = window.innerHeight - tooltipRect.height - 10;
-    
-    tooltipEl.style.left = Math.min(x, maxX) + 'px';
-    tooltipEl.style.top = Math.max(10, Math.min(y, maxY)) + 'px';
-}
-
-function hideTooltip() {
-    clearTimeout(tooltipTimeout);
-    tooltipTimeout = setTimeout(() => {
-        if (tooltipEl) {
-            tooltipEl.style.display = 'none';
-        }
-    }, 200);
 }
 
 // ============================================
@@ -960,7 +1015,46 @@ async function typeMessage(messageDiv, textSpan, fullText, baseSpeed = 20) {
 }
 
 // ============================================
-// SEND MESSAGE
+// TURBO MODE TOGGLE
+// ============================================
+
+function addTurboToggle() {
+    const container = document.getElementById('turbo-toggle-container');
+    if (!container) return;
+    
+    const turboDiv = document.createElement('div');
+    turboDiv.className = 'mode-selector';
+    turboDiv.innerHTML = `
+        <h3 style="color: #c4b5fd; font-size: 14px; margin-bottom: 10px;">
+            <span>⚡</span> TURBO MODE
+        </h3>
+        <button id="turbo-btn" style="width: 100%; padding: 10px; background: #4b5563; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+            <span>🔴</span> TURBO OFF
+        </button>
+    `;
+    
+    container.appendChild(turboDiv);
+    
+    const turboBtn = document.getElementById('turbo-btn');
+    if (turboBtn) {
+        turboBtn.addEventListener('click', () => {
+            turboMode = !turboMode;
+            
+            if (turboMode) {
+                turboBtn.style.background = '#ef4444';
+                turboBtn.innerHTML = '<span>⚡</span> TURBO ON';
+                addWizardMessage('⚡ Turbo mode activated!');
+            } else {
+                turboBtn.style.background = '#4b5563';
+                turboBtn.innerHTML = '<span>🔴</span> TURBO OFF';
+                addWizardMessage('✨ Turbo mode deactivated.');
+            }
+        });
+    }
+}
+
+// ============================================
+// SEND MESSAGE - FIXED WITH MEMORY
 // ============================================
 
 async function sendMessage() {
@@ -1023,7 +1117,7 @@ async function sendMessage() {
             const jarvisResponse = handleJarvisCommand(text);
             if (jarvisResponse) {
                 thinkingDiv.remove();
-                const wizardMsgDiv = renderWizardMessage(jarvisResponse, currentMode);
+                renderWizardMessage(jarvisResponse, currentMode);
                 messages.push({ sender: 'wizard', text: jarvisResponse, mode: currentMode });
                 updateMessageCount();
                 
@@ -1045,13 +1139,15 @@ async function sendMessage() {
             }
         }
         
+        // Send to backend with conversation history
         const response = await fetch(`${API_BASE_URL}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 prompt: text,
                 mode: currentMode,
-                turbo: turboMode
+                turbo: turboMode,
+                history: messages.slice(-10)  // Send last 10 messages for context
             })
         });
         
@@ -1126,45 +1222,6 @@ async function sendMessage() {
         sendBtn.disabled = false;
         sendBtn.classList.remove('loading');
         chatInput.focus();
-    }
-}
-
-// ============================================
-// TURBO MODE TOGGLE
-// ============================================
-
-function addTurboToggle() {
-    const container = document.getElementById('turbo-toggle-container');
-    if (!container) return;
-    
-    const turboDiv = document.createElement('div');
-    turboDiv.className = 'mode-selector';
-    turboDiv.innerHTML = `
-        <h3 style="color: #c4b5fd; font-size: 14px; margin-bottom: 10px;">
-            <span>⚡</span> TURBO MODE
-        </h3>
-        <button id="turbo-btn" style="width: 100%; padding: 10px; background: #4b5563; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
-            <span>🔴</span> TURBO OFF
-        </button>
-    `;
-    
-    container.appendChild(turboDiv);
-    
-    const turboBtn = document.getElementById('turbo-btn');
-    if (turboBtn) {
-        turboBtn.addEventListener('click', () => {
-            turboMode = !turboMode;
-            
-            if (turboMode) {
-                turboBtn.style.background = '#ef4444';
-                turboBtn.innerHTML = '<span>⚡</span> TURBO ON';
-                addWizardMessage('⚡ Turbo mode activated!');
-            } else {
-                turboBtn.style.background = '#4b5563';
-                turboBtn.innerHTML = '<span>🔴</span> TURBO OFF';
-                addWizardMessage('✨ Turbo mode deactivated.');
-            }
-        });
     }
 }
 
@@ -1296,7 +1353,6 @@ async function handleSignupStep2() {
             authModal.classList.remove('show');
             updateUIForAuth();
             
-            // Load chats from response
             chats = {};
             chatIds = [];
             
@@ -1305,7 +1361,6 @@ async function handleSignupStep2() {
                 chatIds.push(chat.chat_id);
             });
             
-            // Use chat order if provided
             if (data.chat_order && data.chat_order.length > 0) {
                 chatIds = data.chat_order;
             }
@@ -1313,7 +1368,6 @@ async function handleSignupStep2() {
             activeChatId = chatIds[0];
             currentMode = chats[activeChatId].mode || 'JARVIS';
             
-            // Activate JARVIS mode if needed
             if (currentMode === 'JARVIS') {
                 activateSuitUpMode();
             }
@@ -1356,7 +1410,6 @@ async function handleLogin() {
             authModal.classList.remove('show');
             updateUIForAuth();
             
-            // Load chats from response
             chats = {};
             chatIds = [];
             
@@ -1365,7 +1418,6 @@ async function handleLogin() {
                 chatIds.push(chat.chat_id);
             });
             
-            // Use chat order if provided
             if (data.chat_order && data.chat_order.length > 0) {
                 chatIds = data.chat_order;
             }
@@ -1373,7 +1425,6 @@ async function handleLogin() {
             activeChatId = chatIds[0];
             currentMode = chats[activeChatId].mode || 'JARVIS';
             
-            // Activate JARVIS mode if needed
             if (currentMode === 'JARVIS') {
                 activateSuitUpMode();
             }
@@ -1429,7 +1480,6 @@ async function loadUserChats() {
                     chatIds.push(chat.chat_id);
                 });
                 
-                // Use server order
                 if (data.chat_order && data.chat_order.length > 0) {
                     chatIds = data.chat_order;
                 }
@@ -1437,7 +1487,6 @@ async function loadUserChats() {
                 activeChatId = chatIds[0];
                 currentMode = chats[activeChatId].mode || 'JARVIS';
                 
-                // Activate JARVIS mode if needed
                 if (currentMode === 'JARVIS') {
                     activateSuitUpMode();
                 }
@@ -1466,7 +1515,6 @@ function initializeLocalChats() {
     activeChatId = 'default';
     currentMode = 'JARVIS';
     
-    // Activate JARVIS mode
     activateSuitUpMode();
     
     renderChatsList();
@@ -1655,7 +1703,6 @@ async function init() {
     createTooltip();
     updateConnectionStatus('connecting');
     
-    // Initialize voice recognition (but don't start it)
     initializeVoiceRecognition();
     
     await checkAuth();
