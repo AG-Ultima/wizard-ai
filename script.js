@@ -1,7 +1,7 @@
 // ============================================
-// WIZARD.AI - JARVIS ULTIMATE EDITION (WITH MEMORY)
+// WIZARD.AI - STARK INDUSTRIES JARVIS ULTIMATE
 // Created by Arnav Gupta in 15 hours
-// Features: SUIT UP, Voice Commands, Diagnostic, Easter Eggs, FULL MEMORY
+// Movie-Quality Holographic UI + Voice + Diagnostic
 // ============================================
 
 // ============================================
@@ -112,6 +112,22 @@ const jarvisGreetings = [
 ];
 
 // ============================================
+// BRAVE BROWSER DETECTION
+// ============================================
+function isBraveBrowser() {
+    // Check for navigator.brave (Brave-specific property)
+    if (window.navigator.brave && typeof window.navigator.brave.isBrave === 'function') {
+        return true;
+    }
+    
+    // Alternative detection method
+    const isChromium = window.chrome !== undefined;
+    const userAgent = window.navigator.userAgent;
+    
+    return isChromium && userAgent.includes("Brave");
+}
+
+// ============================================
 // MODE DATA - With Hidden WIZARD Mode
 // ============================================
 const modeData = {
@@ -175,7 +191,7 @@ const modeData = {
         desc: 'Sophisticated and professional, like Tony Stark\'s AI.',
         model: 'Llama 3.1 8B',
         modelSpeed: 'FAST',
-        color: '#10b981',
+        color: '#00aaff',
         hidden: false
     },
     'ORACLE': {
@@ -201,80 +217,193 @@ const modeGreetings = {
 };
 
 // ============================================
-// JARVIS SPECIAL FUNCTIONS
+// VOICE RECOGNITION - STARK LEVEL
 // ============================================
-
 function initializeVoiceRecognition() {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        console.log('Voice recognition not supported in this browser');
+    // Check for Brave browser first
+    if (isBraveBrowser()) {
+        console.log('Voice recognition disabled in Brave browser');
         if (jarvisVoiceBtn) {
             jarvisVoiceBtn.style.display = 'none';
         }
+        addWizardMessage('🎤 Voice recognition is not supported in Brave. Please use Chrome, Edge, or Safari for voice features.');
         return false;
     }
     
+    // Check for browser support
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
     
-    recognition.onstart = () => {
-        isListening = true;
+    if (!SpeechRecognition) {
+        console.error('Voice recognition not supported in this browser');
         if (jarvisVoiceBtn) {
-            jarvisVoiceBtn.classList.add('listening');
-            jarvisVoiceBtn.title = 'Listening... click to stop';
+            jarvisVoiceBtn.style.display = 'none';
         }
-        addWizardMessage('🎤 Listening, sir...');
-    };
+        addWizardMessage('⚠️ Voice recognition is not supported in your browser. Try Chrome or Edge.');
+        return false;
+    }
     
-    recognition.onend = () => {
-        isListening = false;
-        if (jarvisVoiceBtn) {
-            jarvisVoiceBtn.classList.remove('listening');
-            jarvisVoiceBtn.title = 'Voice command';
+    try {
+        // Clean up any existing instance
+        if (recognition) {
+            try {
+                recognition.abort();
+            } catch (e) {}
         }
-    };
-    
-    recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        chatInput.value = transcript;
-        addWizardMessage(`🎤 I heard: "${transcript}"`);
-        setTimeout(() => sendMessage(), 500);
-    };
-    
-    recognition.onerror = (event) => {
-        console.error('Voice recognition error:', event.error);
-        addWizardMessage(`🎤 Sorry, I couldn't hear you. Error: ${event.error}`);
-        isListening = false;
-        if (jarvisVoiceBtn) {
-            jarvisVoiceBtn.classList.remove('listening');
-        }
-    };
-    
-    return true;
+        
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+        recognition.maxAlternatives = 1;
+        
+        recognition.onstart = () => {
+            console.log('Voice recognition started');
+            isListening = true;
+            if (jarvisVoiceBtn) {
+                jarvisVoiceBtn.classList.add('listening');
+                jarvisVoiceBtn.title = 'Listening... click to stop';
+            }
+            addWizardMessage('🎤 Listening, sir... (speak now)');
+        };
+        
+        recognition.onend = () => {
+            console.log('Voice recognition ended');
+            isListening = false;
+            if (jarvisVoiceBtn) {
+                jarvisVoiceBtn.classList.remove('listening');
+                jarvisVoiceBtn.title = 'Voice command';
+            }
+        };
+        
+        recognition.onresult = (event) => {
+            console.log('Voice result received:', event);
+            
+            if (event.results.length > 0) {
+                const transcript = event.results[0][0].transcript;
+                console.log('Transcript:', transcript);
+                
+                // Show what was heard
+                addWizardMessage(`🎤 I heard: "${transcript}"`);
+                
+                // Set input value and send
+                chatInput.value = transcript;
+                setTimeout(() => sendMessage(), 500);
+            } else {
+                addWizardMessage('🎤 No speech detected. Please try again.');
+            }
+        };
+        
+        recognition.onerror = (event) => {
+            console.error('Voice recognition error:', event.error);
+            
+            let errorMsg = '';
+            switch(event.error) {
+                case 'no-speech':
+                    errorMsg = 'No speech detected. Please try again.';
+                    break;
+                case 'audio-capture':
+                    errorMsg = 'No microphone found. Please check your microphone.';
+                    break;
+                case 'not-allowed':
+                    errorMsg = 'Microphone access denied. Please allow microphone access.';
+                    break;
+                case 'network':
+                    errorMsg = 'Network error. Voice recognition requires internet connection.';
+                    break;
+                case 'aborted':
+                    errorMsg = 'Voice recognition was aborted.';
+                    break;
+                default:
+                    errorMsg = `Voice recognition error: ${event.error}`;
+            }
+            
+            addWizardMessage(`🎤 ${errorMsg}`);
+            
+            isListening = false;
+            if (jarvisVoiceBtn) {
+                jarvisVoiceBtn.classList.remove('listening');
+                jarvisVoiceBtn.title = 'Voice command';
+            }
+        };
+        
+        console.log('Voice recognition initialized successfully');
+        return true;
+        
+    } catch (e) {
+        console.error('Failed to initialize voice recognition:', e);
+        addWizardMessage('⚠️ Failed to initialize voice recognition.');
+        return false;
+    }
 }
 
 function toggleVoiceRecognition() {
     if (!recognition) {
         if (!initializeVoiceRecognition()) {
-            addWizardMessage('Voice recognition is not supported in your browser, sir.');
             return;
         }
     }
     
     if (isListening) {
-        recognition.stop();
+        try {
+            recognition.stop();
+        } catch (e) {
+            console.error('Error stopping recognition:', e);
+            isListening = false;
+            if (jarvisVoiceBtn) {
+                jarvisVoiceBtn.classList.remove('listening');
+            }
+        }
     } else {
         try {
             recognition.start();
         } catch (e) {
-            console.error('Voice start error:', e);
-            addWizardMessage('🎤 Could not start voice recognition. Please try again.');
+            console.error('Error starting recognition:', e);
+            
+            if (e.name === 'InvalidStateError') {
+                try {
+                    recognition.abort();
+                    setTimeout(() => {
+                        try {
+                            recognition.start();
+                        } catch (err) {
+                            addWizardMessage('🎤 Could not start voice recognition. Please refresh the page.');
+                        }
+                    }, 100);
+                } catch (err) {
+                    addWizardMessage('🎤 Voice recognition error. Please refresh the page.');
+                }
+            } else {
+                addWizardMessage('🎤 Could not start voice recognition. Please try again.');
+            }
         }
     }
 }
 
+// ============================================
+// HOLOGRAPHIC PARTICLES - MOVIE EFFECT
+// ============================================
+function createHolographicParticles() {
+    const container = document.querySelector('.app-container');
+    if (!container) return;
+    
+    // Remove existing particles
+    const existingParticles = document.querySelectorAll('.data-particle');
+    existingParticles.forEach(p => p.remove());
+    
+    // Create new particles
+    for (let i = 0; i < 20; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'data-particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 5 + 's';
+        particle.style.animationDuration = (Math.random() * 10 + 5) + 's';
+        container.appendChild(particle);
+    }
+}
+
+// ============================================
+// JARVIS SPECIAL FUNCTIONS
+// ============================================
 function performSystemDiagnostic() {
     const now = new Date();
     const uptime = Math.floor(Math.random() * 24) + 1;
@@ -284,7 +413,7 @@ function performSystemDiagnostic() {
     
     const diagnostic = {
         timestamp: now.toLocaleString(),
-        system: 'Wizard.AI v5.0',
+        system: 'Wizard.AI v5.0 - Stark Edition',
         uptime: `${uptime} hours`,
         activeUsers: activeUsers,
         cpuLoad: `${cpuLoad}%`,
@@ -296,7 +425,9 @@ function performSystemDiagnostic() {
         totalMessages: messages.length,
         database: 'SQLite (synced)',
         apiStatus: 'Groq API: Online',
-        emailService: 'Resend: Ready'
+        emailService: 'Resend: Ready',
+        holographics: 'ACTIVE',
+        starkOS: 'v1.0'
     };
     
     return diagnostic;
@@ -304,6 +435,7 @@ function performSystemDiagnostic() {
 
 function activateSuitUpMode() {
     document.body.classList.add('jarvis-mode-active');
+    createHolographicParticles();
     
     if (jarvisEasterEgg) {
         jarvisEasterEgg.style.display = 'flex';
@@ -313,15 +445,23 @@ function activateSuitUpMode() {
         jarvisVoiceBtn.style.display = 'flex';
     }
     
-    simulateHapticFeedback();
-    
     const randomGreeting = jarvisGreetings[Math.floor(Math.random() * jarvisGreetings.length)];
     
-    return `🔷 SUIT UP mode activated. ${randomGreeting} All systems are now running in JARVIS configuration.`;
+    return `🔷 **STARK INDUSTRIES JARVIS SUIT UP**\n\n` +
+           `*Holographic interface initializing...*\n` +
+           `*3D scanning grid activated*\n` +
+           `*Repulsor tech online*\n` +
+           `*Heads-up display engaged*\n\n` +
+           `🔷 ${randomGreeting}\n\n` +
+           `All systems are now running at peak performance. The holographic UI is active. ` +
+           `Try saying "diagnostic" or using the voice command button.`;
 }
 
 function deactivateSuitUpMode() {
     document.body.classList.remove('jarvis-mode-active');
+    
+    const particles = document.querySelectorAll('.data-particle');
+    particles.forEach(p => p.remove());
     
     if (jarvisEasterEgg) {
         jarvisEasterEgg.style.display = 'none';
@@ -332,86 +472,58 @@ function deactivateSuitUpMode() {
     }
 }
 
-function simulateHapticFeedback() {
-    const buttons = document.querySelectorAll('button');
-    buttons.forEach(btn => {
-        btn.removeEventListener('click', hapticHandler);
-        btn.addEventListener('click', hapticHandler);
-    });
-}
-
-function hapticHandler(e) {
-    const btn = e.currentTarget;
-    btn.style.transform = 'scale(0.95)';
-    setTimeout(() => {
-        btn.style.transform = 'scale(1)';
-    }, 100);
-}
-
 function handleJarvisCommand(text) {
     const lowerText = text.toLowerCase().trim();
     
     // Diagnostic command
     if (lowerText.includes('diagnostic') || lowerText.includes('system status') || lowerText.includes('system report')) {
         const diag = performSystemDiagnostic();
-        return `🔷 **System Diagnostic Report**\n\n` +
-               `• **Time**: ${diag.timestamp}\n` +
-               `• **System**: ${diag.system}\n` +
-               `• **Uptime**: ${diag.uptime}\n` +
-               `• **Active Users**: ${diag.activeUsers}\n` +
-               `• **CPU Load**: ${diag.cpuLoad}\n` +
-               `• **Memory**: ${diag.memoryUsage}\n` +
-               `• **Response Time**: ${diag.responseTime}\n` +
-               `• **Current Mode**: ${diag.currentMode}\n` +
-               `• **Active Chat**: ${diag.activeChat}\n` +
-               `• **Total Chats**: ${diag.totalChats}\n` +
-               `• **Messages**: ${diag.totalMessages}\n` +
-               `• **Database**: ${diag.database}\n` +
-               `• **API**: ${diag.apiStatus}\n` +
-               `• **Email**: ${diag.emailService}\n\n` +
+        return `🔷 **STARK INDUSTRIES SYSTEM DIAGNOSTIC**\n\n` +
+               `╔════════════════════════════════╗\n` +
+               `║ ${diag.timestamp.padEnd(28)} ║\n` +
+               `╠════════════════════════════════╣\n` +
+               `║ System: ${diag.system.padEnd(22)} ║\n` +
+               `║ Uptime: ${diag.uptime.padEnd(22)} ║\n` +
+               `║ Active Users: ${diag.activeUsers.toString().padEnd(16)} ║\n` +
+               `║ CPU Load: ${diag.cpuLoad.padEnd(20)} ║\n` +
+               `║ Memory: ${diag.memoryUsage.padEnd(22)} ║\n` +
+               `║ Response: ${diag.responseTime.padEnd(21)} ║\n` +
+               `║ Current Mode: ${diag.currentMode.padEnd(16)} ║\n` +
+               `║ Active Chat: ${diag.activeChat.padEnd(17)} ║\n` +
+               `║ Total Chats: ${diag.totalChats.toString().padEnd(17)} ║\n` +
+               `║ Messages: ${diag.totalMessages.toString().padEnd(20)} ║\n` +
+               `║ Holographics: ${diag.holographics.padEnd(16)} ║\n` +
+               `╚════════════════════════════════╝\n\n` +
                `All systems are operational, sir. Would you like me to run any specific tests?`;
     }
     
     // Suit up command
-    if (lowerText.includes('suit up') || lowerText.includes('jarvis mode') || lowerText === 'suit' || lowerText.includes('suit up')) {
+    if (lowerText.includes('suit up') || lowerText.includes('jarvis mode') || lowerText === 'suit') {
         if (!document.body.classList.contains('jarvis-mode-active')) {
-            if (lowerText.includes('suit')) {
-                const suitResponse = `*holographic displays flicker to life*\n\n` +
-                    `🔷 **Initiating Mark LXXXV (Mark 85) suit-up sequence**\n` +
-                    `🔷 **Nanotech particles activating**\n` +
-                    `🔷 **Repulsor tech online**\n` +
-                    `🔷 **Flight systems calibrated**\n` +
-                    `🔷 **Heads-up display engaged**\n\n` +
-                    `I should clarify, sir, that I'm not actually connected to a physical suit – this is purely a visual enhancement. ` +
-                    `But Tony always said presentation is half the battle. Welcome to SUIT UP mode.`;
-                
-                activateSuitUpMode();
-                return suitResponse;
-            }
             return activateSuitUpMode();
         } else {
-            return "We're already in SUIT UP mode, sir. All systems are running at optimal performance. Would you like me to run a diagnostic?";
+            return "We're already in SUIT UP mode, sir. All systems are running at optimal performance. The holographic interface is active.";
         }
     }
     
     // Voice command help
-    if (lowerText.includes('voice') || lowerText.includes('mic') || lowerText.includes('speak') || lowerText.includes('microphone')) {
+    if (lowerText.includes('voice') || lowerText.includes('mic') || lowerText.includes('speak')) {
         if (jarvisVoiceBtn && jarvisVoiceBtn.style.display !== 'none') {
-            return `Voice commands are available, sir. Simply click the 🎤 button next to the send button and speak. I'll transcribe your words and process them. Would you like to try it now?`;
+            return `Voice commands are available, sir. Simply click the 🎤 button next to the send button and speak. I'll transcribe your words and process them. The Stark Industries voice recognition system is online.`;
         } else {
             return `Voice commands are available in JARVIS mode, sir. Please switch to JARVIS mode first, then look for the 🎤 button.`;
         }
     }
     
-    // Status command - FIXED
+    // Status command
     if (lowerText.includes('status') || lowerText.includes('how are you') || lowerText.includes("how's it going")) {
         const diag = performSystemDiagnostic();
-        return `I'm functioning optimally, sir. Current system load is ${diag.cpuLoad} with ${diag.activeUsers} active users. Response time is ${diag.responseTime}. Everything is running smoothly. How may I assist you?`;
+        return `I'm functioning optimally, sir. Current system load is ${diag.cpuLoad} with ${diag.activeUsers} active users. Response time is ${diag.responseTime}. The holographic interface is ${document.body.classList.contains('jarvis-mode-active') ? 'active' : 'standby'}. Everything is running smoothly. How may I assist you?`;
     }
     
     // Easter egg hint
     if (lowerText.includes('easter egg') || lowerText.includes('secret') || lowerText.includes('hidden')) {
-        return `Ah, curious about secrets, sir? Try saying "diagnostic", "suit up", or "status". Also, keep an eye on the sidebar when in JARVIS mode for additional hints. Tony always said the best features are the ones you discover yourself.`;
+        return `Ah, curious about secrets, sir? Try saying "diagnostic", "suit up", or "status". Also, keep an eye on the holographic particles when in SUIT UP mode. Tony always said the best features are the ones you discover yourself.`;
     }
     
     return null;
@@ -454,7 +566,6 @@ function addWizardMessage(text) {
 // ============================================
 // TOOLTIP FUNCTIONS - FIXED POSITIONING
 // ============================================
-
 function createTooltip() {
     tooltipEl = document.createElement('div');
     tooltipEl.id = 'mode-tooltip';
@@ -478,7 +589,7 @@ function showTooltip(modeKey, event) {
         <div style="display: flex; align-items: flex-start; gap: 12px;">
             <div style="font-size: 32px; line-height: 1;">${mode.emoji}</div>
             <div style="flex: 1;">
-                <div style="font-weight: bold; color: #c4b5fd; font-size: 14px; margin-bottom: 4px;">${mode.name}</div>
+                <div style="font-weight: bold; color: ${mode.color}; font-size: 14px; margin-bottom: 4px;">${mode.name}</div>
                 <div style="color: #e0e7ff; font-size: 12px; line-height: 1.4;">${mode.desc}</div>
                 <div style="color: #9ca3af; font-size: 11px; margin-top: 6px; display: flex; align-items: center; gap: 6px;">
                     <span>🧠 ${mode.model}</span>
@@ -499,26 +610,21 @@ function positionTooltip(event) {
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     
-    // Default: to the right of cursor
     let left = event.clientX + 20;
     let top = event.clientY - 30;
     
-    // Adjust if too far right
     if (left + tooltipRect.width > viewportWidth - 20) {
         left = event.clientX - tooltipRect.width - 20;
     }
     
-    // Adjust if too far left
     if (left < 20) {
         left = 20;
     }
     
-    // Adjust if too far bottom
     if (top + tooltipRect.height > viewportHeight - 20) {
         top = event.clientY - tooltipRect.height - 20;
     }
     
-    // Adjust if too far top
     if (top < 20) {
         top = 20;
     }
@@ -545,7 +651,6 @@ function hideTooltip() {
 // ============================================
 // CHAT FUNCTIONS
 // ============================================
-
 async function saveUserChats() {
     if (!currentUser) return;
     
@@ -668,17 +773,16 @@ function switchChat(chatId) {
     loadActiveChatMessages();
     renderChatsList();
     
+    // Handle JARVIS mode - NO AUTO SUIT UP
     if (currentMode === 'JARVIS') {
-        if (!document.body.classList.contains('jarvis-mode-active')) {
-            activateSuitUpMode();
-        } else {
-            if (jarvisVoiceBtn) jarvisVoiceBtn.style.display = 'flex';
-            if (jarvisEasterEgg) jarvisEasterEgg.style.display = 'flex';
-        }
+        if (jarvisVoiceBtn) jarvisVoiceBtn.style.display = 'flex';
+        if (jarvisEasterEgg) jarvisEasterEgg.style.display = 'flex';
     } else {
         if (document.body.classList.contains('jarvis-mode-active')) {
             deactivateSuitUpMode();
         }
+        if (jarvisVoiceBtn) jarvisVoiceBtn.style.display = 'none';
+        if (jarvisEasterEgg) jarvisEasterEgg.style.display = 'none';
     }
     
     if (currentUser) {
@@ -881,7 +985,6 @@ function updateMessageCount() {
 // ============================================
 // MODE FUNCTIONS
 // ============================================
-
 function updateModeDisplay() {
     const mode = modeData[currentMode] || modeData['JARVIS'];
     if (selectedDisplay) {
@@ -910,7 +1013,6 @@ function updateModelInfo() {
 // ============================================
 // DROPDOWN SETUP
 // ============================================
-
 function setupDropdown() {
     if (!dropdown || !dropdownContent) return;
     
@@ -945,15 +1047,15 @@ function setupDropdown() {
             }
             
             if (currentMode === 'JARVIS') {
-                if (!document.body.classList.contains('jarvis-mode-active')) {
-                    addWizardMessage(activateSuitUpMode());
-                } else {
-                    addWizardMessage(`🔄 Switched to ${modeKey} mode! ${modeGreetings[modeKey] || ''}`);
-                }
+                addWizardMessage(`🔄 Switched to JARVIS mode. ${modeGreetings.JARVIS || ''}`);
+                if (jarvisVoiceBtn) jarvisVoiceBtn.style.display = 'flex';
+                if (jarvisEasterEgg) jarvisEasterEgg.style.display = 'flex';
             } else {
                 if (document.body.classList.contains('jarvis-mode-active')) {
                     deactivateSuitUpMode();
                 }
+                if (jarvisVoiceBtn) jarvisVoiceBtn.style.display = 'none';
+                if (jarvisEasterEgg) jarvisEasterEgg.style.display = 'none';
                 addWizardMessage(`🔄 Switched to ${modeKey} mode! ${modeGreetings[modeKey] || ''}`);
             }
             
@@ -982,7 +1084,6 @@ function setupDropdown() {
 // ============================================
 // TYPING EFFECT
 // ============================================
-
 async function typeMessage(messageDiv, textSpan, fullText, baseSpeed = 20) {
     return new Promise((resolve) => {
         let i = 0;
@@ -1017,7 +1118,6 @@ async function typeMessage(messageDiv, textSpan, fullText, baseSpeed = 20) {
 // ============================================
 // TURBO MODE TOGGLE
 // ============================================
-
 function addTurboToggle() {
     const container = document.getElementById('turbo-toggle-container');
     if (!container) return;
@@ -1054,9 +1154,8 @@ function addTurboToggle() {
 }
 
 // ============================================
-// SEND MESSAGE - FIXED WITH MEMORY
+// SEND MESSAGE
 // ============================================
-
 async function sendMessage() {
     if (isThinking) return;
     
@@ -1147,7 +1246,7 @@ async function sendMessage() {
                 prompt: text,
                 mode: currentMode,
                 turbo: turboMode,
-                history: messages.slice(-10)  // Send last 10 messages for context
+                history: messages.slice(-10)
             })
         });
         
@@ -1228,7 +1327,6 @@ async function sendMessage() {
 // ============================================
 // AUTH FUNCTIONS
 // ============================================
-
 async function checkAuth() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/check-auth`, {
@@ -1368,10 +1466,6 @@ async function handleSignupStep2() {
             activeChatId = chatIds[0];
             currentMode = chats[activeChatId].mode || 'JARVIS';
             
-            if (currentMode === 'JARVIS') {
-                activateSuitUpMode();
-            }
-            
             renderChatsList();
             updateModeDisplay();
             loadActiveChatMessages();
@@ -1424,10 +1518,6 @@ async function handleLogin() {
             
             activeChatId = chatIds[0];
             currentMode = chats[activeChatId].mode || 'JARVIS';
-            
-            if (currentMode === 'JARVIS') {
-                activateSuitUpMode();
-            }
             
             renderChatsList();
             updateModeDisplay();
@@ -1487,10 +1577,6 @@ async function loadUserChats() {
                 activeChatId = chatIds[0];
                 currentMode = chats[activeChatId].mode || 'JARVIS';
                 
-                if (currentMode === 'JARVIS') {
-                    activateSuitUpMode();
-                }
-                
                 renderChatsList();
                 updateModeDisplay();
                 loadActiveChatMessages();
@@ -1515,7 +1601,8 @@ function initializeLocalChats() {
     activeChatId = 'default';
     currentMode = 'JARVIS';
     
-    activateSuitUpMode();
+    if (jarvisVoiceBtn) jarvisVoiceBtn.style.display = 'flex';
+    if (jarvisEasterEgg) jarvisEasterEgg.style.display = 'flex';
     
     renderChatsList();
     updateModeDisplay();
@@ -1526,7 +1613,6 @@ function initializeLocalChats() {
 // ============================================
 // STATUS FUNCTIONS
 // ============================================
-
 async function checkSystemStatus() {
     try {
         const response = await fetch(`${API_BASE_URL}/status`);
@@ -1571,7 +1657,6 @@ function updateConnectionStatus(status) {
 // ============================================
 // MODAL SETUP
 // ============================================
-
 function setupModal() {
     if (!renameModal) return;
     
@@ -1608,7 +1693,6 @@ function setupModal() {
 // ============================================
 // EVENT LISTENERS
 // ============================================
-
 function setupEventListeners() {
     sendBtn.addEventListener('click', sendMessage);
     
@@ -1695,15 +1779,22 @@ function setupEventListeners() {
 // ============================================
 // INITIALIZATION
 // ============================================
-
 async function init() {
-    console.log('🚀 Initializing Wizard.AI JARVIS ULTIMATE...');
+    console.log('🚀 Initializing Wizard.AI STARK INDUSTRIES EDITION...');
     console.log('🔗 Backend URL:', API_BASE_URL);
     
     createTooltip();
     updateConnectionStatus('connecting');
     
-    initializeVoiceRecognition();
+    // Check for Brave browser
+    if (isBraveBrowser()) {
+        addWizardMessage('⚠️ You're using Brave browser. Voice features work best in Chrome, Edge, or Safari.');
+        if (jarvisVoiceBtn) {
+            jarvisVoiceBtn.style.display = 'none';
+        }
+    } else {
+        initializeVoiceRecognition();
+    }
     
     await checkAuth();
     
@@ -1717,7 +1808,7 @@ async function init() {
     setupModal();
     addTurboToggle();
     
-    console.log('✅ Wizard.AI JARVIS ULTIMATE initialized successfully');
+    console.log('✅ Wizard.AI STARK INDUSTRIES EDITION initialized successfully');
 }
 
 // Emergency reset
@@ -1735,6 +1826,4 @@ document.addEventListener('keydown', (e) => {
 
 // Start the app
 document.addEventListener('DOMContentLoaded', init);
-
-
 
