@@ -49,6 +49,16 @@
                 </div>
             </div>
             
+            <!-- JARVIS Easter Egg Tooltip (hidden by default) -->
+            <div class="jarvis-easter-egg" id="jarvis-easter-egg" style="display: none;">
+                <div class="easter-egg-icon">🔷</div>
+                <div class="easter-egg-text">
+                    <strong>JARVIS Commands</strong><br>
+                    Try: "diagnostic", "suit up", "status"<br>
+                    or click the 🎤 button
+                </div>
+            </div>
+            
             <!-- Turbo Mode Toggle Container -->
             <div id="turbo-toggle-container"></div>
             
@@ -74,19 +84,13 @@
                 </div>
             </div>
             
-            <!-- Cloud Sync Buttons -->
-            <div class="cloud-actions" id="cloud-actions" style="display: none;">
-                <button class="cloud-btn save-cloud" id="save-cloud-btn">☁️ Save to Cloud</button>
-                <button class="cloud-btn load-cloud" id="load-cloud-btn">☁️ Load from Cloud</button>
-            </div>
-            
             <button id="reset-current-btn" class="reset-button" aria-label="Clear current chat">
                 <span>🧹</span> Clear Current Chat
             </button>
             
             <div class="footer-note">
                 <p>Created by Arnav ✨</p>
-                <p class="version">v5.0 - Ultimate Edition</p>
+                <p class="version">v5.0 - JARVIS Ultimate</p>
             </div>
         </div>
         
@@ -120,6 +124,9 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
                     </svg>
+                </button>
+                <button id="jarvis-voice-btn" class="jarvis-voice-btn" title="Voice command (JARVIS only)" style="display: none;">
+                    🎤
                 </button>
             </div>
         </div>
@@ -173,11 +180,11 @@
                         <input type="password" id="auth-confirm" placeholder="Confirm your password">
                     </div>
 
-                    <!-- Verification Code (for email verification) -->
+                    <!-- Verification Code -->
                     <div class="form-group" id="verification-group" style="display: none;">
                         <label for="verification-code">Verification Code</label>
                         <input type="text" id="verification-code" placeholder="Enter 6-digit code" maxlength="6">
-                        <button id="resend-code-btn" style="margin-top: 10px; background: none; border: 1px solid #8b5cf6; color: white; padding: 8px; border-radius: 6px; width: 100%; cursor: pointer; transition: all 0.2s;">📧 Resend Code</button>
+                        <button id="resend-code-btn" style="margin-top: 10px; background: none; border: 1px solid #8b5cf6; color: white; padding: 8px; border-radius: 6px; width: 100%; cursor: pointer;">📧 Resend Code</button>
                     </div>
                     
                     <div class="auth-error" id="auth-error"></div>
