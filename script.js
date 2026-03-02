@@ -404,7 +404,7 @@ function handleJarvisCommand(text) {
     }
     
     // Status command - FIXED
-    if (lowerText.includes('status') || lowerText.includes('how are you') || lowerText.includes("how's it going")) {
+    if (lowerText.includes('status') || lowerText.includes('how are you') || lowerText.includes("how's it going") {
         const diag = performSystemDiagnostic();
         return `I'm functioning optimally, sir. Current system load is ${diag.cpuLoad} with ${diag.activeUsers} active users. Response time is ${diag.responseTime}. Everything is running smoothly. How may I assist you?`;
     }
@@ -1735,4 +1735,5 @@ document.addEventListener('keydown', (e) => {
 
 // Start the app
 document.addEventListener('DOMContentLoaded', init);
+
 
