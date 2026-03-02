@@ -48,10 +48,6 @@ const userInfo = document.getElementById('user-info');
 const authButtons = document.getElementById('auth-buttons');
 const userEmail = document.getElementById('user-email');
 const logoutBtn = document.getElementById('logout-btn');
-const saveCloudBtn = document.getElementById('save-cloud-btn');
-const loadCloudBtn = document.getElementById('load-cloud-btn');
-
-// NEW: Name fields and verification
 const firstNameGroup = document.getElementById('first-name-group');
 const lastNameGroup = document.getElementById('last-name-group');
 const firstNameInput = document.getElementById('first-name');
@@ -65,6 +61,9 @@ const renameModal = document.getElementById('rename-modal');
 const renameInput = document.getElementById('rename-input');
 const modalSave = document.getElementById('modal-save');
 const modalCancel = document.getElementById('modal-cancel');
+
+// Generate unique session ID
+const sessionId = 'session_' + Math.random().toString(36).substr(2, 9);
 
 // State
 let messages = [];
@@ -102,7 +101,7 @@ const modeData = {
     'Fast': {
         emoji: '⚡',
         name: 'Fast Mode',
-        desc: 'Lightning quick responses for when you need speed. Perfect for casual chat and quick answers.',
+        desc: 'Lightning quick responses for when you need speed.',
         model: 'Llama 3.1 8B',
         modelSpeed: 'FAST',
         color: '#10b981',
@@ -111,7 +110,7 @@ const modeData = {
     'Normal': {
         emoji: '✨',
         name: 'Normal Mode',
-        desc: 'Balanced, friendly conversation. Your go-to for everyday chat and general questions.',
+        desc: 'Balanced, friendly conversation.',
         model: 'Llama 3.1 8B',
         modelSpeed: 'FAST',
         color: '#10b981',
@@ -120,7 +119,7 @@ const modeData = {
     'Fun': {
         emoji: '🎉',
         name: 'Fun Mode',
-        desc: 'Playful and energetic! Tells jokes, uses emojis, and keeps things light and entertaining.',
+        desc: 'Playful and energetic! Tells jokes and keeps things light.',
         model: 'Llama 3.3 70B',
         modelSpeed: 'POWERFUL',
         color: '#8b5cf6',
@@ -129,7 +128,7 @@ const modeData = {
     'Sarcastic': {
         emoji: '😏',
         name: 'Sarcastic Mode',
-        desc: 'Witty and slightly sassy, but still helpful. Adds playful sarcasm to responses.',
+        desc: 'Witty and slightly sarcastic, but still helpful.',
         model: 'Llama 3.1 8B',
         modelSpeed: 'FAST',
         color: '#10b981',
@@ -138,7 +137,7 @@ const modeData = {
     'Nerd': {
         emoji: '🧠',
         name: 'Nerd Mode',
-        desc: 'Detailed, factual, and academic. Shares interesting facts and explains things thoroughly.',
+        desc: 'Detailed, factual, and academic. Shares interesting facts.',
         model: 'Llama 3.3 70B',
         modelSpeed: 'POWERFUL',
         color: '#8b5cf6',
@@ -147,7 +146,7 @@ const modeData = {
     'JARVIS': {
         emoji: '🎩',
         name: 'JARVIS Mode',
-        desc: 'Sophisticated and precise, like Tony Stark\'s AI. Professional, polite, and highly capable.',
+        desc: 'Sophisticated and professional, like Tony Stark\'s AI.',
         model: 'Llama 3.1 8B',
         modelSpeed: 'FAST',
         color: '#10b981',
@@ -156,7 +155,7 @@ const modeData = {
     'ORACLE': {
         emoji: '🔮',
         name: 'ORACLE Mode',
-        desc: 'Mystical and all-knowing. Speaks in riddles and metaphors with profound wisdom.',
+        desc: 'Mystical and all-knowing. Speaks with profound wisdom.',
         model: 'Llama 3.3 70B',
         modelSpeed: 'POWERFUL',
         color: '#8b5cf6',
@@ -172,7 +171,7 @@ const modeGreetings = {
     'Sarcastic': '😏 Sarcasm engine engaged... just kidding! Ready!',
     'Nerd': '🤓 Nerd mode! Time to get smart!',
     'JARVIS': '🎩 JARVIS at your service. How may I help?',
-    'ORACLE': '🔮 The Oracle awakens... I see infinite possibilities in your words.'
+    'ORACLE': '🔮 The Oracle awakens... I see infinite possibilities.'
 };
 
 // ============================================
@@ -210,384 +209,140 @@ function addWizardMessage(text) {
 }
 
 // ============================================
-// AUTH FUNCTIONS
-// ============================================
-
-async function checkAuth() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/check-auth`, {
-            credentials: 'include'
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            currentUser = data.user;
-            updateUIForAuth();
-            loadUserChats();
-        } else {
-            updateUIForAuth();
-        }
-    } catch (error) {
-        console.error('Auth check failed:', error);
-        updateUIForAuth();
-    }
-}
-
-function updateUIForAuth() {
-    if (currentUser) {
-        userInfo.style.display = 'flex';
-        authButtons.style.display = 'none';
-        userEmail.textContent = currentUser.email;
-        if (saveCloudBtn) saveCloudBtn.style.display = 'block';
-        if (loadCloudBtn) loadCloudBtn.style.display = 'block';
-    } else {
-        userInfo.style.display = 'none';
-        authButtons.style.display = 'flex';
-        if (saveCloudBtn) saveCloudBtn.style.display = 'none';
-        if (loadCloudBtn) loadCloudBtn.style.display = 'none';
-    }
-}
-
-function showAuthModal(loginMode = true) {
-    isLoginMode = loginMode;
-    
-    // Reset form
-    authEmail.value = '';
-    authPassword.value = '';
-    authConfirm.value = '';
-    if (firstNameInput) firstNameInput.value = '';
-    if (lastNameInput) lastNameInput.value = '';
-    if (verificationInput) verificationInput.value = '';
-    
-    // Show/hide fields based on mode
-    if (loginMode) {
-        authModalTitle.textContent = 'Login to Wizard.AI';
-        authSubmit.textContent = 'Login';
-        authSwitchText.textContent = "Don't have an account?";
-        authSwitchBtn.textContent = 'Sign Up';
-        
-        if (firstNameGroup) firstNameGroup.style.display = 'none';
-        if (lastNameGroup) lastNameGroup.style.display = 'none';
-        if (verificationGroup) verificationGroup.style.display = 'none';
-        authConfirmGroup.style.display = 'none';
-        if (resendCodeBtn) resendCodeBtn.style.display = 'none';
-    } else {
-        authModalTitle.textContent = 'Create Wizard.AI Account';
-        authSubmit.textContent = 'Sign Up';
-        authSwitchText.textContent = "Already have an account?";
-        authSwitchBtn.textContent = 'Login';
-        
-        if (firstNameGroup) firstNameGroup.style.display = 'block';
-        if (lastNameGroup) lastNameGroup.style.display = 'block';
-        if (verificationGroup) verificationGroup.style.display = 'none';
-        authConfirmGroup.style.display = 'block';
-        if (resendCodeBtn) resendCodeBtn.style.display = 'none';
-    }
-    
-    authError.textContent = '';
-    authModal.classList.add('show');
-}
-
-async function handleSignupStep1() {
-    const firstName = firstNameInput.value.trim();
-    const lastName = lastNameInput.value.trim();
-    const email = authEmail.value.trim();
-    const password = authPassword.value.trim();
-    const confirm = authConfirm.value.trim();
-    
-    // Validate
-    if (!firstName || !lastName || !email || !password || !confirm) {
-        authError.textContent = 'Please fill all fields';
-        return;
-    }
-    
-    if (password !== confirm) {
-        authError.textContent = 'Passwords do not match';
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/register/init`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                firstName,
-                lastName,
-                email,
-                password
-            }),
-            credentials: 'include'
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            // Store email for verification
-            signupEmail = email;
-            signupData = { firstName, lastName };
-            
-            // Switch to verification UI
-            authModalTitle.textContent = 'Verify Your Email';
-            authSubmit.textContent = 'Verify Code';
-            if (firstNameGroup) firstNameGroup.style.display = 'none';
-            if (lastNameGroup) lastNameGroup.style.display = 'none';
-            authConfirmGroup.style.display = 'none';
-            if (verificationGroup) verificationGroup.style.display = 'block';
-            if (resendCodeBtn) resendCodeBtn.style.display = 'block';
-            authError.textContent = `Verification code sent to ${email}`;
-            authError.style.color = '#10b981';
-        } else {
-            authError.textContent = data.error || 'Signup failed';
-            authError.style.color = '#ef4444';
-        }
-    } catch (error) {
-        authError.textContent = 'Connection error';
-        authError.style.color = '#ef4444';
-    }
-}
-
-async function handleSignupStep2() {
-    const code = verificationInput.value.trim();
-    
-    if (!code || code.length !== 6) {
-        authError.textContent = 'Please enter 6-digit verification code';
-        authError.style.color = '#ef4444';
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/register/verify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                email: signupEmail,
-                code
-            }),
-            credentials: 'include'
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            currentUser = data.user;
-            authModal.classList.remove('show');
-            updateUIForAuth();
-            
-            // Initialize chats
-            chats = {};
-            chatIds = [];
-            
-            if (data.chats && data.chats.length > 0) {
-                data.chats.forEach(chat => {
-                    chats[chat.chat_id] = chat;
-                    chatIds.push(chat.chat_id);
-                });
-                activeChatId = chatIds[0];
-                currentMode = chats[activeChatId].mode || 'JARVIS';
-            } else {
-                initializeNewUserChats();
-            }
-            
-            renderChatsList();
-            updateModeDisplay();
-            loadActiveChatMessages();
-            addWizardMessage(`✨ Welcome to Wizard.AI, ${currentUser.first_name}!`);
-        } else {
-            authError.textContent = data.error || 'Invalid verification code';
-            authError.style.color = '#ef4444';
-        }
-    } catch (error) {
-        authError.textContent = 'Connection error';
-        authError.style.color = '#ef4444';
-    }
-}
-
-async function resendVerificationCode() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/resend-code`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: signupEmail }),
-            credentials: 'include'
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            authError.textContent = 'New verification code sent!';
-            authError.style.color = '#10b981';
-        } else {
-            authError.textContent = data.error || 'Failed to resend code';
-            authError.style.color = '#ef4444';
-        }
-    } catch (error) {
-        authError.textContent = 'Connection error';
-        authError.style.color = '#ef4444';
-    }
-}
-
-async function handleLogin() {
-    const email = authEmail.value.trim();
-    const password = authPassword.value.trim();
-    
-    if (!email || !password) {
-        authError.textContent = 'Please enter email and password';
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
-            credentials: 'include'
-        });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            currentUser = data.user;
-            authModal.classList.remove('show');
-            updateUIForAuth();
-            
-            // Load user's chats
-            chats = {};
-            chatIds = [];
-            
-            data.chats.forEach(chat => {
-                chats[chat.chat_id] = chat;
-                chatIds.push(chat.chat_id);
-            });
-            
-            activeChatId = chatIds[0];
-            currentMode = chats[activeChatId].mode || 'JARVIS';
-            
-            renderChatsList();
-            updateModeDisplay();
-            loadActiveChatMessages();
-            addWizardMessage(`✨ Welcome back, ${currentUser.first_name}!`);
-        } else {
-            authError.textContent = data.error || 'Login failed';
-        }
-    } catch (error) {
-        authError.textContent = 'Connection error';
-    }
-}
-
-async function handleLogout() {
-    try {
-        await fetch(`${API_BASE_URL}/api/logout`, {
-            method: 'POST',
-            credentials: 'include'
-        });
-    } catch (error) {
-        console.error('Logout error:', error);
-    }
-    
-    currentUser = null;
-    updateUIForAuth();
-    initializeLocalChats();
-    addWizardMessage('👋 You have been logged out.');
-}
-
-// ============================================
 // CHAT FUNCTIONS
 // ============================================
-
-function initializeLocalChats() {
-    const defaultChat = {
-        chat_id: 'default',
-        name: 'Main Chat',
-        emoji: '🧙',
-        mode: 'JARVIS',
-        messages: []
-    };
-    
-    chats = { 'default': defaultChat };
-    chatIds = ['default'];
-    activeChatId = 'default';
-    currentMode = 'JARVIS';
-    
-    renderChatsList();
-    updateModeDisplay();
-    clearChatDisplay();
-    addWizardMessage('✨ Welcome to Wizard.AI! Select a mode from the dropdown and start your magical journey!');
-}
-
-function initializeNewUserChats() {
-    const defaultChat = {
-        chat_id: 'default',
-        name: 'Main Chat',
-        emoji: '🧙',
-        mode: 'JARVIS',
-        messages: []
-    };
-    
-    chats = { 'default': defaultChat };
-    chatIds = ['default'];
-    activeChatId = 'default';
-    currentMode = 'JARVIS';
-    
-    renderChatsList();
-    updateModeDisplay();
-    clearChatDisplay();
-    addWizardMessage('✨ Welcome to Wizard.AI! Select a mode from the dropdown and start your magical journey!');
-}
-
-async function loadUserChats() {
-    if (!currentUser) return;
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/chats`, {
-            credentials: 'include'
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            
-            if (data.chats && data.chats.length > 0) {
-                chats = {};
-                chatIds = [];
-                
-                data.chats.forEach(chat => {
-                    chats[chat.chat_id] = chat;
-                    chatIds.push(chat.chat_id);
-                });
-                
-                activeChatId = chatIds[0];
-                currentMode = chats[activeChatId].mode || 'JARVIS';
-                
-                renderChatsList();
-                updateModeDisplay();
-                loadActiveChatMessages();
-            }
-        }
-    } catch (error) {
-        console.error('Failed to load chats:', error);
-    }
-}
 
 async function saveUserChats() {
     if (!currentUser) return;
     
-    const chatsArray = chatIds.map(id => chats[id]);
+    // Build complete chat list with ALL metadata
+    const chatsArray = chatIds.map(id => {
+        const chat = chats[id];
+        return {
+            chat_id: id,
+            name: chat.name,
+            emoji: chat.emoji,
+            mode: chat.mode,
+            messages: chat.messages || [],
+            created_at: chat.created_at || new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+    });
     
     try {
-        await fetch(`${API_BASE_URL}/api/save-chats`, {
+        const response = await fetch(`${API_BASE_URL}/api/save-chats`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ chats: chatsArray }),
+            body: JSON.stringify({ 
+                chats: chatsArray,
+                chat_order: chatIds
+            }),
             credentials: 'include'
         });
+        
+        if (response.ok) {
+            console.log('✅ Chats saved to cloud');
+        } else {
+            console.error('❌ Failed to save chats');
+        }
     } catch (error) {
-        console.error('Failed to save chats:', error);
+        console.error('❌ Error saving chats:', error);
     }
 }
 
-function clearChatDisplay() {
-    chatHistory.innerHTML = '';
-    messages = [];
-    updateMessageCount();
+function renderChatsList() {
+    if (!chatsList) return;
+    
+    chatsList.innerHTML = '';
+    
+    chatIds.forEach(chatId => {
+        const chat = chats[chatId];
+        if (!chat) return;
+        
+        // Format time
+        const lastActive = chat.updated_at ? new Date(chat.updated_at) : new Date();
+        const now = new Date();
+        const diffMs = now - lastActive;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMins / 60);
+        const diffDays = Math.floor(diffHours / 24);
+        
+        let timeStr = 'now';
+        if (diffMins > 0 && diffMins < 60) timeStr = `${diffMins}m`;
+        if (diffHours > 0 && diffHours < 24) timeStr = `${diffHours}h`;
+        if (diffDays > 0) timeStr = `${diffDays}d`;
+        
+        const chatItem = document.createElement('div');
+        chatItem.className = `chat-item ${chatId === activeChatId ? 'active' : ''}`;
+        chatItem.dataset.chatId = chatId;
+        
+        chatItem.innerHTML = `
+            <span class="chat-emoji">${chat.emoji || '💬'}</span>
+            <span class="chat-name">${chat.name}</span>
+            <div class="chat-item-actions">
+                <button class="rename-chat-item" data-chat-id="${chatId}" title="Rename">✏️</button>
+                <button class="delete-chat-item" data-chat-id="${chatId}" title="Delete">🗑️</button>
+            </div>
+            <span class="chat-time">${timeStr}</span>
+        `;
+        
+        chatItem.addEventListener('click', (e) => {
+            if (e.target.classList.contains('rename-chat-item') || 
+                e.target.classList.contains('delete-chat-item')) {
+                return;
+            }
+            switchChat(chatId);
+        });
+        
+        const renameBtn = chatItem.querySelector('.rename-chat-item');
+        renameBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openRenameModal(chatId);
+        });
+        
+        const deleteBtn = chatItem.querySelector('.delete-chat-item');
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteChat(chatId);
+        });
+        
+        chatsList.appendChild(chatItem);
+    });
+    
+    if (currentChatName && chats[activeChatId]) {
+        currentChatName.textContent = chats[activeChatId].name;
+    }
+    if (currentChatEmoji && chats[activeChatId]) {
+        currentChatEmoji.textContent = chats[activeChatId].emoji || '🧙';
+    }
+}
+
+function switchChat(chatId) {
+    if (!chats[chatId]) return;
+    
+    // Save current chat
+    if (chats[activeChatId]) {
+        chats[activeChatId].messages = [...messages];
+        chats[activeChatId].mode = currentMode;
+        chats[activeChatId].updated_at = new Date().toISOString();
+    }
+    
+    // Switch to new chat
+    activeChatId = chatId;
+    const newChat = chats[activeChatId];
+    newChat.updated_at = new Date().toISOString();
+    
+    // Load new chat's mode
+    currentMode = newChat.mode || 'JARVIS';
+    
+    // Update UI
+    updateModeDisplay();
+    loadActiveChatMessages();
+    renderChatsList();
+    
+    if (currentUser) {
+        saveUserChats();
+    }
 }
 
 function loadActiveChatMessages() {
@@ -670,96 +425,6 @@ function renderWizardMessage(text, mode = null) {
     messageDiv.appendChild(timeSpan);
     
     chatHistory.appendChild(messageDiv);
-}
-
-function renderChatsList() {
-    if (!chatsList) return;
-    
-    chatsList.innerHTML = '';
-    
-    chatIds.forEach(chatId => {
-        const chat = chats[chatId];
-        if (!chat) return;
-        
-        const lastActive = chat.updated_at ? new Date(chat.updated_at) : new Date();
-        const now = new Date();
-        const diffMs = now - lastActive;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMins / 60);
-        const diffDays = Math.floor(diffHours / 24);
-        
-        let timeStr = 'now';
-        if (diffMins > 0 && diffMins < 60) timeStr = `${diffMins}m`;
-        if (diffHours > 0 && diffHours < 24) timeStr = `${diffHours}h`;
-        if (diffDays > 0) timeStr = `${diffDays}d`;
-        
-        const chatItem = document.createElement('div');
-        chatItem.className = `chat-item ${chatId === activeChatId ? 'active' : ''}`;
-        chatItem.dataset.chatId = chatId;
-        
-        chatItem.innerHTML = `
-            <span class="chat-emoji">${chat.emoji || '💬'}</span>
-            <span class="chat-name">${chat.name}</span>
-            <div class="chat-item-actions">
-                <button class="rename-chat-item" data-chat-id="${chatId}" title="Rename">✏️</button>
-                <button class="delete-chat-item" data-chat-id="${chatId}" title="Delete">🗑️</button>
-            </div>
-            <span class="chat-time">${timeStr}</span>
-        `;
-        
-        chatItem.addEventListener('click', (e) => {
-            if (e.target.classList.contains('rename-chat-item') || 
-                e.target.classList.contains('delete-chat-item')) {
-                return;
-            }
-            switchChat(chatId);
-        });
-        
-        const renameBtn = chatItem.querySelector('.rename-chat-item');
-        renameBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            openRenameModal(chatId);
-        });
-        
-        const deleteBtn = chatItem.querySelector('.delete-chat-item');
-        deleteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            deleteChat(chatId);
-        });
-        
-        chatsList.appendChild(chatItem);
-    });
-    
-    if (currentChatName && chats[activeChatId]) {
-        currentChatName.textContent = chats[activeChatId].name;
-    }
-    if (currentChatEmoji && chats[activeChatId]) {
-        currentChatEmoji.textContent = chats[activeChatId].emoji || '🧙';
-    }
-}
-
-function switchChat(chatId) {
-    if (!chats[chatId]) return;
-    
-    if (chats[activeChatId]) {
-        chats[activeChatId].messages = [...messages];
-        chats[activeChatId].mode = currentMode;
-        chats[activeChatId].updated_at = new Date().toISOString();
-    }
-    
-    activeChatId = chatId;
-    const newChat = chats[activeChatId];
-    newChat.updated_at = new Date().toISOString();
-    
-    currentMode = newChat.mode || 'JARVIS';
-    
-    updateModeDisplay();
-    loadActiveChatMessages();
-    renderChatsList();
-    
-    if (currentUser) {
-        saveUserChats();
-    }
 }
 
 function createNewChat() {
@@ -984,14 +649,11 @@ function showTooltip(modeKey, event) {
     
     tooltipEl.innerHTML = `
         <div style="display: flex; align-items: flex-start; gap: 12px;">
-            <div style="font-size: 32px; line-height: 1;">${mode.emoji}</div>
-            <div style="flex: 1;">
-                <div style="font-weight: bold; color: #c4b5fd; font-size: 16px; margin-bottom: 5px;">${mode.name}</div>
-                <div style="color: #e0e7ff; font-size: 13px; line-height: 1.5; margin-bottom: 10px;">${mode.desc}</div>
-                <div style="display: flex; align-items: center; gap: 8px; padding-top: 8px; border-top: 1px solid rgba(139, 92, 246, 0.3);">
-                    <span style="color: #9ca3af; font-size: 12px;">🧠 ${mode.model}</span>
-                    <span style="background: ${mode.color}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: bold;">${mode.modelSpeed}</span>
-                </div>
+            <div style="font-size: 32px;">${mode.emoji}</div>
+            <div>
+                <div style="font-weight: bold; color: #c4b5fd;">${mode.name}</div>
+                <div style="color: #e0e7ff; font-size: 12px;">${mode.desc}</div>
+                <div style="color: #9ca3af; font-size: 11px; margin-top: 4px;">${mode.model}</div>
             </div>
         </div>
     `;
@@ -1216,15 +878,12 @@ function addTurboToggle() {
     const turboDiv = document.createElement('div');
     turboDiv.className = 'mode-selector';
     turboDiv.innerHTML = `
-        <h3 style="color: #c4b5fd; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
+        <h3 style="color: #c4b5fd; font-size: 14px; margin-bottom: 10px;">
             <span>⚡</span> TURBO MODE
         </h3>
-        <button id="turbo-btn" style="width: 100%; padding: 10px; background: #4b5563; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <button id="turbo-btn" style="width: 100%; padding: 10px; background: #4b5563; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
             <span>🔴</span> TURBO OFF
         </button>
-        <p style="color: #9ca3af; font-size: 11px; margin-top: 8px; text-align: center;">
-            ⚡ Makes responses faster while keeping the same personality!
-        </p>
     `;
     
     container.appendChild(turboDiv);
@@ -1237,7 +896,7 @@ function addTurboToggle() {
             if (turboMode) {
                 turboBtn.style.background = '#ef4444';
                 turboBtn.innerHTML = '<span>⚡</span> TURBO ON';
-                addWizardMessage('⚡ Turbo mode activated - faster responses, same personality!');
+                addWizardMessage('⚡ Turbo mode activated!');
             } else {
                 turboBtn.style.background = '#4b5563';
                 turboBtn.innerHTML = '<span>🔴</span> TURBO OFF';
@@ -1248,7 +907,295 @@ function addTurboToggle() {
 }
 
 // ============================================
-// BACKEND STATUS
+// AUTH FUNCTIONS (Simplified)
+// ============================================
+
+async function checkAuth() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/check-auth`, {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            currentUser = data.user;
+            updateUIForAuth();
+            loadUserChats();
+        } else {
+            updateUIForAuth();
+            initializeLocalChats();
+        }
+    } catch (error) {
+        console.error('Auth check failed:', error);
+        updateUIForAuth();
+        initializeLocalChats();
+    }
+}
+
+function updateUIForAuth() {
+    if (currentUser) {
+        userInfo.style.display = 'flex';
+        authButtons.style.display = 'none';
+        userEmail.textContent = currentUser.email;
+    } else {
+        userInfo.style.display = 'none';
+        authButtons.style.display = 'flex';
+    }
+}
+
+function showAuthModal(loginMode = true) {
+    isLoginMode = loginMode;
+    authModalTitle.textContent = loginMode ? 'Login to Wizard.AI' : 'Create Account';
+    authSubmit.textContent = loginMode ? 'Login' : 'Sign Up';
+    authSwitchText.textContent = loginMode ? "Don't have an account?" : "Already have an account?";
+    authSwitchBtn.textContent = loginMode ? 'Sign Up' : 'Login';
+    authConfirmGroup.style.display = loginMode ? 'none' : 'block';
+    firstNameGroup.style.display = loginMode ? 'none' : 'block';
+    lastNameGroup.style.display = loginMode ? 'none' : 'block';
+    verificationGroup.style.display = 'none';
+    authEmail.value = '';
+    authPassword.value = '';
+    authConfirm.value = '';
+    if (firstNameInput) firstNameInput.value = '';
+    if (lastNameInput) lastNameInput.value = '';
+    authError.textContent = '';
+    authModal.classList.add('show');
+}
+
+async function handleSignupStep1() {
+    const firstName = firstNameInput.value.trim();
+    const lastName = lastNameInput.value.trim();
+    const email = authEmail.value.trim();
+    const password = authPassword.value.trim();
+    const confirm = authConfirm.value.trim();
+    
+    if (!firstName || !lastName || !email || !password || !confirm) {
+        authError.textContent = 'Please fill all fields';
+        return;
+    }
+    
+    if (password !== confirm) {
+        authError.textContent = 'Passwords do not match';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/register/init`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ firstName, lastName, email, password }),
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            signupEmail = email;
+            signupData = { firstName, lastName };
+            
+            authModalTitle.textContent = 'Verify Your Email';
+            authSubmit.textContent = 'Verify Code';
+            firstNameGroup.style.display = 'none';
+            lastNameGroup.style.display = 'none';
+            authConfirmGroup.style.display = 'none';
+            verificationGroup.style.display = 'block';
+            authError.textContent = `Code sent to ${email}`;
+            authError.style.color = '#10b981';
+        } else {
+            authError.textContent = data.error || 'Signup failed';
+            authError.style.color = '#ef4444';
+        }
+    } catch (error) {
+        authError.textContent = 'Connection error';
+        authError.style.color = '#ef4444';
+    }
+}
+
+async function handleSignupStep2() {
+    const code = verificationInput.value.trim();
+    
+    if (!code || code.length !== 6) {
+        authError.textContent = 'Please enter 6-digit code';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/register/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: signupEmail, code }),
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            currentUser = data.user;
+            authModal.classList.remove('show');
+            updateUIForAuth();
+            
+            // Load chats from response
+            chats = {};
+            chatIds = [];
+            
+            data.chats.forEach(chat => {
+                chats[chat.chat_id] = chat;
+                chatIds.push(chat.chat_id);
+            });
+            
+            // Use chat order if provided
+            if (data.chat_order && data.chat_order.length > 0) {
+                chatIds = data.chat_order;
+            }
+            
+            activeChatId = chatIds[0];
+            currentMode = chats[activeChatId].mode || 'JARVIS';
+            
+            renderChatsList();
+            updateModeDisplay();
+            loadActiveChatMessages();
+            addWizardMessage(`✨ Welcome, ${currentUser.first_name}!`);
+        } else {
+            authError.textContent = data.error || 'Invalid code';
+            authError.style.color = '#ef4444';
+        }
+    } catch (error) {
+        authError.textContent = 'Connection error';
+        authError.style.color = '#ef4444';
+    }
+}
+
+async function handleLogin() {
+    const email = authEmail.value.trim();
+    const password = authPassword.value.trim();
+    
+    if (!email || !password) {
+        authError.textContent = 'Please enter email and password';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            currentUser = data.user;
+            authModal.classList.remove('show');
+            updateUIForAuth();
+            
+            // Load chats from response
+            chats = {};
+            chatIds = [];
+            
+            data.chats.forEach(chat => {
+                chats[chat.chat_id] = chat;
+                chatIds.push(chat.chat_id);
+            });
+            
+            // Use chat order if provided
+            if (data.chat_order && data.chat_order.length > 0) {
+                chatIds = data.chat_order;
+            }
+            
+            activeChatId = chatIds[0];
+            currentMode = chats[activeChatId].mode || 'JARVIS';
+            
+            renderChatsList();
+            updateModeDisplay();
+            loadActiveChatMessages();
+            addWizardMessage(`✨ Welcome back, ${currentUser.first_name}!`);
+        } else {
+            authError.textContent = data.error || 'Login failed';
+            authError.style.color = '#ef4444';
+        }
+    } catch (error) {
+        authError.textContent = 'Connection error';
+        authError.style.color = '#ef4444';
+    }
+}
+
+async function handleLogout() {
+    try {
+        await fetch(`${API_BASE_URL}/api/logout`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+    }
+    
+    currentUser = null;
+    updateUIForAuth();
+    initializeLocalChats();
+    addWizardMessage('👋 You have been logged out.');
+}
+
+async function loadUserChats() {
+    if (!currentUser) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/chats`, {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (data.chats && data.chats.length > 0) {
+                chats = {};
+                chatIds = [];
+                
+                data.chats.forEach(chat => {
+                    chats[chat.chat_id] = chat;
+                    chatIds.push(chat.chat_id);
+                });
+                
+                // Use server order
+                if (data.chat_order && data.chat_order.length > 0) {
+                    chatIds = data.chat_order;
+                }
+                
+                activeChatId = chatIds[0];
+                currentMode = chats[activeChatId].mode || 'JARVIS';
+                
+                renderChatsList();
+                updateModeDisplay();
+                loadActiveChatMessages();
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load chats:', error);
+    }
+}
+
+function initializeLocalChats() {
+    const defaultChat = {
+        chat_id: 'default',
+        name: 'Main Chat',
+        emoji: '🧙',
+        mode: 'JARVIS',
+        messages: []
+    };
+    
+    chats = { 'default': defaultChat };
+    chatIds = ['default'];
+    activeChatId = 'default';
+    currentMode = 'JARVIS';
+    
+    renderChatsList();
+    updateModeDisplay();
+    chatHistory.innerHTML = '';
+    addWizardMessage('✨ Welcome to Wizard.AI! Select a mode to begin.');
+}
+
+// ============================================
+// STATUS FUNCTIONS
 // ============================================
 
 async function checkSystemStatus() {
@@ -1256,26 +1203,15 @@ async function checkSystemStatus() {
         const response = await fetch(`${API_BASE_URL}/status`);
         
         if (response.ok) {
-            const data = await response.json();
             updateConnectionStatus('connected');
             
             if (modelList) {
                 modelList.innerHTML = `
                     <div class="model-item">
-                        <div class="model-name">
-                            <span>⚡</span>
-                            <span>Llama 3.1 8B</span>
-                            <span class="model-badge" style="background:#10b981;">FAST</span>
-                        </div>
-                        <span class="model-status-badge">✅</span>
+                        <span>⚡</span> Llama 3.1 8B <span style="color:#10b981;">✅</span>
                     </div>
                     <div class="model-item">
-                        <div class="model-name">
-                            <span>🧠</span>
-                            <span>Llama 3.3 70B</span>
-                            <span class="model-badge" style="background:#8b5cf6;">POWERFUL</span>
-                        </div>
-                        <span class="model-status-badge">✅</span>
+                        <span>🧠</span> Llama 3.3 70B <span style="color:#10b981;">✅</span>
                     </div>
                 `;
             }
@@ -1304,6 +1240,126 @@ function updateConnectionStatus(status) {
 }
 
 // ============================================
+// MODAL SETUP
+// ============================================
+
+function setupModal() {
+    if (!renameModal) return;
+    
+    modalSave.addEventListener('click', () => {
+        if (chatToRename) {
+            renameChat(chatToRename, renameInput.value);
+            renameModal.classList.remove('show');
+            chatToRename = null;
+        }
+    });
+    
+    modalCancel.addEventListener('click', () => {
+        renameModal.classList.remove('show');
+        chatToRename = null;
+    });
+    
+    renameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            modalSave.click();
+        }
+    });
+    
+    window.addEventListener('click', (e) => {
+        if (e.target === renameModal) {
+            renameModal.classList.remove('show');
+            chatToRename = null;
+        }
+        if (e.target === authModal) {
+            authModal.classList.remove('show');
+        }
+    });
+}
+
+// ============================================
+// EVENT LISTENERS
+// ============================================
+
+function setupEventListeners() {
+    sendBtn.addEventListener('click', sendMessage);
+    
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+    
+    if (newChatBtn) {
+        newChatBtn.addEventListener('click', createNewChat);
+    }
+    
+    if (renameChatBtn) {
+        renameChatBtn.addEventListener('click', () => openRenameModal(activeChatId));
+    }
+    
+    if (deleteChatBtn) {
+        deleteChatBtn.addEventListener('click', () => deleteChat(activeChatId));
+    }
+    
+    if (resetCurrentBtn) {
+        resetCurrentBtn.addEventListener('click', resetCurrentChat);
+    }
+    
+    if (showLoginBtn) {
+        showLoginBtn.addEventListener('click', () => showAuthModal(true));
+    }
+    
+    if (showSignupBtn) {
+        showSignupBtn.addEventListener('click', () => showAuthModal(false));
+    }
+    
+    if (closeAuthModal) {
+        closeAuthModal.addEventListener('click', () => authModal.classList.remove('show'));
+    }
+    
+    if (authSwitchBtn) {
+        authSwitchBtn.addEventListener('click', () => showAuthModal(!isLoginMode));
+    }
+    
+    if (authSubmit) {
+        authSubmit.addEventListener('click', () => {
+            if (authModalTitle.textContent === 'Verify Your Email') {
+                handleSignupStep2();
+            } else if (isLoginMode) {
+                handleLogin();
+            } else {
+                handleSignupStep1();
+            }
+        });
+    }
+    
+    if (resendCodeBtn) {
+        resendCodeBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/resend-code`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: signupEmail }),
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                authError.textContent = data.message || 'Code resent';
+                authError.style.color = '#10b981';
+            } catch (error) {
+                authError.textContent = 'Failed to resend';
+                authError.style.color = '#ef4444';
+            }
+        });
+    }
+    
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+}
+
+// ============================================
 // INITIALIZATION
 // ============================================
 
@@ -1323,132 +1379,8 @@ async function init() {
     await checkSystemStatus();
     setupDropdown();
     setupEventListeners();
+    setupModal();
     addTurboToggle();
-}
-
-function setupEventListeners() {
-    sendBtn.addEventListener('click', sendMessage);
-    
-    chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
-    
-    if (newChatBtn) {
-        newChatBtn.addEventListener('click', createNewChat);
-    }
-    
-    if (renameChatBtn) {
-        renameChatBtn.addEventListener('click', () => {
-            openRenameModal(activeChatId);
-        });
-    }
-    
-    if (deleteChatBtn) {
-        deleteChatBtn.addEventListener('click', () => {
-            deleteChat(activeChatId);
-        });
-    }
-    
-    if (resetCurrentBtn) {
-        resetCurrentBtn.addEventListener('click', resetCurrentChat);
-    }
-    
-    // Auth event listeners
-    if (showLoginBtn) {
-        showLoginBtn.addEventListener('click', () => showAuthModal(true));
-    }
-    
-    if (showSignupBtn) {
-        showSignupBtn.addEventListener('click', () => showAuthModal(false));
-    }
-    
-    if (closeAuthModal) {
-        closeAuthModal.addEventListener('click', () => {
-            authModal.classList.remove('show');
-        });
-    }
-    
-    if (authSwitchBtn) {
-        authSwitchBtn.addEventListener('click', () => {
-            showAuthModal(!isLoginMode);
-        });
-    }
-    
-    if (authSubmit) {
-        authSubmit.addEventListener('click', () => {
-            if (isLoginMode) {
-                handleLogin();
-            } else {
-                // Check if we're in verification mode
-                if (authModalTitle.textContent === 'Verify Your Email') {
-                    handleSignupStep2();
-                } else {
-                    handleSignupStep1();
-                }
-            }
-        });
-    }
-    
-    if (resendCodeBtn) {
-        resendCodeBtn.addEventListener('click', resendVerificationCode);
-    }
-    
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleLogout);
-    }
-    
-    if (saveCloudBtn) {
-        saveCloudBtn.addEventListener('click', () => {
-            saveUserChats();
-            addWizardMessage('☁️ Chats saved to cloud!');
-        });
-    }
-    
-    if (loadCloudBtn) {
-        loadCloudBtn.addEventListener('click', async () => {
-            await loadUserChats();
-            addWizardMessage('☁️ Chats loaded from cloud!');
-        });
-    }
-    
-    // Rename modal
-    if (modalSave) {
-        modalSave.addEventListener('click', () => {
-            if (chatToRename) {
-                renameChat(chatToRename, renameInput.value);
-                renameModal.classList.remove('show');
-                chatToRename = null;
-            }
-        });
-    }
-    
-    if (modalCancel) {
-        modalCancel.addEventListener('click', () => {
-            renameModal.classList.remove('show');
-            chatToRename = null;
-        });
-    }
-    
-    if (renameInput) {
-        renameInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                modalSave.click();
-            }
-        });
-    }
-    
-    window.addEventListener('click', (e) => {
-        if (e.target === authModal) {
-            authModal.classList.remove('show');
-        }
-        if (e.target === renameModal) {
-            renameModal.classList.remove('show');
-            chatToRename = null;
-        }
-    });
 }
 
 // Emergency reset
@@ -1464,10 +1396,5 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-window.addEventListener('scroll', () => {
-    if (tooltipEl) {
-        tooltipEl.style.display = 'none';
-    }
-});
-
+// Start the app
 document.addEventListener('DOMContentLoaded', init);
