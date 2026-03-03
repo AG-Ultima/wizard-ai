@@ -1788,7 +1788,7 @@ async function init() {
     
     // Check for Brave browser
     if (isBraveBrowser()) {
-        addWizardMessage('⚠️ You\'re using Brave browser. Voice features work best in Chrome, Edge, or Safari.');
+        addWizardMessage("⚠️ You're using Brave browser. Voice features work best in Chrome, Edge, or Safari.");
         if (jarvisVoiceBtn) {
             jarvisVoiceBtn.style.display = 'none';
         }
@@ -1826,4 +1826,5 @@ document.addEventListener('keydown', (e) => {
 
 // Start the app
 document.addEventListener('DOMContentLoaded', init);
+
 
