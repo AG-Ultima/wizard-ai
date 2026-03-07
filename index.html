@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧙‍♂️ Wizard.AI - Magical Assistant</title>
+    <title>🧙‍♂️ Wizard.AI Pro - Magical AI Assistant</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧙</text></svg>">
 </head>
 <body>
     <div class="stars"></div>
@@ -16,7 +17,7 @@
         <div class="sidebar">
             <div class="wizard-profile">
                 <div class="wizard-avatar">🧙‍♂️</div>
-                <h1>Wizard.AI</h1>
+                <h1>Wizard.AI Pro</h1>
                 <p class="tagline">Your magical AI companion</p>
                 <div class="status-badge" id="status-badge">
                     <span class="status-dot"></span>
@@ -46,6 +47,23 @@
                     <div class="custom-dropdown-content" id="dropdown-content">
                         <!-- Options loaded by JavaScript -->
                     </div>
+                </div>
+            </div>
+            
+            <!-- Pro Stats Section -->
+            <div class="pro-stats">
+                <h3>✨ Pro Features</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Search credits</span>
+                    <span class="stat-value" id="search-credits">1,000/mo</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Files uploaded</span>
+                    <span class="stat-value" id="file-count">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Memories</span>
+                    <span class="stat-value" id="memory-count">0</span>
                 </div>
             </div>
             
@@ -90,7 +108,7 @@
             
             <div class="footer-note">
                 <p>Created by Arnav ✨</p>
-                <p class="version">v5.0 - JARVIS Ultimate</p>
+                <p class="version">v6.0 - Pro Edition</p>
             </div>
         </div>
         
@@ -105,6 +123,30 @@
                     <button id="rename-chat-btn" class="chat-action-btn" title="Rename Chat">✏️</button>
                     <button id="delete-chat-btn" class="chat-action-btn delete-btn" title="Delete Chat">🗑️</button>
                 </div>
+            </div>
+            
+            <!-- Pro Toolbar -->
+            <div class="pro-toolbar" id="pro-toolbar">
+                <button class="pro-btn" id="search-btn" title="Web Search (1,000 free searches/month)">
+                    <span class="btn-icon">🌐</span>
+                    <span class="btn-text">Search</span>
+                </button>
+                <button class="pro-btn" id="upload-btn" title="Upload File">
+                    <span class="btn-icon">📎</span>
+                    <span class="btn-text">Upload</span>
+                </button>
+                <button class="pro-btn" id="code-btn" title="Run Python Code">
+                    <span class="btn-icon">💻</span>
+                    <span class="btn-text">Code</span>
+                </button>
+                <button class="pro-btn" id="image-btn" title="Generate Image">
+                    <span class="btn-icon">🎨</span>
+                    <span class="btn-text">Generate</span>
+                </button>
+                <button class="pro-btn" id="memory-btn" title="View Memories">
+                    <span class="btn-icon">🧠</span>
+                    <span class="btn-text">Memory</span>
+                </button>
             </div>
             
             <div id="chat-history" class="chat-history" role="log" aria-live="polite">
@@ -211,6 +253,60 @@
         </div>
     </div>
 
+    <!-- Code Execution Modal -->
+    <div class="pro-modal" id="code-modal" style="display: none;">
+        <div class="pro-modal-content">
+            <div class="pro-modal-header">
+                <h3>🐍 Python Code Interpreter</h3>
+                <button class="close-pro-modal" id="close-code-modal">&times;</button>
+            </div>
+            <div class="pro-modal-body">
+                <textarea id="code-input" placeholder="# Write your Python code here\nprint('Hello Wizard!')" rows="8"></textarea>
+                <div class="pro-modal-actions">
+                    <button id="run-code" class="pro-modal-btn primary">Run Code</button>
+                    <button id="clear-code" class="pro-modal-btn secondary">Clear</button>
+                </div>
+                <div id="code-output" class="pro-output"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Generation Modal -->
+    <div class="pro-modal" id="image-modal" style="display: none;">
+        <div class="pro-modal-content">
+            <div class="pro-modal-header">
+                <h3>🎨 AI Image Generator</h3>
+                <button class="close-pro-modal" id="close-image-modal">&times;</button>
+            </div>
+            <div class="pro-modal-body">
+                <input type="text" id="image-prompt" placeholder="Describe the image you want..." class="pro-input">
+                <div class="pro-modal-actions">
+                    <button id="generate-image" class="pro-modal-btn primary">Generate</button>
+                </div>
+                <div id="image-result" class="pro-image-result"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Memory Panel -->
+    <div class="pro-modal" id="memory-modal" style="display: none;">
+        <div class="pro-modal-content">
+            <div class="pro-modal-header">
+                <h3>🧠 Your Memories</h3>
+                <button class="close-pro-modal" id="close-memory-modal">&times;</button>
+            </div>
+            <div class="pro-modal-body">
+                <div id="memory-list" class="memory-list">
+                    Loading memories...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Upload Preview (hidden) -->
+    <input type="file" id="file-upload" style="display: none;" accept=".pdf,.txt,.doc,.docx,.xls,.xlsx,.csv,.jpg,.png">
+
     <script src="script.js"></script>
 </body>
+</html>
 </html>
