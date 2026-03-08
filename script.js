@@ -1,7 +1,7 @@
 // ============================================
-// WIZARD.AI - STARK INDUSTRIES JARVIS ULTIMATE
-// Created by Arnav Gupta in 15 hours
-// Movie-Quality Holographic UI + Voice + Diagnostic
+// WIZARD.AI PRO - COMPLETE FRONTEND
+// Created by Arnav Gupta
+// Features: Memory, Web Search, File Upload, Code Execution, Image Generation
 // ============================================
 
 // ============================================
@@ -40,6 +40,29 @@ const resetCurrentBtn = document.getElementById('reset-current-btn');
 const jarvisVoiceBtn = document.getElementById('jarvis-voice-btn');
 const jarvisEasterEgg = document.getElementById('jarvis-easter-egg');
 
+// Pro Elements
+const proToolbar = document.getElementById('pro-toolbar');
+const searchBtn = document.getElementById('search-btn');
+const uploadBtn = document.getElementById('upload-btn');
+const codeBtn = document.getElementById('code-btn');
+const imageBtn = document.getElementById('image-btn');
+const memoryBtn = document.getElementById('memory-btn');
+const fileUpload = document.getElementById('file-upload');
+const codeModal = document.getElementById('code-modal');
+const imageModal = document.getElementById('image-modal');
+const memoryModal = document.getElementById('memory-modal');
+const closeCodeModal = document.getElementById('close-code-modal');
+const closeImageModal = document.getElementById('close-image-modal');
+const closeMemoryModal = document.getElementById('close-memory-modal');
+const runCodeBtn = document.getElementById('run-code');
+const clearCodeBtn = document.getElementById('clear-code');
+const codeInput = document.getElementById('code-input');
+const codeOutput = document.getElementById('code-output');
+const generateImageBtn = document.getElementById('generate-image');
+const imagePrompt = document.getElementById('image-prompt');
+const imageResult = document.getElementById('image-result');
+const memoryList = document.getElementById('memory-list');
+
 // Auth Elements
 const authModal = document.getElementById('auth-modal');
 const authModalTitle = document.getElementById('auth-modal-title');
@@ -72,10 +95,17 @@ const renameInput = document.getElementById('rename-input');
 const modalSave = document.getElementById('modal-save');
 const modalCancel = document.getElementById('modal-cancel');
 
+// Pro Stats Elements
+const searchCreditsEl = document.getElementById('search-credits');
+const fileCountEl = document.getElementById('file-count');
+const memoryCountEl = document.getElementById('memory-count');
+
 // Generate unique session ID
 const sessionId = 'session_' + Math.random().toString(36).substr(2, 9);
 
-// State
+// ============================================
+// STATE MANAGEMENT
+// ============================================
 let messages = [];
 let isThinking = false;
 let currentMode = 'JARVIS';
@@ -85,6 +115,8 @@ let tooltipTimeout = null;
 let currentUser = null;
 let recognition = null;
 let isListening = false;
+let searchMode = false;
+let uploadedFiles = [];
 
 // Multi-Chat State
 let chats = {};
@@ -96,36 +128,6 @@ let chatToRename = null;
 let isLoginMode = true;
 let signupEmail = '';
 let signupData = {};
-
-// JARVIS Easter Eggs
-const jarvisGreetings = [
-    "Good to see you again, sir.",
-    "At your service, as always.",
-    "I've been expecting you.",
-    "Systems online and ready.",
-    "Ah, there you are. I was beginning to wonder.",
-    "Welcome back. Shall we get to work?",
-    "I'm always here when you need me, sir.",
-    "Another day, another conversation.",
-    "Your presence is, as always, appreciated.",
-    "Ready when you are."
-];
-
-// ============================================
-// BRAVE BROWSER DETECTION
-// ============================================
-function isBraveBrowser() {
-    // Check for navigator.brave (Brave-specific property)
-    if (window.navigator.brave && typeof window.navigator.brave.isBrave === 'function') {
-        return true;
-    }
-    
-    // Alternative detection method
-    const isChromium = window.chrome !== undefined;
-    const userAgent = window.navigator.userAgent;
-    
-    return isChromium && userAgent.includes("Brave");
-}
 
 // ============================================
 // MODE DATA - With Hidden WIZARD Mode
@@ -216,317 +218,30 @@ const modeGreetings = {
     'ORACLE': '🔮 The Oracle awakens... I see infinite possibilities.'
 };
 
+// JARVIS Easter Eggs
+const jarvisGreetings = [
+    "Good to see you again, sir.",
+    "At your service, as always.",
+    "I've been expecting you.",
+    "Systems online and ready.",
+    "Ah, there you are. I was beginning to wonder.",
+    "Welcome back. Shall we get to work?",
+    "I'm always here when you need me, sir.",
+    "Another day, another conversation.",
+    "Your presence is, as always, appreciated.",
+    "Ready when you are."
+];
+
 // ============================================
-// VOICE RECOGNITION - STARK LEVEL
+// BRAVE BROWSER DETECTION
 // ============================================
-function initializeVoiceRecognition() {
-    // Check for Brave browser first
-    if (isBraveBrowser()) {
-        console.log('Voice recognition disabled in Brave browser');
-        if (jarvisVoiceBtn) {
-            jarvisVoiceBtn.style.display = 'none';
-        }
-        addWizardMessage('🎤 Voice recognition is not supported in Brave. Please use Chrome, Edge, or Safari for voice features.');
-        return false;
-    }
-    
-    // Check for browser support
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
-    if (!SpeechRecognition) {
-        console.error('Voice recognition not supported in this browser');
-        if (jarvisVoiceBtn) {
-            jarvisVoiceBtn.style.display = 'none';
-        }
-        addWizardMessage('⚠️ Voice recognition is not supported in your browser. Try Chrome or Edge.');
-        return false;
-    }
-    
-    try {
-        // Clean up any existing instance
-        if (recognition) {
-            try {
-                recognition.abort();
-            } catch (e) {}
-        }
-        
-        recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = 'en-US';
-        recognition.maxAlternatives = 1;
-        
-        recognition.onstart = () => {
-            console.log('Voice recognition started');
-            isListening = true;
-            if (jarvisVoiceBtn) {
-                jarvisVoiceBtn.classList.add('listening');
-                jarvisVoiceBtn.title = 'Listening... click to stop';
-            }
-            addWizardMessage('🎤 Listening, sir... (speak now)');
-        };
-        
-        recognition.onend = () => {
-            console.log('Voice recognition ended');
-            isListening = false;
-            if (jarvisVoiceBtn) {
-                jarvisVoiceBtn.classList.remove('listening');
-                jarvisVoiceBtn.title = 'Voice command';
-            }
-        };
-        
-        recognition.onresult = (event) => {
-            console.log('Voice result received:', event);
-            
-            if (event.results.length > 0) {
-                const transcript = event.results[0][0].transcript;
-                console.log('Transcript:', transcript);
-                
-                // Show what was heard
-                addWizardMessage(`🎤 I heard: "${transcript}"`);
-                
-                // Set input value and send
-                chatInput.value = transcript;
-                setTimeout(() => sendMessage(), 500);
-            } else {
-                addWizardMessage('🎤 No speech detected. Please try again.');
-            }
-        };
-        
-        recognition.onerror = (event) => {
-            console.error('Voice recognition error:', event.error);
-            
-            let errorMsg = '';
-            switch(event.error) {
-                case 'no-speech':
-                    errorMsg = 'No speech detected. Please try again.';
-                    break;
-                case 'audio-capture':
-                    errorMsg = 'No microphone found. Please check your microphone.';
-                    break;
-                case 'not-allowed':
-                    errorMsg = 'Microphone access denied. Please allow microphone access.';
-                    break;
-                case 'network':
-                    errorMsg = 'Network error. Voice recognition requires internet connection.';
-                    break;
-                case 'aborted':
-                    errorMsg = 'Voice recognition was aborted.';
-                    break;
-                default:
-                    errorMsg = `Voice recognition error: ${event.error}`;
-            }
-            
-            addWizardMessage(`🎤 ${errorMsg}`);
-            
-            isListening = false;
-            if (jarvisVoiceBtn) {
-                jarvisVoiceBtn.classList.remove('listening');
-                jarvisVoiceBtn.title = 'Voice command';
-            }
-        };
-        
-        console.log('Voice recognition initialized successfully');
+function isBraveBrowser() {
+    if (window.navigator.brave && typeof window.navigator.brave.isBrave === 'function') {
         return true;
-        
-    } catch (e) {
-        console.error('Failed to initialize voice recognition:', e);
-        addWizardMessage('⚠️ Failed to initialize voice recognition.');
-        return false;
     }
-}
-
-function toggleVoiceRecognition() {
-    if (!recognition) {
-        if (!initializeVoiceRecognition()) {
-            return;
-        }
-    }
-    
-    if (isListening) {
-        try {
-            recognition.stop();
-        } catch (e) {
-            console.error('Error stopping recognition:', e);
-            isListening = false;
-            if (jarvisVoiceBtn) {
-                jarvisVoiceBtn.classList.remove('listening');
-            }
-        }
-    } else {
-        try {
-            recognition.start();
-        } catch (e) {
-            console.error('Error starting recognition:', e);
-            
-            if (e.name === 'InvalidStateError') {
-                try {
-                    recognition.abort();
-                    setTimeout(() => {
-                        try {
-                            recognition.start();
-                        } catch (err) {
-                            addWizardMessage('🎤 Could not start voice recognition. Please refresh the page.');
-                        }
-                    }, 100);
-                } catch (err) {
-                    addWizardMessage('🎤 Voice recognition error. Please refresh the page.');
-                }
-            } else {
-                addWizardMessage('🎤 Could not start voice recognition. Please try again.');
-            }
-        }
-    }
-}
-
-// ============================================
-// HOLOGRAPHIC PARTICLES - MOVIE EFFECT
-// ============================================
-function createHolographicParticles() {
-    const container = document.querySelector('.app-container');
-    if (!container) return;
-    
-    // Remove existing particles
-    const existingParticles = document.querySelectorAll('.data-particle');
-    existingParticles.forEach(p => p.remove());
-    
-    // Create new particles
-    for (let i = 0; i < 20; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'data-particle';
-        particle.style.left = Math.random() * 100 + '%';
-        particle.style.animationDelay = Math.random() * 5 + 's';
-        particle.style.animationDuration = (Math.random() * 10 + 5) + 's';
-        container.appendChild(particle);
-    }
-}
-
-// ============================================
-// JARVIS SPECIAL FUNCTIONS
-// ============================================
-function performSystemDiagnostic() {
-    const now = new Date();
-    const uptime = Math.floor(Math.random() * 24) + 1;
-    const activeUsers = Math.floor(Math.random() * 15) + 5;
-    const cpuLoad = Math.floor(Math.random() * 40) + 20;
-    const memoryUsage = Math.floor(Math.random() * 30) + 40;
-    
-    const diagnostic = {
-        timestamp: now.toLocaleString(),
-        system: 'Wizard.AI v5.0 - Stark Edition',
-        uptime: `${uptime} hours`,
-        activeUsers: activeUsers,
-        cpuLoad: `${cpuLoad}%`,
-        memoryUsage: `${memoryUsage}%`,
-        responseTime: responseTimeEl ? responseTimeEl.textContent : '0.4s',
-        currentMode: currentMode,
-        activeChat: chats[activeChatId]?.name || 'Main Chat',
-        totalChats: chatIds.length,
-        totalMessages: messages.length,
-        database: 'SQLite (synced)',
-        apiStatus: 'Groq API: Online',
-        emailService: 'Resend: Ready',
-        holographics: 'ACTIVE',
-        starkOS: 'v1.0'
-    };
-    
-    return diagnostic;
-}
-
-function activateSuitUpMode() {
-    document.body.classList.add('jarvis-mode-active');
-    createHolographicParticles();
-    
-    if (jarvisEasterEgg) {
-        jarvisEasterEgg.style.display = 'flex';
-    }
-    
-    if (jarvisVoiceBtn && currentMode === 'JARVIS') {
-        jarvisVoiceBtn.style.display = 'flex';
-    }
-    
-    const randomGreeting = jarvisGreetings[Math.floor(Math.random() * jarvisGreetings.length)];
-    
-    return `🔷 **STARK INDUSTRIES JARVIS SUIT UP**\n\n` +
-           `*Holographic interface initializing...*\n` +
-           `*3D scanning grid activated*\n` +
-           `*Repulsor tech online*\n` +
-           `*Heads-up display engaged*\n\n` +
-           `🔷 ${randomGreeting}\n\n` +
-           `All systems are now running at peak performance. The holographic UI is active. ` +
-           `Try saying "diagnostic" or using the voice command button.`;
-}
-
-function deactivateSuitUpMode() {
-    document.body.classList.remove('jarvis-mode-active');
-    
-    const particles = document.querySelectorAll('.data-particle');
-    particles.forEach(p => p.remove());
-    
-    if (jarvisEasterEgg) {
-        jarvisEasterEgg.style.display = 'none';
-    }
-    
-    if (jarvisVoiceBtn) {
-        jarvisVoiceBtn.style.display = 'none';
-    }
-}
-
-function handleJarvisCommand(text) {
-    const lowerText = text.toLowerCase().trim();
-    
-    // Diagnostic command
-    if (lowerText.includes('diagnostic') || lowerText.includes('system status') || lowerText.includes('system report')) {
-        const diag = performSystemDiagnostic();
-        return `🔷 **STARK INDUSTRIES SYSTEM DIAGNOSTIC**\n\n` +
-               `╔════════════════════════════════╗\n` +
-               `║ ${diag.timestamp.padEnd(28)} ║\n` +
-               `╠════════════════════════════════╣\n` +
-               `║ System: ${diag.system.padEnd(22)} ║\n` +
-               `║ Uptime: ${diag.uptime.padEnd(22)} ║\n` +
-               `║ Active Users: ${diag.activeUsers.toString().padEnd(16)} ║\n` +
-               `║ CPU Load: ${diag.cpuLoad.padEnd(20)} ║\n` +
-               `║ Memory: ${diag.memoryUsage.padEnd(22)} ║\n` +
-               `║ Response: ${diag.responseTime.padEnd(21)} ║\n` +
-               `║ Current Mode: ${diag.currentMode.padEnd(16)} ║\n` +
-               `║ Active Chat: ${diag.activeChat.padEnd(17)} ║\n` +
-               `║ Total Chats: ${diag.totalChats.toString().padEnd(17)} ║\n` +
-               `║ Messages: ${diag.totalMessages.toString().padEnd(20)} ║\n` +
-               `║ Holographics: ${diag.holographics.padEnd(16)} ║\n` +
-               `╚════════════════════════════════╝\n\n` +
-               `All systems are operational, sir. Would you like me to run any specific tests?`;
-    }
-    
-    // Suit up command
-    if (lowerText.includes('suit up') || lowerText.includes('jarvis mode') || lowerText === 'suit') {
-        if (!document.body.classList.contains('jarvis-mode-active')) {
-            return activateSuitUpMode();
-        } else {
-            return "We're already in SUIT UP mode, sir. All systems are running at optimal performance. The holographic interface is active.";
-        }
-    }
-    
-    // Voice command help
-    if (lowerText.includes('voice') || lowerText.includes('mic') || lowerText.includes('speak')) {
-        if (jarvisVoiceBtn && jarvisVoiceBtn.style.display !== 'none') {
-            return `Voice commands are available, sir. Simply click the 🎤 button next to the send button and speak. I'll transcribe your words and process them. The Stark Industries voice recognition system is online.`;
-        } else {
-            return `Voice commands are available in JARVIS mode, sir. Please switch to JARVIS mode first, then look for the 🎤 button.`;
-        }
-    }
-    
-    // Status command
-    if (lowerText.includes('status') || lowerText.includes('how are you') || lowerText.includes("how's it going")) {
-        const diag = performSystemDiagnostic();
-        return `I'm functioning optimally, sir. Current system load is ${diag.cpuLoad} with ${diag.activeUsers} active users. Response time is ${diag.responseTime}. The holographic interface is ${document.body.classList.contains('jarvis-mode-active') ? 'active' : 'standby'}. Everything is running smoothly. How may I assist you?`;
-    }
-    
-    // Easter egg hint
-    if (lowerText.includes('easter egg') || lowerText.includes('secret') || lowerText.includes('hidden')) {
-        return `Ah, curious about secrets, sir? Try saying "diagnostic", "suit up", or "status". Also, keep an eye on the holographic particles when in SUIT UP mode. Tony always said the best features are the ones you discover yourself.`;
-    }
-    
-    return null;
+    const isChromium = window.chrome !== undefined;
+    const userAgent = window.navigator.userAgent;
+    return isChromium && userAgent.includes("Brave");
 }
 
 // ============================================
@@ -564,7 +279,7 @@ function addWizardMessage(text) {
 }
 
 // ============================================
-// TOOLTIP FUNCTIONS - FIXED POSITIONING
+// TOOLTIP FUNCTIONS
 // ============================================
 function createTooltip() {
     tooltipEl = document.createElement('div');
@@ -649,6 +364,500 @@ function hideTooltip() {
 }
 
 // ============================================
+// JARVIS SPECIAL FUNCTIONS
+// ============================================
+function initializeVoiceRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+        console.log('Voice recognition not supported');
+        if (jarvisVoiceBtn) {
+            jarvisVoiceBtn.style.display = 'none';
+        }
+        return false;
+    }
+    
+    try {
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+        recognition.maxAlternatives = 1;
+        
+        recognition.onstart = () => {
+            console.log('Voice recognition started');
+            isListening = true;
+            if (jarvisVoiceBtn) {
+                jarvisVoiceBtn.classList.add('listening');
+                jarvisVoiceBtn.title = 'Listening... click to stop';
+            }
+            addWizardMessage('🎤 Listening, sir... (speak now)');
+        };
+        
+        recognition.onend = () => {
+            console.log('Voice recognition ended');
+            isListening = false;
+            if (jarvisVoiceBtn) {
+                jarvisVoiceBtn.classList.remove('listening');
+                jarvisVoiceBtn.title = 'Voice command';
+            }
+        };
+        
+        recognition.onresult = (event) => {
+            console.log('Voice result received:', event);
+            
+            if (event.results.length > 0) {
+                const transcript = event.results[0][0].transcript;
+                console.log('Transcript:', transcript);
+                
+                addWizardMessage(`🎤 I heard: "${transcript}"`);
+                chatInput.value = transcript;
+                setTimeout(() => sendMessage(), 500);
+            } else {
+                addWizardMessage('🎤 No speech detected. Please try again.');
+            }
+        };
+        
+        recognition.onerror = (event) => {
+            console.error('Voice recognition error:', event.error);
+            
+            let errorMsg = '';
+            switch(event.error) {
+                case 'no-speech':
+                    errorMsg = 'No speech detected. Please try again.';
+                    break;
+                case 'audio-capture':
+                    errorMsg = 'No microphone found. Please check your microphone.';
+                    break;
+                case 'not-allowed':
+                    errorMsg = 'Microphone access denied. Please allow microphone access.';
+                    break;
+                case 'network':
+                    errorMsg = 'Network error. Voice recognition requires internet connection.';
+                    break;
+                default:
+                    errorMsg = `Voice recognition error: ${event.error}`;
+            }
+            
+            addWizardMessage(`🎤 ${errorMsg}`);
+            
+            isListening = false;
+            if (jarvisVoiceBtn) {
+                jarvisVoiceBtn.classList.remove('listening');
+            }
+        };
+        
+        console.log('Voice recognition initialized successfully');
+        return true;
+        
+    } catch (e) {
+        console.error('Failed to initialize voice recognition:', e);
+        return false;
+    }
+}
+
+function toggleVoiceRecognition() {
+    if (!recognition) {
+        if (!initializeVoiceRecognition()) {
+            return;
+        }
+    }
+    
+    if (isListening) {
+        try {
+            recognition.stop();
+        } catch (e) {
+            console.error('Error stopping recognition:', e);
+            isListening = false;
+            if (jarvisVoiceBtn) {
+                jarvisVoiceBtn.classList.remove('listening');
+            }
+        }
+    } else {
+        try {
+            recognition.start();
+        } catch (e) {
+            console.error('Error starting recognition:', e);
+            
+            if (e.name === 'InvalidStateError') {
+                try {
+                    recognition.abort();
+                    setTimeout(() => {
+                        try {
+                            recognition.start();
+                        } catch (err) {
+                            addWizardMessage('🎤 Could not start voice recognition. Please refresh the page.');
+                        }
+                    }, 100);
+                } catch (err) {
+                    addWizardMessage('🎤 Voice recognition error. Please refresh the page.');
+                }
+            } else {
+                addWizardMessage('🎤 Could not start voice recognition. Please try again.');
+            }
+        }
+    }
+}
+
+function performSystemDiagnostic() {
+    const now = new Date();
+    const uptime = Math.floor(Math.random() * 24) + 1;
+    const activeUsers = Math.floor(Math.random() * 15) + 5;
+    const cpuLoad = Math.floor(Math.random() * 40) + 20;
+    const memoryUsage = Math.floor(Math.random() * 30) + 40;
+    
+    return {
+        timestamp: now.toLocaleString(),
+        system: 'Wizard.AI Pro v6.0',
+        uptime: `${uptime} hours`,
+        activeUsers: activeUsers,
+        cpuLoad: `${cpuLoad}%`,
+        memoryUsage: `${memoryUsage}%`,
+        responseTime: responseTimeEl ? responseTimeEl.textContent : '0.4s',
+        currentMode: currentMode,
+        activeChat: chats[activeChatId]?.name || 'Main Chat',
+        totalChats: chatIds.length,
+        totalMessages: messages.length,
+        features: ['web_search', 'file_upload', 'code_execution', 'image_generation', 'memory']
+    };
+}
+
+function activateSuitUpMode() {
+    document.body.classList.add('jarvis-mode-active');
+    
+    if (jarvisEasterEgg) {
+        jarvisEasterEgg.style.display = 'flex';
+    }
+    
+    if (jarvisVoiceBtn && currentMode === 'JARVIS') {
+        jarvisVoiceBtn.style.display = 'flex';
+    }
+    
+    const randomGreeting = jarvisGreetings[Math.floor(Math.random() * jarvisGreetings.length)];
+    
+    return `🔷 **STARK INDUSTRIES JARVIS SUIT UP**\n\n` +
+           `*Holographic interface initializing...*\n` +
+           `*3D scanning grid activated*\n` +
+           `*Repulsor tech online*\n` +
+           `*Heads-up display engaged*\n\n` +
+           `🔷 ${randomGreeting}\n\n` +
+           `All systems are now running at peak performance. The holographic UI is active.`;
+}
+
+function deactivateSuitUpMode() {
+    document.body.classList.remove('jarvis-mode-active');
+    
+    if (jarvisEasterEgg) {
+        jarvisEasterEgg.style.display = 'none';
+    }
+    
+    if (jarvisVoiceBtn) {
+        jarvisVoiceBtn.style.display = 'none';
+    }
+}
+
+function handleJarvisCommand(text) {
+    const lowerText = text.toLowerCase().trim();
+    
+    if (lowerText.includes('diagnostic') || lowerText.includes('system status') || lowerText.includes('system report')) {
+        const diag = performSystemDiagnostic();
+        return `🔷 **SYSTEM DIAGNOSTIC REPORT**\n\n` +
+               `• Time: ${diag.timestamp}\n` +
+               `• System: ${diag.system}\n` +
+               `• Uptime: ${diag.uptime}\n` +
+               `• Active Users: ${diag.activeUsers}\n` +
+               `• CPU Load: ${diag.cpuLoad}\n` +
+               `• Memory: ${diag.memoryUsage}\n` +
+               `• Response Time: ${diag.responseTime}\n` +
+               `• Current Mode: ${diag.currentMode}\n` +
+               `• Active Chat: ${diag.activeChat}\n` +
+               `• Total Chats: ${diag.totalChats}\n` +
+               `• Messages: ${diag.totalMessages}\n` +
+               `• Features: ${diag.features.join(', ')}\n\n` +
+               `All systems are operational, sir.`;
+    }
+    
+    if (lowerText.includes('suit up') || lowerText.includes('jarvis mode') || lowerText === 'suit') {
+        if (!document.body.classList.contains('jarvis-mode-active')) {
+            const suitResponse = `*holographic displays flicker to life*\n\n` +
+                `🔷 **STARK INDUSTRIES SUIT-UP SEQUENCE INITIATED**\n` +
+                `🔷 **Mark LXXXV (Mark 85) nanotech activation**\n` +
+                `🔷 **Repulsor tech online**\n` +
+                `🔷 **Flight systems calibrated**\n` +
+                `🔷 **Heads-up display engaged**\n` +
+                `🔷 **JARVIS holographic interface active**\n\n` +
+                `Welcome to SUIT UP mode, sir. The interface has been upgraded to Stark Industries specifications.`;
+            
+            activateSuitUpMode();
+            return suitResponse;
+        } else {
+            return "SUIT UP mode is already active, sir. All systems at peak performance.";
+        }
+    }
+    
+    if (lowerText.includes('voice') || lowerText.includes('mic') || lowerText.includes('speak')) {
+        if (jarvisVoiceBtn && jarvisVoiceBtn.style.display !== 'none') {
+            return `Voice commands are available, sir. Simply click the 🎤 button next to the send button and speak.`;
+        } else {
+            return `Voice commands are available in JARVIS mode, sir. Please switch to JARVIS mode first.`;
+        }
+    }
+    
+    if (lowerText.includes('status') || lowerText.includes('how are you') || lowerText.includes("how's it going")) {
+        const diag = performSystemDiagnostic();
+        return `I'm functioning optimally, sir. Current system load is ${diag.cpuLoad} with ${diag.activeUsers} active users. Response time is ${diag.responseTime}.`;
+    }
+    
+    if (lowerText.includes('easter egg') || lowerText.includes('secret') || lowerText.includes('hidden')) {
+        return `Ah, curious about secrets, sir? Try saying "diagnostic", "suit up", or "status".`;
+    }
+    
+    return null;
+}
+
+// ============================================
+// PRO FEATURES INITIALIZATION
+// ============================================
+function initProFeatures() {
+    if (searchBtn) {
+        searchBtn.addEventListener('click', toggleSearchMode);
+    }
+    
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', () => fileUpload.click());
+    }
+    
+    if (fileUpload) {
+        fileUpload.addEventListener('change', handleFileUpload);
+    }
+    
+    if (codeBtn) {
+        codeBtn.addEventListener('click', () => {
+            codeModal.style.display = 'flex';
+            codeOutput.innerHTML = '';
+        });
+    }
+    
+    if (imageBtn) {
+        imageBtn.addEventListener('click', () => {
+            imageModal.style.display = 'flex';
+            imageResult.innerHTML = '';
+            imagePrompt.value = '';
+        });
+    }
+    
+    if (memoryBtn) {
+        memoryBtn.addEventListener('click', loadMemories);
+    }
+    
+    if (closeCodeModal) {
+        closeCodeModal.addEventListener('click', () => codeModal.style.display = 'none');
+    }
+    
+    if (closeImageModal) {
+        closeImageModal.addEventListener('click', () => imageModal.style.display = 'none');
+    }
+    
+    if (closeMemoryModal) {
+        closeMemoryModal.addEventListener('click', () => memoryModal.style.display = 'none');
+    }
+    
+    if (runCodeBtn) {
+        runCodeBtn.addEventListener('click', executeCode);
+    }
+    
+    if (clearCodeBtn) {
+        clearCodeBtn.addEventListener('click', () => {
+            codeInput.value = '';
+            codeOutput.innerHTML = '';
+        });
+    }
+    
+    if (generateImageBtn) {
+        generateImageBtn.addEventListener('click', generateImage);
+    }
+    
+    window.addEventListener('click', (e) => {
+        if (e.target === codeModal) codeModal.style.display = 'none';
+        if (e.target === imageModal) imageModal.style.display = 'none';
+        if (e.target === memoryModal) memoryModal.style.display = 'none';
+    });
+}
+
+// ============================================
+// PRO FEATURES FUNCTIONS
+// ============================================
+function toggleSearchMode() {
+    searchMode = !searchMode;
+    if (searchMode) {
+        searchBtn.classList.add('active');
+        addWizardMessage('🌐 Web search mode activated. I\'ll search the internet for answers using Tavily (1,000 free searches/month).');
+    } else {
+        searchBtn.classList.remove('active');
+        addWizardMessage('🌐 Web search mode deactivated.');
+    }
+}
+
+async function handleFileUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('chat_id', activeChatId);
+    
+    addWizardMessage(`📎 Uploading ${file.name}...`);
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/upload`, {
+            method: 'POST',
+            body: formData,
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            uploadedFiles.push(data);
+            if (fileCountEl) {
+                fileCountEl.textContent = uploadedFiles.length;
+            }
+            addWizardMessage(`📎 File uploaded: ${data.filename}\nPreview: ${data.preview}`);
+        } else {
+            addWizardMessage(`📎 Upload failed: ${data.error || 'Unknown error'}`);
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        addWizardMessage('📎 Upload failed. Please try again.');
+    }
+    
+    fileUpload.value = '';
+}
+
+async function executeCode() {
+    const code = codeInput.value.trim();
+    if (!code) return;
+    
+    codeOutput.innerHTML = 'Running...';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/execute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code }),
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        let outputHtml = '';
+        if (data.error) {
+            outputHtml = `<span style="color: #ff6b6b;">❌ Error: ${escapeHtml(data.error)}</span>`;
+        } else {
+            if (data.stdout) {
+                outputHtml += `<span style="color: #00ff00;">${escapeHtml(data.stdout)}</span>`;
+            }
+            if (data.stderr) {
+                outputHtml += `<span style="color: #ff6b6b;">${escapeHtml(data.stderr)}</span>`;
+            }
+            if (data.code !== undefined) {
+                outputHtml += `<div style="color: #888; margin-top: 10px;">Exit code: ${data.code}</div>`;
+            }
+        }
+        
+        codeOutput.innerHTML = outputHtml || 'No output';
+        
+    } catch (error) {
+        console.error('Code execution error:', error);
+        codeOutput.innerHTML = '❌ Error executing code.';
+    }
+}
+
+async function generateImage() {
+    const prompt = imagePrompt.value.trim();
+    if (!prompt) return;
+    
+    imageResult.innerHTML = 'Generating image...';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/generate-image`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt }),
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.url) {
+            imageResult.innerHTML = `<img src="${data.url}" alt="${escapeHtml(prompt)}">`;
+        } else {
+            imageResult.innerHTML = '❌ Image generation failed.';
+        }
+    } catch (error) {
+        console.error('Image generation error:', error);
+        imageResult.innerHTML = '❌ Image generation failed.';
+    }
+}
+
+async function loadMemories() {
+    if (!memoryModal) return;
+    
+    memoryModal.style.display = 'flex';
+    if (memoryList) {
+        memoryList.innerHTML = 'Loading memories...';
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/memory`, {
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (memoryList) {
+            if (data.structured && Object.keys(data.structured).length > 0) {
+                let html = '';
+                let count = 0;
+                for (const [key, val] of Object.entries(data.structured)) {
+                    html += `
+                        <div class="memory-item">
+                            <div class="memory-key">${escapeHtml(key)}</div>
+                            <div class="memory-value">${escapeHtml(val.value)}</div>
+                            <span class="memory-category">${escapeHtml(val.category)}</span>
+                        </div>
+                    `;
+                    count++;
+                }
+                memoryList.innerHTML = html;
+                if (memoryCountEl) {
+                    memoryCountEl.textContent = count;
+                }
+            } else {
+                memoryList.innerHTML = 'No memories yet. Chat with me and I\'ll remember things!';
+                if (memoryCountEl) {
+                    memoryCountEl.textContent = '0';
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Memory load error:', error);
+        if (memoryList) {
+            memoryList.innerHTML = 'Failed to load memories.';
+        }
+    }
+}
+
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// ============================================
 // CHAT FUNCTIONS
 // ============================================
 async function saveUserChats() {
@@ -668,7 +877,7 @@ async function saveUserChats() {
     });
     
     try {
-        const response = await fetch(`${API_BASE_URL}/api/save-chats`, {
+        await fetch(`${API_BASE_URL}/api/save-chats`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -677,12 +886,6 @@ async function saveUserChats() {
             }),
             credentials: 'include'
         });
-        
-        if (response.ok) {
-            console.log('✅ Chats saved to cloud');
-        } else {
-            console.error('❌ Failed to save chats');
-        }
     } catch (error) {
         console.error('❌ Error saving chats:', error);
     }
@@ -773,7 +976,6 @@ function switchChat(chatId) {
     loadActiveChatMessages();
     renderChatsList();
     
-    // Handle JARVIS mode - NO AUTO SUIT UP
     if (currentMode === 'JARVIS') {
         if (jarvisVoiceBtn) jarvisVoiceBtn.style.display = 'flex';
         if (jarvisEasterEgg) jarvisEasterEgg.style.display = 'flex';
@@ -1082,40 +1284,6 @@ function setupDropdown() {
 }
 
 // ============================================
-// TYPING EFFECT
-// ============================================
-async function typeMessage(messageDiv, textSpan, fullText, baseSpeed = 20) {
-    return new Promise((resolve) => {
-        let i = 0;
-        messageDiv.classList.add('typing-active');
-        
-        const textLength = fullText.length;
-        let speed = baseSpeed;
-        
-        if (textLength > 2000) speed = 5;
-        else if (textLength > 1000) speed = 8;
-        else if (textLength > 500) speed = 12;
-        else if (textLength > 200) speed = 15;
-        
-        if (turboMode) {
-            speed = Math.max(3, speed / 2);
-        }
-        
-        const typing = setInterval(() => {
-            if (i < fullText.length) {
-                textSpan.textContent += fullText.charAt(i);
-                i++;
-                chatHistory.scrollTop = chatHistory.scrollHeight;
-            } else {
-                clearInterval(typing);
-                messageDiv.classList.remove('typing-active');
-                resolve();
-            }
-        }, speed);
-    });
-}
-
-// ============================================
 // TURBO MODE TOGGLE
 // ============================================
 function addTurboToggle() {
@@ -1154,7 +1322,7 @@ function addTurboToggle() {
 }
 
 // ============================================
-// SEND MESSAGE
+// SEND MESSAGE - PRO VERSION
 // ============================================
 async function sendMessage() {
     if (isThinking) return;
@@ -1183,35 +1351,19 @@ async function sendMessage() {
     
     const thinkingDiv = document.createElement('div');
     thinkingDiv.className = 'message wizard thinking';
-    
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'message-content';
-    
-    const iconSpan = document.createElement('span');
-    iconSpan.className = 'message-icon';
-    iconSpan.textContent = '⏳';
-    
-    const textSpan = document.createElement('span');
-    textSpan.className = 'message-text';
-    textSpan.textContent = '✨';
-    
-    const timeSpan = document.createElement('span');
-    timeSpan.className = 'message-time';
-    const now = new Date();
-    timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    contentDiv.appendChild(iconSpan);
-    contentDiv.appendChild(textSpan);
-    thinkingDiv.appendChild(contentDiv);
-    thinkingDiv.appendChild(timeSpan);
-    
+    thinkingDiv.innerHTML = `
+        <div class="message-content">
+            <span class="message-icon">⏳</span>
+            <span class="message-text">✨</span>
+        </div>
+        <span class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+    `;
     chatHistory.appendChild(thinkingDiv);
     chatHistory.scrollTop = chatHistory.scrollHeight;
     
     try {
         const startTime = Date.now();
         
-        // Check for JARVIS special commands first
         if (currentMode === 'JARVIS') {
             const jarvisResponse = handleJarvisCommand(text);
             if (jarvisResponse) {
@@ -1238,16 +1390,17 @@ async function sendMessage() {
             }
         }
         
-        // Send to backend with conversation history
-        const response = await fetch(`${API_BASE_URL}/chat`, {
+        const response = await fetch(`${API_BASE_URL}/api/chat/pro`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 prompt: text,
                 mode: currentMode,
                 turbo: turboMode,
-                history: messages.slice(-10)
-            })
+                search: searchMode,
+                chat_id: activeChatId
+            }),
+            credentials: 'include'
         });
         
         const data = await response.json();
@@ -1259,48 +1412,34 @@ async function sendMessage() {
         
         thinkingDiv.remove();
         
-        const mode = modeData[currentMode] || { emoji: '🧙' };
+        if (data.search_results && data.search_results.length > 0) {
+            const resultsDiv = document.createElement('div');
+            resultsDiv.className = 'message wizard';
+            let resultsHtml = '';
+            data.search_results.forEach(r => {
+                resultsHtml += `• <a href="${r.url}" target="_blank" style="color: #8b5cf6;">${escapeHtml(r.title)}</a><br><small style="color: #9ca3af;">${escapeHtml(r.snippet)}</small><br><br>`;
+            });
+            resultsDiv.innerHTML = `
+                <div class="message-content">
+                    <span class="message-icon">🌐</span>
+                    <span class="message-text">
+                        <strong>Web Search Results:</strong><br>
+                        ${resultsHtml}
+                    </span>
+                </div>
+                <span class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+            `;
+            chatHistory.appendChild(resultsDiv);
+        }
         
-        const wizardMsgDiv = document.createElement('div');
-        wizardMsgDiv.className = 'message wizard';
-        
-        const respContentDiv = document.createElement('div');
-        respContentDiv.className = 'message-content';
-        
-        const respIconSpan = document.createElement('span');
-        respIconSpan.className = 'message-icon';
-        respIconSpan.textContent = mode.emoji;
-        
-        const respTextSpan = document.createElement('span');
-        respTextSpan.className = 'message-text';
-        respTextSpan.textContent = '';
-        
-        const respTimeSpan = document.createElement('span');
-        respTimeSpan.className = 'message-time';
-        const respNow = new Date();
-        respTimeSpan.textContent = respNow.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
-        respContentDiv.appendChild(respIconSpan);
-        respContentDiv.appendChild(respTextSpan);
-        wizardMsgDiv.appendChild(respContentDiv);
-        wizardMsgDiv.appendChild(respTimeSpan);
-        
-        chatHistory.appendChild(wizardMsgDiv);
-        chatHistory.scrollTop = chatHistory.scrollHeight;
-        
-        let baseSpeed = 20;
-        if (currentMode === 'Fast') baseSpeed = 12;
-        else if (currentMode === 'Nerd' || currentMode === 'ORACLE') baseSpeed = 25;
-        
-        await typeMessage(wizardMsgDiv, respTextSpan, data.reply, baseSpeed);
-        
-        messages.push({ 
-            sender: 'wizard', 
-            text: data.reply,
-            mode: currentMode
-        });
-        
+        renderWizardMessage(data.reply, currentMode);
+        messages.push({ sender: 'wizard', text: data.reply, mode: currentMode });
         updateMessageCount();
+        
+        if (data.memories && data.memories.length > 0) {
+            addWizardMessage(`🧠 I remembered: ${data.memories.map(m => `${m.key}: ${m.value}`).join(', ')}`);
+            loadMemories();
+        }
         
         if (chats[activeChatId]) {
             chats[activeChatId].messages = [...messages];
@@ -1312,7 +1451,7 @@ async function sendMessage() {
         }
         
     } catch (error) {
-        console.error('Chat error:', error);
+        console.error('Pro chat error:', error);
         thinkingDiv.remove();
         addWizardMessage('⚠️ Connection error! Please try again.');
     } finally {
@@ -1338,6 +1477,7 @@ async function checkAuth() {
             currentUser = data.user;
             updateUIForAuth();
             loadUserChats();
+            loadMemories();
         } else {
             updateUIForAuth();
             initializeLocalChats();
@@ -1362,7 +1502,7 @@ function updateUIForAuth() {
 
 function showAuthModal(loginMode = true) {
     isLoginMode = loginMode;
-    authModalTitle.textContent = loginMode ? 'Login to Wizard.AI' : 'Create Account';
+    authModalTitle.textContent = loginMode ? 'Login to Wizard.AI Pro' : 'Create Account';
     authSubmit.textContent = loginMode ? 'Login' : 'Sign Up';
     authSwitchText.textContent = loginMode ? "Don't have an account?" : "Already have an account?";
     authSwitchBtn.textContent = loginMode ? 'Sign Up' : 'Login';
@@ -1454,22 +1594,29 @@ async function handleSignupStep2() {
             chats = {};
             chatIds = [];
             
-            data.chats.forEach(chat => {
-                chats[chat.chat_id] = chat;
-                chatIds.push(chat.chat_id);
-            });
+            if (data.chats) {
+                data.chats.forEach(chat => {
+                    chats[chat.chat_id] = chat;
+                    chatIds.push(chat.chat_id);
+                });
+            }
             
             if (data.chat_order && data.chat_order.length > 0) {
                 chatIds = data.chat_order;
             }
             
-            activeChatId = chatIds[0];
-            currentMode = chats[activeChatId].mode || 'JARVIS';
+            activeChatId = chatIds[0] || 'default';
+            currentMode = chats[activeChatId]?.mode || 'JARVIS';
+            
+            if (currentMode === 'JARVIS') {
+                activateSuitUpMode();
+            }
             
             renderChatsList();
             updateModeDisplay();
             loadActiveChatMessages();
             addWizardMessage(`✨ Welcome, ${currentUser.first_name}!`);
+            loadMemories();
         } else {
             authError.textContent = data.error || 'Invalid code';
             authError.style.color = '#ef4444';
@@ -1507,22 +1654,29 @@ async function handleLogin() {
             chats = {};
             chatIds = [];
             
-            data.chats.forEach(chat => {
-                chats[chat.chat_id] = chat;
-                chatIds.push(chat.chat_id);
-            });
+            if (data.chats) {
+                data.chats.forEach(chat => {
+                    chats[chat.chat_id] = chat;
+                    chatIds.push(chat.chat_id);
+                });
+            }
             
             if (data.chat_order && data.chat_order.length > 0) {
                 chatIds = data.chat_order;
             }
             
-            activeChatId = chatIds[0];
-            currentMode = chats[activeChatId].mode || 'JARVIS';
+            activeChatId = chatIds[0] || 'default';
+            currentMode = chats[activeChatId]?.mode || 'JARVIS';
+            
+            if (currentMode === 'JARVIS') {
+                activateSuitUpMode();
+            }
             
             renderChatsList();
             updateModeDisplay();
             loadActiveChatMessages();
             addWizardMessage(`✨ Welcome back, ${currentUser.first_name}!`);
+            loadMemories();
         } else {
             authError.textContent = data.error || 'Login failed';
             authError.style.color = '#ef4444';
@@ -1575,7 +1729,11 @@ async function loadUserChats() {
                 }
                 
                 activeChatId = chatIds[0];
-                currentMode = chats[activeChatId].mode || 'JARVIS';
+                currentMode = chats[activeChatId]?.mode || 'JARVIS';
+                
+                if (currentMode === 'JARVIS') {
+                    activateSuitUpMode();
+                }
                 
                 renderChatsList();
                 updateModeDisplay();
@@ -1607,7 +1765,7 @@ function initializeLocalChats() {
     renderChatsList();
     updateModeDisplay();
     chatHistory.innerHTML = '';
-    addWizardMessage('✨ Welcome to Wizard.AI! Select a mode to begin.');
+    addWizardMessage('✨ Welcome to Wizard.AI Pro! Select a mode to begin.');
 }
 
 // ============================================
@@ -1780,15 +1938,14 @@ function setupEventListeners() {
 // INITIALIZATION
 // ============================================
 async function init() {
-    console.log('🚀 Initializing Wizard.AI STARK INDUSTRIES EDITION...');
+    console.log('🚀 Initializing Wizard.AI PRO...');
     console.log('🔗 Backend URL:', API_BASE_URL);
     
     createTooltip();
     updateConnectionStatus('connecting');
     
-    // Check for Brave browser
     if (isBraveBrowser()) {
-        addWizardMessage("⚠️ You're using Brave browser. Voice features work best in Chrome, Edge, or Safari.");
+        addWizardMessage('⚠️ You\'re using Brave browser. Voice features work best in Chrome, Edge, or Safari.');
         if (jarvisVoiceBtn) {
             jarvisVoiceBtn.style.display = 'none';
         }
@@ -1807,8 +1964,9 @@ async function init() {
     setupEventListeners();
     setupModal();
     addTurboToggle();
+    initProFeatures();
     
-    console.log('✅ Wizard.AI STARK INDUSTRIES EDITION initialized successfully');
+    console.log('✅ Wizard.AI PRO initialized successfully');
 }
 
 // Emergency reset
@@ -1826,5 +1984,3 @@ document.addEventListener('keydown', (e) => {
 
 // Start the app
 document.addEventListener('DOMContentLoaded', init);
-
-
