@@ -1,7 +1,7 @@
 // ============================================
 // WIZARD.AI PRO - COMPLETE FRONTEND
 // Created by Arnav Gupta
-// Features: Memory, Web Search, File Upload, Code Execution, Image Generation
+// Features: Guest Mode, Memory, Web Search, File Upload, Code Execution, Image Generation
 // ============================================
 
 // ============================================
@@ -41,7 +41,6 @@ const jarvisVoiceBtn = document.getElementById('jarvis-voice-btn');
 const jarvisEasterEgg = document.getElementById('jarvis-easter-egg');
 
 // Pro Elements
-const proToolbar = document.getElementById('pro-toolbar');
 const searchBtn = document.getElementById('search-btn');
 const uploadBtn = document.getElementById('upload-btn');
 const codeBtn = document.getElementById('code-btn');
@@ -117,17 +116,10 @@ let recognition = null;
 let isListening = false;
 let searchMode = false;
 let uploadedFiles = [];
-
-// Multi-Chat State
-let chats = {};
-let chatIds = ['default'];
+let guestChats = {}; // For non-logged in users
+let guestChatIds = ['default'];
 let activeChatId = 'default';
-let chatToRename = null;
-
-// Auth State
-let isLoginMode = true;
-let signupEmail = '';
-let signupData = {};
+let guestMessages = [];
 
 // ============================================
 // MODE DATA - With Hidden WIZARD Mode
@@ -218,18 +210,13 @@ const modeGreetings = {
     'ORACLE': '🔮 The Oracle awakens... I see infinite possibilities.'
 };
 
-// JARVIS Easter Eggs
-const jarvisGreetings = [
-    "Good to see you again, sir.",
-    "At your service, as always.",
-    "I've been expecting you.",
-    "Systems online and ready.",
-    "Ah, there you are. I was beginning to wonder.",
-    "Welcome back. Shall we get to work?",
-    "I'm always here when you need me, sir.",
-    "Another day, another conversation.",
-    "Your presence is, as always, appreciated.",
-    "Ready when you are."
+// Guest reminders for logged-out users
+const guestReminders = [
+    "✨ Want to save your chats? Create a free account!",
+    "🔐 Sign up to unlock cloud sync and memories!",
+    "📎 Upload files and save them permanently with an account!",
+    "🧠 Create an account to let me remember you!",
+    "🎨 Generated images and code are saved with an account!"
 ];
 
 // ============================================
@@ -391,7 +378,7 @@ function initializeVoiceRecognition() {
                 jarvisVoiceBtn.classList.add('listening');
                 jarvisVoiceBtn.title = 'Listening... click to stop';
             }
-            addWizardMessage('🎤 Listening, sir... (speak now)');
+            addWizardMessage('🎤 Listening... (speak now)');
         };
         
         recognition.onend = () => {
@@ -515,8 +502,7 @@ function performSystemDiagnostic() {
         memoryUsage: `${memoryUsage}%`,
         responseTime: responseTimeEl ? responseTimeEl.textContent : '0.4s',
         currentMode: currentMode,
-        activeChat: chats[activeChatId]?.name || 'Main Chat',
-        totalChats: chatIds.length,
+        totalChats: currentUser ? Object.keys(chats).length : guestChatIds.length,
         totalMessages: messages.length,
         features: ['web_search', 'file_upload', 'code_execution', 'image_generation', 'memory']
     };
@@ -533,15 +519,14 @@ function activateSuitUpMode() {
         jarvisVoiceBtn.style.display = 'flex';
     }
     
-    const randomGreeting = jarvisGreetings[Math.floor(Math.random() * jarvisGreetings.length)];
+    const suitResponses = [
+        "🔷 SUIT UP mode activated. All systems at your command.",
+        "🔷 Nanotech engaged. Holographic interface online.",
+        "🔷 Stark Industries systems initialized. Ready when you are.",
+        "🔷 JARVIS at your service. Enhanced mode activated."
+    ];
     
-    return `🔷 **STARK INDUSTRIES JARVIS SUIT UP**\n\n` +
-           `*Holographic interface initializing...*\n` +
-           `*3D scanning grid activated*\n` +
-           `*Repulsor tech online*\n` +
-           `*Heads-up display engaged*\n\n` +
-           `🔷 ${randomGreeting}\n\n` +
-           `All systems are now running at peak performance. The holographic UI is active.`;
+    return suitResponses[Math.floor(Math.random() * suitResponses.length)];
 }
 
 function deactivateSuitUpMode() {
@@ -561,7 +546,7 @@ function handleJarvisCommand(text) {
     
     if (lowerText.includes('diagnostic') || lowerText.includes('system status') || lowerText.includes('system report')) {
         const diag = performSystemDiagnostic();
-        return `🔷 **SYSTEM DIAGNOSTIC REPORT**\n\n` +
+        return `🔷 **SYSTEM DIAGNOSTIC**\n\n` +
                `• Time: ${diag.timestamp}\n` +
                `• System: ${diag.system}\n` +
                `• Uptime: ${diag.uptime}\n` +
@@ -570,46 +555,31 @@ function handleJarvisCommand(text) {
                `• Memory: ${diag.memoryUsage}\n` +
                `• Response Time: ${diag.responseTime}\n` +
                `• Current Mode: ${diag.currentMode}\n` +
-               `• Active Chat: ${diag.activeChat}\n` +
-               `• Total Chats: ${diag.totalChats}\n` +
-               `• Messages: ${diag.totalMessages}\n` +
-               `• Features: ${diag.features.join(', ')}\n\n` +
-               `All systems are operational, sir.`;
+               `• Chats: ${diag.totalChats}\n` +
+               `• Messages: ${diag.totalMessages}\n\n` +
+               `All systems operational.`;
     }
     
     if (lowerText.includes('suit up') || lowerText.includes('jarvis mode') || lowerText === 'suit') {
         if (!document.body.classList.contains('jarvis-mode-active')) {
-            const suitResponse = `*holographic displays flicker to life*\n\n` +
-                `🔷 **STARK INDUSTRIES SUIT-UP SEQUENCE INITIATED**\n` +
-                `🔷 **Mark LXXXV (Mark 85) nanotech activation**\n` +
-                `🔷 **Repulsor tech online**\n` +
-                `🔷 **Flight systems calibrated**\n` +
-                `🔷 **Heads-up display engaged**\n` +
-                `🔷 **JARVIS holographic interface active**\n\n` +
-                `Welcome to SUIT UP mode, sir. The interface has been upgraded to Stark Industries specifications.`;
-            
             activateSuitUpMode();
-            return suitResponse;
+            return `*holographic displays flicker to life*\n\n🔷 **STARK INDUSTRIES SUIT-UP SEQUENCE INITIATED**\n\nWelcome to SUIT UP mode.`;
         } else {
-            return "SUIT UP mode is already active, sir. All systems at peak performance.";
+            return "SUIT UP mode is already active.";
         }
     }
     
     if (lowerText.includes('voice') || lowerText.includes('mic') || lowerText.includes('speak')) {
         if (jarvisVoiceBtn && jarvisVoiceBtn.style.display !== 'none') {
-            return `Voice commands are available, sir. Simply click the 🎤 button next to the send button and speak.`;
+            return `Voice commands are available. Click the 🎤 button and speak.`;
         } else {
-            return `Voice commands are available in JARVIS mode, sir. Please switch to JARVIS mode first.`;
+            return `Voice commands are available in JARVIS mode only.`;
         }
     }
     
-    if (lowerText.includes('status') || lowerText.includes('how are you') || lowerText.includes("how's it going")) {
+    if (lowerText.includes('status') || lowerText.includes('how are you')) {
         const diag = performSystemDiagnostic();
-        return `I'm functioning optimally, sir. Current system load is ${diag.cpuLoad} with ${diag.activeUsers} active users. Response time is ${diag.responseTime}.`;
-    }
-    
-    if (lowerText.includes('easter egg') || lowerText.includes('secret') || lowerText.includes('hidden')) {
-        return `Ah, curious about secrets, sir? Try saying "diagnostic", "suit up", or "status".`;
+        return `Operating at ${diag.cpuLoad} capacity with ${diag.activeUsers} active users. Response time: ${diag.responseTime}.`;
     }
     
     return null;
@@ -624,7 +594,14 @@ function initProFeatures() {
     }
     
     if (uploadBtn) {
-        uploadBtn.addEventListener('click', () => fileUpload.click());
+        uploadBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                addWizardMessage('📎 Please log in or sign up to upload files! Your uploads will be saved to your account.');
+                showAuthModal(false);
+                return;
+            }
+            fileUpload.click();
+        });
     }
     
     if (fileUpload) {
@@ -633,6 +610,11 @@ function initProFeatures() {
     
     if (codeBtn) {
         codeBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                addWizardMessage('💻 Please log in or sign up to use the code interpreter! Your code history will be saved.');
+                showAuthModal(false);
+                return;
+            }
             codeModal.style.display = 'flex';
             codeOutput.innerHTML = '';
         });
@@ -640,6 +622,11 @@ function initProFeatures() {
     
     if (imageBtn) {
         imageBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                addWizardMessage('🎨 Please log in or sign up to generate images! Your creations will be saved to your account.');
+                showAuthModal(false);
+                return;
+            }
             imageModal.style.display = 'flex';
             imageResult.innerHTML = '';
             imagePrompt.value = '';
@@ -647,7 +634,14 @@ function initProFeatures() {
     }
     
     if (memoryBtn) {
-        memoryBtn.addEventListener('click', loadMemories);
+        memoryBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                addWizardMessage('🧠 Please log in or sign up to view your memories! Your memories are saved to your account.');
+                showAuthModal(false);
+                return;
+            }
+            loadMemories();
+        });
     }
     
     if (closeCodeModal) {
@@ -691,7 +685,11 @@ function toggleSearchMode() {
     searchMode = !searchMode;
     if (searchMode) {
         searchBtn.classList.add('active');
-        addWizardMessage('🌐 Web search mode activated. I\'ll search the internet for answers using Tavily (1,000 free searches/month).');
+        if (!currentUser) {
+            addWizardMessage('🌐 Web search activated! (Free searches: 1,000/month)');
+        } else {
+            addWizardMessage('🌐 Web search mode activated. I\'ll search the internet for answers.');
+        }
     } else {
         searchBtn.classList.remove('active');
         addWizardMessage('🌐 Web search mode deactivated.');
@@ -816,22 +814,21 @@ async function loadMemories() {
         const data = await response.json();
         
         if (memoryList) {
-            if (data.structured && Object.keys(data.structured).length > 0) {
+            if (data.memories && data.memories.length > 0) {
                 let html = '';
-                let count = 0;
-                for (const [key, val] of Object.entries(data.structured)) {
+                data.memories.forEach(mem => {
                     html += `
                         <div class="memory-item">
-                            <div class="memory-key">${escapeHtml(key)}</div>
-                            <div class="memory-value">${escapeHtml(val.value)}</div>
-                            <span class="memory-category">${escapeHtml(val.category)}</span>
+                            <div class="memory-key">${escapeHtml(mem.key)}</div>
+                            <div class="memory-value">${escapeHtml(mem.value)}</div>
+                            <span class="memory-category">${escapeHtml(mem.category)}</span>
+                            <span class="memory-confidence">${Math.round(mem.confidence * 100)}%</span>
                         </div>
                     `;
-                    count++;
-                }
+                });
                 memoryList.innerHTML = html;
                 if (memoryCountEl) {
-                    memoryCountEl.textContent = count;
+                    memoryCountEl.textContent = data.memories.length;
                 }
             } else {
                 memoryList.innerHTML = 'No memories yet. Chat with me and I\'ll remember things!';
@@ -860,57 +857,33 @@ function escapeHtml(unsafe) {
 // ============================================
 // CHAT FUNCTIONS
 // ============================================
-async function saveUserChats() {
-    if (!currentUser) return;
-    
-    const chatsArray = chatIds.map(id => {
-        const chat = chats[id];
-        return {
-            chat_id: id,
-            name: chat.name,
-            emoji: chat.emoji,
-            mode: chat.mode,
-            messages: chat.messages || [],
-            created_at: chat.created_at || new Date().toISOString(),
-            updated_at: new Date().toISOString()
-        };
-    });
-    
-    try {
-        await fetch(`${API_BASE_URL}/api/save-chats`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                chats: chatsArray,
-                chat_order: chatIds
-            }),
-            credentials: 'include'
-        });
-    } catch (error) {
-        console.error('❌ Error saving chats:', error);
-    }
-}
-
 function renderChatsList() {
     if (!chatsList) return;
     
     chatsList.innerHTML = '';
     
-    chatIds.forEach(chatId => {
-        const chat = chats[chatId];
+    const ids = currentUser ? chatIds : guestChatIds;
+    const chatsObj = currentUser ? chats : guestChats;
+    
+    if (!chatsObj || Object.keys(chatsObj).length === 0) {
+        // Create default chat if none exists
+        const defaultChat = {
+            chat_id: 'default',
+            name: 'Main Chat',
+            emoji: '🧙',
+            mode: 'JARVIS',
+            messages: []
+        };
+        if (currentUser) {
+            chats['default'] = defaultChat;
+        } else {
+            guestChats['default'] = defaultChat;
+        }
+    }
+    
+    ids.forEach(chatId => {
+        const chat = (currentUser ? chats : guestChats)[chatId];
         if (!chat) return;
-        
-        const lastActive = chat.updated_at ? new Date(chat.updated_at) : new Date();
-        const now = new Date();
-        const diffMs = now - lastActive;
-        const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMins / 60);
-        const diffDays = Math.floor(diffHours / 24);
-        
-        let timeStr = 'now';
-        if (diffMins > 0 && diffMins < 60) timeStr = `${diffMins}m`;
-        if (diffHours > 0 && diffHours < 24) timeStr = `${diffHours}h`;
-        if (diffDays > 0) timeStr = `${diffDays}d`;
         
         const chatItem = document.createElement('div');
         chatItem.className = `chat-item ${chatId === activeChatId ? 'active' : ''}`;
@@ -923,7 +896,6 @@ function renderChatsList() {
                 <button class="rename-chat-item" data-chat-id="${chatId}" title="Rename">✏️</button>
                 <button class="delete-chat-item" data-chat-id="${chatId}" title="Delete">🗑️</button>
             </div>
-            <span class="chat-time">${timeStr}</span>
         `;
         
         chatItem.addEventListener('click', (e) => {
@@ -949,55 +921,45 @@ function renderChatsList() {
         chatsList.appendChild(chatItem);
     });
     
-    if (currentChatName && chats[activeChatId]) {
-        currentChatName.textContent = chats[activeChatId].name;
+    if (currentChatName) {
+        const currentChat = (currentUser ? chats : guestChats)[activeChatId];
+        currentChatName.textContent = currentChat?.name || 'Main Chat';
     }
-    if (currentChatEmoji && chats[activeChatId]) {
-        currentChatEmoji.textContent = chats[activeChatId].emoji || '🧙';
+    if (currentChatEmoji) {
+        const currentChat = (currentUser ? chats : guestChats)[activeChatId];
+        currentChatEmoji.textContent = currentChat?.emoji || '🧙';
     }
 }
 
 function switchChat(chatId) {
-    if (!chats[chatId]) return;
+    const chatsObj = currentUser ? chats : guestChats;
+    if (!chatsObj[chatId]) return;
     
-    if (chats[activeChatId]) {
-        chats[activeChatId].messages = [...messages];
-        chats[activeChatId].mode = currentMode;
-        chats[activeChatId].updated_at = new Date().toISOString();
+    // Save current chat messages
+    if (chatsObj[activeChatId]) {
+        chatsObj[activeChatId].messages = [...messages];
+        chatsObj[activeChatId].mode = currentMode;
     }
     
+    // Switch to new chat
     activeChatId = chatId;
-    const newChat = chats[activeChatId];
-    newChat.updated_at = new Date().toISOString();
+    const newChat = chatsObj[activeChatId];
     
-    currentMode = newChat.mode || 'JARVIS';
-    
-    updateModeDisplay();
-    loadActiveChatMessages();
-    renderChatsList();
-    
-    if (currentMode === 'JARVIS') {
-        if (jarvisVoiceBtn) jarvisVoiceBtn.style.display = 'flex';
-        if (jarvisEasterEgg) jarvisEasterEgg.style.display = 'flex';
-    } else {
-        if (document.body.classList.contains('jarvis-mode-active')) {
-            deactivateSuitUpMode();
-        }
-        if (jarvisVoiceBtn) jarvisVoiceBtn.style.display = 'none';
-        if (jarvisEasterEgg) jarvisEasterEgg.style.display = 'none';
+    // Load new chat's mode
+    if (newChat.mode) {
+        currentMode = newChat.mode;
+        updateModeDisplay();
     }
     
-    if (currentUser) {
-        saveUserChats();
-    }
-}
-
-function loadActiveChatMessages() {
+    // Load messages
+    messages = newChat.messages ? [...newChat.messages] : [];
+    
+    // Clear and rebuild chat history
     chatHistory.innerHTML = '';
     
-    if (chats[activeChatId] && chats[activeChatId].messages) {
-        messages = [...chats[activeChatId].messages];
-        
+    if (messages.length === 0) {
+        addWizardMessage(`✨ Welcome to ${newChat.name}! Select a mode to begin.`);
+    } else {
         messages.forEach(msg => {
             if (msg.sender === 'user') {
                 renderUserMessage(msg.text);
@@ -1005,11 +967,17 @@ function loadActiveChatMessages() {
                 renderWizardMessage(msg.text, msg.mode);
             }
         });
-        
-        chatHistory.scrollTop = chatHistory.scrollHeight;
-        updateMessageCount();
-    } else {
-        addWizardMessage(`✨ Welcome to ${chats[activeChatId].name}! Select a mode to begin.`);
+    }
+    
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+    updateMessageCount();
+    renderChatsList();
+    
+    // Handle JARVIS mode activation
+    if (currentMode === 'JARVIS' && !document.body.classList.contains('jarvis-mode-active')) {
+        activateSuitUpMode();
+    } else if (currentMode !== 'JARVIS' && document.body.classList.contains('jarvis-mode-active')) {
+        deactivateSuitUpMode();
     }
 }
 
@@ -1075,7 +1043,7 @@ function renderWizardMessage(text, mode = null) {
 }
 
 function createNewChat() {
-    const chatNumber = chatIds.length + 1;
+    const chatNumber = (currentUser ? chatIds.length : guestChatIds.length) + 1;
     const chatId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
     
     const emojis = ['💬', '🤖', '🌟', '⭐', '✨', '🎯', '🎲', '🎮', '📚', '🎨'];
@@ -1086,71 +1054,72 @@ function createNewChat() {
         name: `Chat ${chatNumber}`,
         emoji: randomEmoji,
         mode: 'JARVIS',
-        messages: [],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        messages: []
     };
     
-    chats[chatId] = newChat;
-    chatIds.push(chatId);
+    if (currentUser) {
+        chats[chatId] = newChat;
+        chatIds.push(chatId);
+    } else {
+        guestChats[chatId] = newChat;
+        guestChatIds.push(chatId);
+    }
     
     switchChat(chatId);
-    
-    if (currentUser) {
-        saveUserChats();
-    }
 }
 
 function deleteChat(chatId) {
-    if (chatIds.length <= 1) {
+    const chatsObj = currentUser ? chats : guestChats;
+    const ids = currentUser ? chatIds : guestChatIds;
+    
+    if (ids.length <= 1) {
         alert('Cannot delete the last chat');
         return;
     }
     
-    if (!confirm(`Are you sure you want to delete "${chats[chatId].name}"?`)) {
+    if (!confirm(`Are you sure you want to delete this chat?`)) {
         return;
     }
     
-    const currentIndex = chatIds.indexOf(chatId);
+    const currentIndex = ids.indexOf(chatId);
     
-    delete chats[chatId];
-    chatIds = chatIds.filter(id => id !== chatId);
+    delete chatsObj[chatId];
+    const newIds = ids.filter(id => id !== chatId);
+    
+    if (currentUser) {
+        chatIds = newIds;
+    } else {
+        guestChatIds = newIds;
+    }
     
     if (chatId === activeChatId) {
-        const newIndex = Math.min(currentIndex, chatIds.length - 1);
-        switchChat(chatIds[newIndex]);
+        const newIndex = Math.min(currentIndex, newIds.length - 1);
+        switchChat(newIds[newIndex]);
     }
     
     renderChatsList();
-    
-    if (currentUser) {
-        saveUserChats();
-    }
 }
 
 function renameChat(chatId, newName) {
     if (!newName.trim()) return;
     
-    const chat = chats[chatId];
+    const chatsObj = currentUser ? chats : guestChats;
+    const chat = chatsObj[chatId];
     if (!chat) return;
     
     chat.name = newName.trim();
-    chat.updated_at = new Date().toISOString();
     
     if (chatId === activeChatId && currentChatName) {
         currentChatName.textContent = chat.name;
     }
     
     renderChatsList();
-    
-    if (currentUser) {
-        saveUserChats();
-    }
 }
 
 function openRenameModal(chatId) {
     chatToRename = chatId;
-    const chat = chats[chatId];
+    const chatsObj = currentUser ? chats : guestChats;
+    const chat = chatsObj[chatId];
     if (!chat) return;
     
     renameInput.value = chat.name;
@@ -1165,17 +1134,13 @@ function resetCurrentChat() {
     messages = [];
     chatHistory.innerHTML = '';
     
-    if (chats[activeChatId]) {
-        chats[activeChatId].messages = [];
-        chats[activeChatId].updated_at = new Date().toISOString();
+    const chatsObj = currentUser ? chats : guestChats;
+    if (chatsObj[activeChatId]) {
+        chatsObj[activeChatId].messages = [];
     }
     
     updateMessageCount();
     addWizardMessage(`🧹 Chat cleared! Ready for new messages.`);
-    
-    if (currentUser) {
-        saveUserChats();
-    }
 }
 
 function updateMessageCount() {
@@ -1243,13 +1208,18 @@ function setupDropdown() {
             dropdown.classList.remove('open');
             hideTooltip();
             
-            if (chats[activeChatId]) {
-                chats[activeChatId].mode = currentMode;
-                chats[activeChatId].updated_at = new Date().toISOString();
+            // Save mode to current chat
+            const chatsObj = currentUser ? chats : guestChats;
+            if (chatsObj[activeChatId]) {
+                chatsObj[activeChatId].mode = currentMode;
             }
             
             if (currentMode === 'JARVIS') {
-                addWizardMessage(`🔄 Switched to JARVIS mode. ${modeGreetings.JARVIS || ''}`);
+                if (!document.body.classList.contains('jarvis-mode-active')) {
+                    addWizardMessage(activateSuitUpMode());
+                } else {
+                    addWizardMessage(`🔄 Switched to JARVIS mode.`);
+                }
                 if (jarvisVoiceBtn) jarvisVoiceBtn.style.display = 'flex';
                 if (jarvisEasterEgg) jarvisEasterEgg.style.display = 'flex';
             } else {
@@ -1259,10 +1229,6 @@ function setupDropdown() {
                 if (jarvisVoiceBtn) jarvisVoiceBtn.style.display = 'none';
                 if (jarvisEasterEgg) jarvisEasterEgg.style.display = 'none';
                 addWizardMessage(`🔄 Switched to ${modeKey} mode! ${modeGreetings[modeKey] || ''}`);
-            }
-            
-            if (currentUser) {
-                saveUserChats();
             }
         });
         
@@ -1322,7 +1288,7 @@ function addTurboToggle() {
 }
 
 // ============================================
-// SEND MESSAGE - PRO VERSION
+// SEND MESSAGE - GUEST MODE SUPPORT
 // ============================================
 async function sendMessage() {
     if (isThinking) return;
@@ -1335,13 +1301,10 @@ async function sendMessage() {
     chatInput.value = '';
     updateMessageCount();
     
-    if (chats[activeChatId]) {
-        chats[activeChatId].messages = [...messages];
-        chats[activeChatId].updated_at = new Date().toISOString();
-    }
-    
-    if (currentUser) {
-        saveUserChats();
+    // Save to current chat
+    const chatsObj = currentUser ? chats : guestChats;
+    if (chatsObj[activeChatId]) {
+        chatsObj[activeChatId].messages = [...messages];
     }
     
     isThinking = true;
@@ -1364,6 +1327,7 @@ async function sendMessage() {
     try {
         const startTime = Date.now();
         
+        // Check for JARVIS special commands first
         if (currentMode === 'JARVIS') {
             const jarvisResponse = handleJarvisCommand(text);
             if (jarvisResponse) {
@@ -1372,13 +1336,8 @@ async function sendMessage() {
                 messages.push({ sender: 'wizard', text: jarvisResponse, mode: currentMode });
                 updateMessageCount();
                 
-                if (chats[activeChatId]) {
-                    chats[activeChatId].messages = [...messages];
-                    chats[activeChatId].updated_at = new Date().toISOString();
-                }
-                
-                if (currentUser) {
-                    saveUserChats();
+                if (chatsObj[activeChatId]) {
+                    chatsObj[activeChatId].messages = [...messages];
                 }
                 
                 isThinking = false;
@@ -1390,16 +1349,29 @@ async function sendMessage() {
             }
         }
         
+        // Prepare request
+        const requestBody = {
+            prompt: text,
+            mode: currentMode,
+            turbo: turboMode,
+            search: searchMode,
+            chat_id: activeChatId
+        };
+        
+        // Only add history if we have messages (for context)
+        if (messages.length > 1) {
+            requestBody.history = messages.slice(-10);
+        }
+        
+        // For guest users, add a flag that they're not logged in
+        if (!currentUser) {
+            requestBody.guest = true;
+        }
+        
         const response = await fetch(`${API_BASE_URL}/api/chat/pro`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                prompt: text,
-                mode: currentMode,
-                turbo: turboMode,
-                search: searchMode,
-                chat_id: activeChatId
-            }),
+            body: JSON.stringify(requestBody),
             credentials: 'include'
         });
         
@@ -1412,6 +1384,7 @@ async function sendMessage() {
         
         thinkingDiv.remove();
         
+        // Show search results if any
         if (data.search_results && data.search_results.length > 0) {
             const resultsDiv = document.createElement('div');
             resultsDiv.className = 'message wizard';
@@ -1436,24 +1409,29 @@ async function sendMessage() {
         messages.push({ sender: 'wizard', text: data.reply, mode: currentMode });
         updateMessageCount();
         
-        if (data.memories && data.memories.length > 0) {
-            addWizardMessage(`🧠 I remembered: ${data.memories.map(m => `${m.key}: ${m.value}`).join(', ')}`);
-            loadMemories();
+        if (chatsObj[activeChatId]) {
+            chatsObj[activeChatId].messages = [...messages];
         }
         
-        if (chats[activeChatId]) {
-            chats[activeChatId].messages = [...messages];
-            chats[activeChatId].updated_at = new Date().toISOString();
-        }
-        
-        if (currentUser) {
-            saveUserChats();
+        // Add guest reminder occasionally (20% chance)
+        if (!currentUser && Math.random() < 0.2) {
+            const reminder = guestReminders[Math.floor(Math.random() * guestReminders.length)];
+            setTimeout(() => addWizardMessage(reminder), 1000);
         }
         
     } catch (error) {
-        console.error('Pro chat error:', error);
+        console.error('Chat error:', error);
         thinkingDiv.remove();
-        addWizardMessage('⚠️ Connection error! Please try again.');
+        
+        // For guest users, show a friendly message
+        if (!currentUser) {
+            addWizardMessage('✨ Having trouble? Create a free account for a better experience!');
+            setTimeout(() => {
+                addWizardMessage('🔐 Click "Sign Up" in the sidebar to get started!');
+            }, 1500);
+        } else {
+            addWizardMessage('⚠️ Connection error! Please try again.');
+        }
     } finally {
         isThinking = false;
         chatInput.disabled = false;
@@ -1476,16 +1454,65 @@ async function checkAuth() {
             const data = await response.json();
             currentUser = data.user;
             updateUIForAuth();
-            loadUserChats();
-            loadMemories();
+            
+            // Load user's chats
+            try {
+                const chatsResponse = await fetch(`${API_BASE_URL}/api/chats`, {
+                    credentials: 'include'
+                });
+                if (chatsResponse.ok) {
+                    const chatsData = await chatsResponse.json();
+                    chats = {};
+                    chatIds = [];
+                    
+                    if (chatsData.chats && chatsData.chats.length > 0) {
+                        chatsData.chats.forEach(chat => {
+                            chats[chat.chat_id] = chat;
+                            chatIds.push(chat.chat_id);
+                        });
+                        
+                        if (chatsData.chat_order && chatsData.chat_order.length > 0) {
+                            chatIds = chatsData.chat_order;
+                        }
+                        
+                        activeChatId = chatIds[0];
+                        currentMode = chats[activeChatId]?.mode || 'JARVIS';
+                        
+                        if (currentMode === 'JARVIS') {
+                            activateSuitUpMode();
+                        }
+                        
+                        renderChatsList();
+                        updateModeDisplay();
+                        
+                        // Load messages from active chat
+                        if (chats[activeChatId] && chats[activeChatId].messages) {
+                            messages = [...chats[activeChatId].messages];
+                            messages.forEach(msg => {
+                                if (msg.sender === 'user') {
+                                    renderUserMessage(msg.text);
+                                } else {
+                                    renderWizardMessage(msg.text, msg.mode);
+                                }
+                            });
+                            updateMessageCount();
+                        } else {
+                            addWizardMessage(`✨ Welcome back, ${currentUser.first_name}!`);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load chats:', error);
+                initializeGuestChat();
+            }
         } else {
             updateUIForAuth();
-            initializeLocalChats();
+            initializeGuestChat();
         }
     } catch (error) {
         console.error('Auth check failed:', error);
         updateUIForAuth();
-        initializeLocalChats();
+        initializeGuestChat();
     }
 }
 
@@ -1494,10 +1521,49 @@ function updateUIForAuth() {
         userInfo.style.display = 'flex';
         authButtons.style.display = 'none';
         userEmail.textContent = currentUser.email;
+        
+        // Enable pro features
+        if (searchBtn) searchBtn.disabled = false;
+        if (uploadBtn) uploadBtn.disabled = false;
+        if (codeBtn) codeBtn.disabled = false;
+        if (imageBtn) imageBtn.disabled = false;
+        if (memoryBtn) memoryBtn.disabled = false;
+        
     } else {
         userInfo.style.display = 'none';
         authButtons.style.display = 'flex';
+        
+        // Pro features prompt login but remain clickable
+        // (they'll show login prompt when clicked)
     }
+}
+
+function initializeGuestChat() {
+    // Initialize guest chats
+    guestChats = {
+        'default': {
+            chat_id: 'default',
+            name: 'Main Chat',
+            emoji: '🧙',
+            mode: 'JARVIS',
+            messages: []
+        }
+    };
+    guestChatIds = ['default'];
+    activeChatId = 'default';
+    currentMode = 'JARVIS';
+    messages = [];
+    
+    activateSuitUpMode();
+    renderChatsList();
+    updateModeDisplay();
+    chatHistory.innerHTML = '';
+    addWizardMessage('✨ Welcome to Wizard.AI Pro! Chat with me, or sign up to save your conversations!');
+    
+    // Add second welcome message
+    setTimeout(() => {
+        addWizardMessage('🔐 Click "Sign Up" in the sidebar to create a free account and unlock all features!');
+    }, 2000);
 }
 
 function showAuthModal(loginMode = true) {
@@ -1591,32 +1657,36 @@ async function handleSignupStep2() {
             authModal.classList.remove('show');
             updateUIForAuth();
             
-            chats = {};
-            chatIds = [];
-            
-            if (data.chats) {
-                data.chats.forEach(chat => {
-                    chats[chat.chat_id] = chat;
-                    chatIds.push(chat.chat_id);
+            // Transfer guest chats to user account
+            if (Object.keys(guestChats).length > 0) {
+                // Save guest chats to user account
+                const chatsArray = [];
+                guestChatIds.forEach(id => {
+                    if (guestChats[id]) {
+                        chatsArray.push({
+                            chat_id: id,
+                            name: guestChats[id].name,
+                            emoji: guestChats[id].emoji,
+                            mode: guestChats[id].mode,
+                            messages: guestChats[id].messages || []
+                        });
+                    }
+                });
+                
+                await fetch(`${API_BASE_URL}/api/save-chats`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        chats: chatsArray,
+                        chat_order: guestChatIds
+                    }),
+                    credentials: 'include'
                 });
             }
             
-            if (data.chat_order && data.chat_order.length > 0) {
-                chatIds = data.chat_order;
-            }
+            // Reload user data
+            window.location.reload();
             
-            activeChatId = chatIds[0] || 'default';
-            currentMode = chats[activeChatId]?.mode || 'JARVIS';
-            
-            if (currentMode === 'JARVIS') {
-                activateSuitUpMode();
-            }
-            
-            renderChatsList();
-            updateModeDisplay();
-            loadActiveChatMessages();
-            addWizardMessage(`✨ Welcome, ${currentUser.first_name}!`);
-            loadMemories();
         } else {
             authError.textContent = data.error || 'Invalid code';
             authError.style.color = '#ef4444';
@@ -1651,32 +1721,34 @@ async function handleLogin() {
             authModal.classList.remove('show');
             updateUIForAuth();
             
-            chats = {};
-            chatIds = [];
-            
-            if (data.chats) {
-                data.chats.forEach(chat => {
-                    chats[chat.chat_id] = chat;
-                    chatIds.push(chat.chat_id);
+            // Transfer guest chats if any
+            if (Object.keys(guestChats).length > 0) {
+                const chatsArray = [];
+                guestChatIds.forEach(id => {
+                    if (guestChats[id]) {
+                        chatsArray.push({
+                            chat_id: id,
+                            name: guestChats[id].name,
+                            emoji: guestChats[id].emoji,
+                            mode: guestChats[id].mode,
+                            messages: guestChats[id].messages || []
+                        });
+                    }
+                });
+                
+                await fetch(`${API_BASE_URL}/api/save-chats`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        chats: chatsArray,
+                        chat_order: guestChatIds
+                    }),
+                    credentials: 'include'
                 });
             }
             
-            if (data.chat_order && data.chat_order.length > 0) {
-                chatIds = data.chat_order;
-            }
+            window.location.reload();
             
-            activeChatId = chatIds[0] || 'default';
-            currentMode = chats[activeChatId]?.mode || 'JARVIS';
-            
-            if (currentMode === 'JARVIS') {
-                activateSuitUpMode();
-            }
-            
-            renderChatsList();
-            updateModeDisplay();
-            loadActiveChatMessages();
-            addWizardMessage(`✨ Welcome back, ${currentUser.first_name}!`);
-            loadMemories();
         } else {
             authError.textContent = data.error || 'Login failed';
             authError.style.color = '#ef4444';
@@ -1699,73 +1771,27 @@ async function handleLogout() {
     
     currentUser = null;
     updateUIForAuth();
-    initializeLocalChats();
+    initializeGuestChat();
     deactivateSuitUpMode();
-    addWizardMessage('👋 You have been logged out.');
+    addWizardMessage('👋 You have been logged out. Your guest chat is still here!');
 }
 
-async function loadUserChats() {
-    if (!currentUser) return;
-    
+async function resendVerificationCode() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/chats`, {
+        const response = await fetch(`${API_BASE_URL}/api/resend-code`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: signupEmail }),
             credentials: 'include'
         });
         
-        if (response.ok) {
-            const data = await response.json();
-            
-            if (data.chats && data.chats.length > 0) {
-                chats = {};
-                chatIds = [];
-                
-                data.chats.forEach(chat => {
-                    chats[chat.chat_id] = chat;
-                    chatIds.push(chat.chat_id);
-                });
-                
-                if (data.chat_order && data.chat_order.length > 0) {
-                    chatIds = data.chat_order;
-                }
-                
-                activeChatId = chatIds[0];
-                currentMode = chats[activeChatId]?.mode || 'JARVIS';
-                
-                if (currentMode === 'JARVIS') {
-                    activateSuitUpMode();
-                }
-                
-                renderChatsList();
-                updateModeDisplay();
-                loadActiveChatMessages();
-            }
-        }
+        const data = await response.json();
+        authError.textContent = data.message || 'Code resent';
+        authError.style.color = '#10b981';
     } catch (error) {
-        console.error('Failed to load chats:', error);
+        authError.textContent = 'Failed to resend';
+        authError.style.color = '#ef4444';
     }
-}
-
-function initializeLocalChats() {
-    const defaultChat = {
-        chat_id: 'default',
-        name: 'Main Chat',
-        emoji: '🧙',
-        mode: 'JARVIS',
-        messages: []
-    };
-    
-    chats = { 'default': defaultChat };
-    chatIds = ['default'];
-    activeChatId = 'default';
-    currentMode = 'JARVIS';
-    
-    if (jarvisVoiceBtn) jarvisVoiceBtn.style.display = 'flex';
-    if (jarvisEasterEgg) jarvisEasterEgg.style.display = 'flex';
-    
-    renderChatsList();
-    updateModeDisplay();
-    chatHistory.innerHTML = '';
-    addWizardMessage('✨ Welcome to Wizard.AI Pro! Select a mode to begin.');
 }
 
 // ============================================
@@ -1910,23 +1936,7 @@ function setupEventListeners() {
     }
     
     if (resendCodeBtn) {
-        resendCodeBtn.addEventListener('click', async () => {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/resend-code`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: signupEmail }),
-                    credentials: 'include'
-                });
-                
-                const data = await response.json();
-                authError.textContent = data.message || 'Code resent';
-                authError.style.color = '#10b981';
-            } catch (error) {
-                authError.textContent = 'Failed to resend';
-                authError.style.color = '#ef4444';
-            }
-        });
+        resendCodeBtn.addEventListener('click', resendVerificationCode);
     }
     
     if (logoutBtn) {
@@ -1953,11 +1963,7 @@ async function init() {
         initializeVoiceRecognition();
     }
     
-    await checkAuth();
-    
-    if (!currentUser) {
-        initializeLocalChats();
-    }
+    await checkAuth(); // This will handle guest mode automatically
     
     await checkSystemStatus();
     setupDropdown();
@@ -1984,3 +1990,4 @@ document.addEventListener('keydown', (e) => {
 
 // Start the app
 document.addEventListener('DOMContentLoaded', init);
+
