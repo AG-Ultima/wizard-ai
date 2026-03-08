@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧙‍♂️ Wizard.AI Pro - Magical AI Assistant</title>
+    <title>🧙‍♂️ Wizard.AI Pro v8.0 - Magical AI Assistant</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧙</text></svg>">
@@ -13,7 +13,9 @@
     <div class="twinkling"></div>
     
     <div class="app-container">
-        <!-- Left Sidebar - Wizard Profile & Settings -->
+        <!-- ============================================
+             LEFT SIDEBAR - WIZARD PROFILE & SETTINGS
+             ============================================ -->
         <div class="sidebar">
             <div class="wizard-profile">
                 <div class="wizard-avatar">🧙‍♂️</div>
@@ -37,6 +39,7 @@
                 </div>
             </div>
             
+            <!-- Mode Selector -->
             <div class="mode-selector">
                 <h2>Personality Mode</h2>
                 <div class="custom-dropdown" id="mode-dropdown">
@@ -50,69 +53,76 @@
                 </div>
             </div>
             
-            <!-- Pro Stats Section -->
-            <div class="pro-stats">
-                <h3>✨ Pro Features</h3>
-                <div class="stat-item">
-                    <span class="stat-label">Search credits</span>
-                    <span class="stat-value" id="search-credits">1,000/mo</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Files uploaded</span>
-                    <span class="stat-value" id="file-count">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Memories</span>
-                    <span class="stat-value" id="memory-count">0</span>
-                </div>
-            </div>
-            
-            <!-- JARVIS Easter Egg Tooltip (hidden by default) -->
-            <div class="jarvis-easter-egg" id="jarvis-easter-egg" style="display: none;">
-                <div class="easter-egg-icon">🔷</div>
-                <div class="easter-egg-text">
-                    <strong>JARVIS Commands</strong><br>
-                    Try: "diagnostic", "suit up", "status"<br>
-                    or click the 🎤 button
-                </div>
-            </div>
-            
-            <!-- Turbo Mode Toggle Container -->
-            <div id="turbo-toggle-container"></div>
-            
-            <div class="stats">
-                <div class="stat-item">
-                    <span class="stat-label">Active Model</span>
-                    <span class="stat-value" id="current-model">✨ loading...</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Messages</span>
-                    <span class="stat-value" id="message-count">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Response Time</span>
-                    <span class="stat-value" id="response-time">-</span>
+            <!-- Stats Dashboard v8.0 -->
+            <div class="stats-dashboard">
+                <h3>📊 Your Stats</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-icon">💬</span>
+                        <span class="stat-value" id="stat-messages">0</span>
+                        <span class="stat-label">Messages</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-icon">📎</span>
+                        <span class="stat-value" id="stat-files">0</span>
+                        <span class="stat-label">Files</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-icon">🧠</span>
+                        <span class="stat-value" id="stat-memories">0</span>
+                        <span class="stat-label">Memories</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-icon">🎨</span>
+                        <span class="stat-value" id="stat-images">0</span>
+                        <span class="stat-label">Images</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-icon">🌐</span>
+                        <span class="stat-value" id="stat-searches">0</span>
+                        <span class="stat-label">Searches</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-icon">⚡</span>
+                        <span class="stat-value" id="stat-response">0.4s</span>
+                        <span class="stat-label">Avg Response</span>
+                    </div>
                 </div>
             </div>
             
+            <!-- Turbo Mode Toggle -->
+            <div class="turbo-container">
+                <button id="turbo-btn" class="turbo-btn">
+                    <span class="turbo-icon">⚡</span>
+                    <span class="turbo-text">TURBO MODE</span>
+                    <span class="turbo-status" id="turbo-status">OFF</span>
+                </button>
+            </div>
+            
+            <!-- Model Status -->
             <div class="model-status" id="model-status">
-                <h2>📦 Available Models</h2>
-                <div class="model-list" id="model-list">
-                    <div class="loading-models">Loading models...</div>
+                <h2>📦 Active Model</h2>
+                <div class="model-info" id="current-model">
+                    <span class="model-icon">✨</span>
+                    <span class="model-name">Loading...</span>
                 </div>
             </div>
             
-            <button id="reset-current-btn" class="reset-button" aria-label="Clear current chat">
+            <!-- Reset Button -->
+            <button id="reset-current-btn" class="reset-button">
                 <span>🧹</span> Clear Current Chat
             </button>
             
+            <!-- Footer with v8.0 -->
             <div class="footer-note">
                 <p>Created by Arnav ✨</p>
-                <p class="version">v6.0 - Pro Edition</p>
+                <p class="version">v8.0 - Pro Edition</p>
             </div>
         </div>
         
-        <!-- Main Chat Area (Center) -->
+        <!-- ============================================
+             MAIN CHAT AREA
+             ============================================ -->
         <div class="chat-area">
             <div class="chat-header">
                 <div class="chat-title">
@@ -125,9 +135,9 @@
                 </div>
             </div>
             
-            <!-- Pro Toolbar -->
+            <!-- Pro Toolbar v8.0 -->
             <div class="pro-toolbar" id="pro-toolbar">
-                <button class="pro-btn" id="search-btn" title="Web Search (1,000 free searches/month)">
+                <button class="pro-btn" id="search-btn" title="Web Search">
                     <span class="btn-icon">🌐</span>
                     <span class="btn-text">Search</span>
                 </button>
@@ -147,33 +157,49 @@
                     <span class="btn-icon">🧠</span>
                     <span class="btn-text">Memory</span>
                 </button>
+                <button class="pro-btn" id="stats-btn" title="View Detailed Stats">
+                    <span class="btn-icon">📊</span>
+                    <span class="btn-text">Stats</span>
+                </button>
             </div>
             
+            <!-- Chat History -->
             <div id="chat-history" class="chat-history" role="log" aria-live="polite">
                 <!-- Messages will appear here -->
             </div>
             
+            <!-- Input Area with Voice for ALL Modes -->
             <div class="input-area">
                 <input 
                     type="text" 
                     id="chat-input" 
-                    placeholder="Type your message here..."
+                    placeholder="Type your message here... or click 🎤 to speak"
                     autocomplete="off"
                     aria-label="Your message"
                 >
+                <button id="voice-input-btn" class="voice-btn" title="Voice input (works in all modes!)">
+                    🎤
+                </button>
                 <button id="send-btn" class="send-button" aria-label="Send message">
                     <span>Send</span>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
                     </svg>
                 </button>
-                <button id="jarvis-voice-btn" class="jarvis-voice-btn" title="Voice command (JARVIS only)" style="display: none;">
-                    🎤
-                </button>
+            </div>
+            
+            <!-- Upload Progress Bar (Hidden by Default) -->
+            <div id="upload-progress" class="upload-progress" style="display: none;">
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%"></div>
+                </div>
+                <span class="progress-text" id="progress-text">Uploading...</span>
             </div>
         </div>
         
-        <!-- Right Sidebar - Your Chats -->
+        <!-- ============================================
+             RIGHT SIDEBAR - YOUR CHATS
+             ============================================ -->
         <div class="chats-sidebar">
             <div class="chats-header">
                 <h2>💬 Your Chats</h2>
@@ -183,8 +209,26 @@
             <div class="chats-list" id="chats-list">
                 <!-- Chat items will be loaded here -->
             </div>
+            
+            <!-- Quick Stats Mini -->
+            <div class="quick-stats">
+                <div class="quick-stat-item">
+                    <span class="quick-stat-icon">⚡</span>
+                    <span class="quick-stat-label">Today:</span>
+                    <span class="quick-stat-value" id="quick-today">0 msgs</span>
+                </div>
+                <div class="quick-stat-item">
+                    <span class="quick-stat-icon">📊</span>
+                    <span class="quick-stat-label">Total:</span>
+                    <span class="quick-stat-value" id="quick-total">0 msgs</span>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- ============================================
+         MODALS
+         ============================================ -->
 
     <!-- Auth Modal -->
     <div class="modal" id="auth-modal">
@@ -226,7 +270,7 @@
                     <div class="form-group" id="verification-group" style="display: none;">
                         <label for="verification-code">Verification Code</label>
                         <input type="text" id="verification-code" placeholder="Enter 6-digit code" maxlength="6">
-                        <button id="resend-code-btn" style="margin-top: 10px; background: none; border: 1px solid #8b5cf6; color: white; padding: 8px; border-radius: 6px; width: 100%; cursor: pointer;">📧 Resend Code</button>
+                        <button id="resend-code-btn" class="resend-btn">📧 Resend Code</button>
                     </div>
                     
                     <div class="auth-error" id="auth-error"></div>
@@ -271,15 +315,23 @@
         </div>
     </div>
 
-    <!-- Image Generation Modal -->
+    <!-- Image Generation Modal v8.0 -->
     <div class="pro-modal" id="image-modal" style="display: none;">
         <div class="pro-modal-content">
             <div class="pro-modal-header">
-                <h3>🎨 AI Image Generator</h3>
+                <h3>🎨 AI Image Generator (Stable Diffusion)</h3>
                 <button class="close-pro-modal" id="close-image-modal">&times;</button>
             </div>
             <div class="pro-modal-body">
                 <input type="text" id="image-prompt" placeholder="Describe the image you want..." class="pro-input">
+                <div class="image-size-selector">
+                    <label>Size:</label>
+                    <select id="image-size">
+                        <option value="512x512">Square (512x512)</option>
+                        <option value="768x512">Landscape (768x512)</option>
+                        <option value="512x768">Portrait (512x768)</option>
+                    </select>
+                </div>
                 <div class="pro-modal-actions">
                     <button id="generate-image" class="pro-modal-btn primary">Generate</button>
                 </div>
@@ -288,7 +340,7 @@
         </div>
     </div>
 
-    <!-- Memory Panel -->
+    <!-- Memory Modal -->
     <div class="pro-modal" id="memory-modal" style="display: none;">
         <div class="pro-modal-content">
             <div class="pro-modal-header">
@@ -303,10 +355,90 @@
         </div>
     </div>
 
-    <!-- File Upload Preview (hidden) -->
-    <input type="file" id="file-upload" style="display: none;" accept=".pdf,.txt,.doc,.docx,.xls,.xlsx,.csv,.jpg,.png">
+    <!-- Stats Modal v8.0 (Detailed) -->
+    <div class="pro-modal" id="stats-modal" style="display: none;">
+        <div class="pro-modal-content">
+            <div class="pro-modal-header">
+                <h3>📊 Detailed Statistics</h3>
+                <button class="close-pro-modal" id="close-stats-modal">&times;</button>
+            </div>
+            <div class="pro-modal-body">
+                <div class="stats-detailed">
+                    <div class="stats-section">
+                        <h4>📈 Usage Overview</h4>
+                        <div class="stats-row">
+                            <span>Account Created:</span>
+                            <span id="stats-created">-</span>
+                        </div>
+                        <div class="stats-row">
+                            <span>Last Active:</span>
+                            <span id="stats-last">-</span>
+                        </div>
+                        <div class="stats-row">
+                            <span>Total Messages:</span>
+                            <span id="stats-total-msgs">0</span>
+                        </div>
+                        <div class="stats-row">
+                            <span>Total Chats:</span>
+                            <span id="stats-total-chats">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-section">
+                        <h4>📁 Content Stats</h4>
+                        <div class="stats-row">
+                            <span>Files Uploaded:</span>
+                            <span id="stats-files">0</span>
+                        </div>
+                        <div class="stats-row">
+                            <span>Images Generated:</span>
+                            <span id="stats-images">0</span>
+                        </div>
+                        <div class="stats-row">
+                            <span>Code Executions:</span>
+                            <span id="stats-code">0</span>
+                        </div>
+                        <div class="stats-row">
+                            <span>Web Searches:</span>
+                            <span id="stats-searches">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-section">
+                        <h4>🧠 Memory Stats</h4>
+                        <div class="stats-row">
+                            <span>Memories Stored:</span>
+                            <span id="stats-memories">0</span>
+                        </div>
+                        <div class="stats-row">
+                            <span>Documents in RAG:</span>
+                            <span id="stats-docs">0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-section">
+                        <h4>⚡ Performance</h4>
+                        <div class="stats-row">
+                            <span>Avg Response Time:</span>
+                            <span id="stats-avg-response">0.4s</span>
+                        </div>
+                        <div class="stats-row">
+                            <span>Fastest Response:</span>
+                            <span id="stats-fastest">0.2s</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Hidden File Input -->
+    <input type="file" id="file-upload" style="display: none;" accept=".txt,.pdf,.doc,.docx,.xls,.xlsx,.csv,.jpg,.png">
+
+    <!-- Notification Toast (for voice feedback, upload progress, etc) -->
+    <div id="notification-toast" class="notification-toast"></div>
+
+    <!-- Scripts -->
     <script src="script.js"></script>
 </body>
-</html>
 </html>
