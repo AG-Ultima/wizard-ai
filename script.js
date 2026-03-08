@@ -1,7 +1,7 @@
 // ============================================
-// WIZARD.AI PRO - COMPLETE FRONTEND
+// WIZARD.AI PRO v8.0 - COMPLETE FRONTEND
 // Created by Arnav Gupta
-// Features: Guest Mode, Memory, Web Search, File Upload, Code Execution, Image Generation
+// Features: Voice for ALL Modes, Stats Dashboard, File Upload Progress, Image Generation
 // ============================================
 
 // ============================================
@@ -17,7 +17,6 @@ const sendBtn = document.getElementById('send-btn');
 const messageCount = document.getElementById('message-count');
 const currentModel = document.getElementById('current-model');
 const responseTimeEl = document.getElementById('response-time');
-const modelList = document.getElementById('model-list');
 const statusText = document.getElementById('status-text');
 const statusDot = document.querySelector('.status-dot');
 
@@ -36,9 +35,41 @@ const renameChatBtn = document.getElementById('rename-chat-btn');
 const deleteChatBtn = document.getElementById('delete-chat-btn');
 const resetCurrentBtn = document.getElementById('reset-current-btn');
 
-// JARVIS Special Elements
-const jarvisVoiceBtn = document.getElementById('jarvis-voice-btn');
-const jarvisEasterEgg = document.getElementById('jarvis-easter-egg');
+// v8.0 New Elements
+const voiceBtn = document.getElementById('voice-input-btn');
+const turboBtn = document.getElementById('turbo-btn');
+const turboStatus = document.getElementById('turbo-status');
+const uploadProgress = document.getElementById('upload-progress');
+const progressBarFill = document.getElementById('progress-bar-fill');
+const progressText = document.getElementById('progress-text');
+const statsBtn = document.getElementById('stats-btn');
+const statsModal = document.getElementById('stats-modal');
+const closeStatsModal = document.getElementById('close-stats-modal');
+const notificationToast = document.getElementById('notification-toast');
+
+// Stat Elements
+const statMessages = document.getElementById('stat-messages');
+const statFiles = document.getElementById('stat-files');
+const statMemories = document.getElementById('stat-memories');
+const statImages = document.getElementById('stat-images');
+const statSearches = document.getElementById('stat-searches');
+const statResponse = document.getElementById('stat-response');
+const quickToday = document.getElementById('quick-today');
+const quickTotal = document.getElementById('quick-total');
+
+// Detailed Stats Elements
+const statsCreated = document.getElementById('stats-created');
+const statsLast = document.getElementById('stats-last');
+const statsTotalMsgs = document.getElementById('stats-total-msgs');
+const statsTotalChats = document.getElementById('stats-total-chats');
+const statsFilesDetail = document.getElementById('stats-files');
+const statsImagesDetail = document.getElementById('stats-images');
+const statsCode = document.getElementById('stats-code');
+const statsSearchesDetail = document.getElementById('stats-searches');
+const statsMemoriesDetail = document.getElementById('stats-memories');
+const statsDocs = document.getElementById('stats-docs');
+const statsAvgResponse = document.getElementById('stats-avg-response');
+const statsFastest = document.getElementById('stats-fastest');
 
 // Pro Elements
 const searchBtn = document.getElementById('search-btn');
@@ -59,6 +90,7 @@ const codeInput = document.getElementById('code-input');
 const codeOutput = document.getElementById('code-output');
 const generateImageBtn = document.getElementById('generate-image');
 const imagePrompt = document.getElementById('image-prompt');
+const imageSize = document.getElementById('image-size');
 const imageResult = document.getElementById('image-result');
 const memoryList = document.getElementById('memory-list');
 
@@ -94,11 +126,6 @@ const renameInput = document.getElementById('rename-input');
 const modalSave = document.getElementById('modal-save');
 const modalCancel = document.getElementById('modal-cancel');
 
-// Pro Stats Elements
-const searchCreditsEl = document.getElementById('search-credits');
-const fileCountEl = document.getElementById('file-count');
-const memoryCountEl = document.getElementById('memory-count');
-
 // Generate unique session ID
 const sessionId = 'session_' + Math.random().toString(36).substr(2, 9);
 
@@ -112,28 +139,39 @@ let turboMode = false;
 let tooltipEl = null;
 let tooltipTimeout = null;
 let currentUser = null;
-let recognition = null;
-let isListening = false;
 let searchMode = false;
 let uploadedFiles = [];
-let guestChats = {}; // For non-logged in users
+let guestChats = {};
 let guestChatIds = ['default'];
 let activeChatId = 'default';
 let guestMessages = [];
+let isLoginMode = true;
+let chatToRename = null;
+let chats = {};
+let chatIds = [];
+let signupEmail = '';
+let signupData = {};
+
+// Voice Recognition (works for ALL modes)
+let voiceRecognition = null;
+let isVoiceListening = false;
+
+// Stats Tracking
+let userStats = {
+    messages: 0,
+    files: 0,
+    memories: 0,
+    images: 0,
+    searches: 0,
+    codeExecutions: 0,
+    responseTimes: [],
+    todayMessages: 0
+};
 
 // ============================================
-// MODE DATA - With Hidden WIZARD Mode
+// MODE DATA
 // ============================================
 const modeData = {
-    'WIZARD': {
-        emoji: '🧙',
-        name: 'The Wizard',
-        desc: 'The mystical guide who welcomes you to Wizard.AI',
-        model: 'System Message',
-        modelSpeed: 'MAGIC',
-        color: '#c4b5fd',
-        hidden: true
-    },
     'Fast': {
         emoji: '⚡',
         name: 'Fast Mode',
@@ -173,7 +211,7 @@ const modeData = {
     'Nerd': {
         emoji: '🧠',
         name: 'Nerd Mode',
-        desc: 'Detailed, factual, and academic. Shares interesting facts.',
+        desc: 'Detailed, factual, and academic.',
         model: 'Llama 3.3 70B',
         modelSpeed: 'POWERFUL',
         color: '#8b5cf6',
@@ -191,7 +229,7 @@ const modeData = {
     'ORACLE': {
         emoji: '🔮',
         name: 'ORACLE Mode',
-        desc: 'Mystical and all-knowing. Speaks with profound wisdom.',
+        desc: 'Mystical and all-knowing.',
         model: 'Llama 3.3 70B',
         modelSpeed: 'POWERFUL',
         color: '#8b5cf6',
@@ -210,64 +248,365 @@ const modeGreetings = {
     'ORACLE': '🔮 The Oracle awakens... I see infinite possibilities.'
 };
 
-// Guest reminders for logged-out users
-const guestReminders = [
-    "✨ Want to save your chats? Create a free account!",
-    "🔐 Sign up to unlock cloud sync and memories!",
-    "📎 Upload files and save them permanently with an account!",
-    "🧠 Create an account to let me remember you!",
-    "🎨 Generated images and code are saved with an account!"
-];
+// ============================================
+// VOICE INPUT FOR ALL MODES v8.0
+// ============================================
 
-// ============================================
-// BRAVE BROWSER DETECTION
-// ============================================
-function isBraveBrowser() {
-    if (window.navigator.brave && typeof window.navigator.brave.isBrave === 'function') {
-        return true;
+function initVoiceInput() {
+    // Check if browser supports voice recognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    
+    if (!SpeechRecognition) {
+        console.log('Voice recognition not supported');
+        if (voiceBtn) {
+            voiceBtn.style.display = 'none';
+        }
+        return false;
     }
-    const isChromium = window.chrome !== undefined;
-    const userAgent = window.navigator.userAgent;
-    return isChromium && userAgent.includes("Brave");
+    
+    try {
+        voiceRecognition = new SpeechRecognition();
+        voiceRecognition.continuous = false;
+        voiceRecognition.interimResults = false;
+        voiceRecognition.lang = 'en-US';
+        
+        voiceRecognition.onstart = () => {
+            console.log('Voice recognition started');
+            isVoiceListening = true;
+            voiceBtn.classList.add('listening');
+            showNotification('🎤 Listening... Speak now', 'info');
+        };
+        
+        voiceRecognition.onend = () => {
+            console.log('Voice recognition ended');
+            isVoiceListening = false;
+            voiceBtn.classList.remove('listening');
+        };
+        
+        voiceRecognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            console.log('Voice transcript:', transcript);
+            
+            // Fill the input with the transcribed text
+            chatInput.value = transcript;
+            
+            // Auto-send after voice input (optional - comment out if you don't want auto-send)
+            setTimeout(() => sendMessage(), 500);
+            
+            showNotification(`🎤 "${transcript}"`, 'success');
+        };
+        
+        voiceRecognition.onerror = (event) => {
+            console.error('Voice error:', event.error);
+            isVoiceListening = false;
+            voiceBtn.classList.remove('listening');
+            
+            let errorMsg = 'Voice recognition error';
+            if (event.error === 'not-allowed') {
+                errorMsg = 'Microphone access denied. Please allow microphone access.';
+            } else if (event.error === 'no-speech') {
+                errorMsg = 'No speech detected. Please try again.';
+            } else if (event.error === 'network') {
+                errorMsg = 'Network error. Check your connection.';
+            }
+            showNotification(errorMsg, 'error');
+        };
+        
+        return true;
+    } catch (e) {
+        console.error('Failed to initialize voice:', e);
+        return false;
+    }
+}
+
+function toggleVoiceInput() {
+    if (!voiceRecognition) {
+        if (!initVoiceInput()) {
+            showNotification('Voice recognition not supported in this browser', 'error');
+            return;
+        }
+    }
+    
+    if (isVoiceListening) {
+        try {
+            voiceRecognition.stop();
+        } catch (e) {
+            console.error('Error stopping voice:', e);
+        }
+    } else {
+        try {
+            voiceRecognition.start();
+        } catch (e) {
+            console.error('Error starting voice:', e);
+            showNotification('Could not start voice recognition. Try again.', 'error');
+        }
+    }
 }
 
 // ============================================
-// WIZARD MESSAGE FUNCTION - ALWAYS USES 🧙
+// NOTIFICATION TOAST v8.0
 // ============================================
-function addWizardMessage(text) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message wizard';
+
+function showNotification(message, type = 'info', duration = 3000) {
+    if (!notificationToast) return;
     
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'message-content';
+    notificationToast.textContent = message;
+    notificationToast.className = 'notification-toast';
+    notificationToast.classList.add('show');
     
-    const iconSpan = document.createElement('span');
-    iconSpan.className = 'message-icon';
-    iconSpan.textContent = '🧙';
+    if (type === 'success') {
+        notificationToast.classList.add('success');
+    } else if (type === 'error') {
+        notificationToast.classList.add('error');
+    }
     
-    const textSpan = document.createElement('span');
-    textSpan.className = 'message-text';
-    textSpan.textContent = text;
+    setTimeout(() => {
+        notificationToast.classList.remove('show');
+    }, duration);
+}
+
+// ============================================
+// STATS FUNCTIONS v8.0
+// ============================================
+
+function updateStats() {
+    // Update stat cards
+    if (statMessages) {
+        statMessages.textContent = userStats.messages;
+    }
+    if (statFiles) {
+        statFiles.textContent = userStats.files;
+    }
+    if (statMemories) {
+        statMemories.textContent = userStats.memories;
+    }
+    if (statImages) {
+        statImages.textContent = userStats.images;
+    }
+    if (statSearches) {
+        statSearches.textContent = userStats.searches;
+    }
+    if (statResponse && userStats.responseTimes.length > 0) {
+        const avg = userStats.responseTimes.reduce((a, b) => a + b, 0) / userStats.responseTimes.length;
+        statResponse.textContent = avg.toFixed(1) + 's';
+    }
     
-    const timeSpan = document.createElement('span');
-    timeSpan.className = 'message-time';
-    const now = new Date();
-    timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // Update quick stats
+    if (quickToday) {
+        quickToday.textContent = userStats.todayMessages + ' msgs';
+    }
+    if (quickTotal) {
+        quickTotal.textContent = userStats.messages + ' msgs';
+    }
+}
+
+function trackMessage(responseTime) {
+    userStats.messages++;
+    userStats.todayMessages++;
+    userStats.responseTimes.push(responseTime);
     
-    contentDiv.appendChild(iconSpan);
-    contentDiv.appendChild(textSpan);
-    messageDiv.appendChild(contentDiv);
-    messageDiv.appendChild(timeSpan);
+    // Keep only last 100 response times
+    if (userStats.responseTimes.length > 100) {
+        userStats.responseTimes.shift();
+    }
     
-    chatHistory.appendChild(messageDiv);
-    chatHistory.scrollTop = chatHistory.scrollHeight;
+    updateStats();
+}
+
+function trackFile() {
+    userStats.files++;
+    updateStats();
+}
+
+function trackImage() {
+    userStats.images++;
+    updateStats();
+}
+
+function trackSearch() {
+    userStats.searches++;
+    updateStats();
+}
+
+function trackCode() {
+    userStats.codeExecutions++;
+    updateStats();
+}
+
+async function loadDetailedStats() {
+    if (!currentUser) {
+        showNotification('Please login to view detailed stats', 'error');
+        return;
+    }
     
-    return messageDiv;
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/stats`, {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Update detailed stats modal
+            if (statsCreated) {
+                statsCreated.textContent = data.account_created || 'Unknown';
+            }
+            if (statsLast) {
+                statsLast.textContent = data.last_login || 'Today';
+            }
+            if (statsTotalMsgs) {
+                statsTotalMsgs.textContent = data.messages || userStats.messages;
+            }
+            if (statsTotalChats) {
+                statsTotalChats.textContent = data.chats || Object.keys(chats).length;
+            }
+            if (statsFilesDetail) {
+                statsFilesDetail.textContent = data.files || userStats.files;
+            }
+            if (statsImagesDetail) {
+                statsImagesDetail.textContent = data.images || userStats.images;
+            }
+            if (statsCode) {
+                statsCode.textContent = data.code || userStats.codeExecutions;
+            }
+            if (statsSearchesDetail) {
+                statsSearchesDetail.textContent = data.searches || userStats.searches;
+            }
+            if (statsMemoriesDetail) {
+                statsMemoriesDetail.textContent = data.memories || userStats.memories;
+            }
+            if (statsDocs) {
+                statsDocs.textContent = data.documents || 0;
+            }
+            if (statsAvgResponse && userStats.responseTimes.length > 0) {
+                const avg = userStats.responseTimes.reduce((a, b) => a + b, 0) / userStats.responseTimes.length;
+                statsAvgResponse.textContent = avg.toFixed(1) + 's';
+            }
+            if (statsFastest && userStats.responseTimes.length > 0) {
+                const fastest = Math.min(...userStats.responseTimes);
+                statsFastest.textContent = fastest.toFixed(1) + 's';
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load stats:', error);
+    }
+}
+
+// ============================================
+// FILE UPLOAD WITH PROGRESS BAR v8.0
+// ============================================
+
+async function uploadFileWithProgress(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('chat_id', activeChatId);
+    
+    // Show progress bar
+    uploadProgress.style.display = 'block';
+    progressBarFill.style.width = '0%';
+    progressText.textContent = 'Starting upload...';
+    
+    try {
+        const xhr = new XMLHttpRequest();
+        
+        xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+                const percentComplete = (e.loaded / e.total) * 100;
+                progressBarFill.style.width = percentComplete + '%';
+                progressText.textContent = `Uploading: ${Math.round(percentComplete)}%`;
+            }
+        });
+        
+        const uploadPromise = new Promise((resolve, reject) => {
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    resolve(JSON.parse(xhr.responseText));
+                } else {
+                    reject(new Error('Upload failed'));
+                }
+            };
+            xhr.onerror = () => reject(new Error('Upload failed'));
+        });
+        
+        xhr.open('POST', `${API_BASE_URL}/api/upload`);
+        xhr.withCredentials = true;
+        xhr.send(formData);
+        
+        const data = await uploadPromise;
+        
+        // Hide progress bar
+        setTimeout(() => {
+            uploadProgress.style.display = 'none';
+        }, 1000);
+        
+        if (data.success) {
+            uploadedFiles.push(data);
+            trackFile();
+            showNotification(`✅ ${file.name} uploaded successfully!`, 'success');
+            
+            if (data.duplicate) {
+                addWizardMessage(`📎 File already exists: ${data.filename}\n${data.preview}`);
+            } else {
+                addWizardMessage(`📎 File uploaded: ${data.filename}\n${data.preview}`);
+            }
+        } else {
+            showNotification(`❌ Upload failed: ${data.error || 'Unknown error'}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Upload error:', error);
+        uploadProgress.style.display = 'none';
+        showNotification('❌ Upload failed. Please try again.', 'error');
+    }
+}
+
+// ============================================
+// IMAGE GENERATION WITH SIZE OPTIONS v8.0
+// ============================================
+
+async function generateImage() {
+    const prompt = imagePrompt.value.trim();
+    if (!prompt) {
+        showNotification('Please enter a prompt', 'error');
+        return;
+    }
+    
+    const size = imageSize ? imageSize.value : '512x512';
+    
+    imageResult.innerHTML = '<div class="loading-spinner">🎨 Generating image...</div>';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/generate-image`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                prompt,
+                size: size 
+            }),
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (data.url) {
+            imageResult.innerHTML = `<img src="${data.url}" alt="${escapeHtml(prompt)}" style="max-width: 100%; border-radius: 12px;">`;
+            trackImage();
+            showNotification('✅ Image generated!', 'success');
+        } else {
+            imageResult.innerHTML = '❌ Image generation failed.';
+            showNotification('❌ Image generation failed', 'error');
+        }
+    } catch (error) {
+        console.error('Image generation error:', error);
+        imageResult.innerHTML = '❌ Image generation failed.';
+        showNotification('❌ Image generation error', 'error');
+    }
 }
 
 // ============================================
 // TOOLTIP FUNCTIONS
 // ============================================
+
 function createTooltip() {
     tooltipEl = document.createElement('div');
     tooltipEl.id = 'mode-tooltip';
@@ -351,512 +690,101 @@ function hideTooltip() {
 }
 
 // ============================================
-// JARVIS SPECIAL FUNCTIONS
-// ============================================
-function initializeVoiceRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    
-    if (!SpeechRecognition) {
-        console.log('Voice recognition not supported');
-        if (jarvisVoiceBtn) {
-            jarvisVoiceBtn.style.display = 'none';
-        }
-        return false;
-    }
-    
-    try {
-        recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = 'en-US';
-        recognition.maxAlternatives = 1;
-        
-        recognition.onstart = () => {
-            console.log('Voice recognition started');
-            isListening = true;
-            if (jarvisVoiceBtn) {
-                jarvisVoiceBtn.classList.add('listening');
-                jarvisVoiceBtn.title = 'Listening... click to stop';
-            }
-            addWizardMessage('🎤 Listening... (speak now)');
-        };
-        
-        recognition.onend = () => {
-            console.log('Voice recognition ended');
-            isListening = false;
-            if (jarvisVoiceBtn) {
-                jarvisVoiceBtn.classList.remove('listening');
-                jarvisVoiceBtn.title = 'Voice command';
-            }
-        };
-        
-        recognition.onresult = (event) => {
-            console.log('Voice result received:', event);
-            
-            if (event.results.length > 0) {
-                const transcript = event.results[0][0].transcript;
-                console.log('Transcript:', transcript);
-                
-                addWizardMessage(`🎤 I heard: "${transcript}"`);
-                chatInput.value = transcript;
-                setTimeout(() => sendMessage(), 500);
-            } else {
-                addWizardMessage('🎤 No speech detected. Please try again.');
-            }
-        };
-        
-        recognition.onerror = (event) => {
-            console.error('Voice recognition error:', event.error);
-            
-            let errorMsg = '';
-            switch(event.error) {
-                case 'no-speech':
-                    errorMsg = 'No speech detected. Please try again.';
-                    break;
-                case 'audio-capture':
-                    errorMsg = 'No microphone found. Please check your microphone.';
-                    break;
-                case 'not-allowed':
-                    errorMsg = 'Microphone access denied. Please allow microphone access.';
-                    break;
-                case 'network':
-                    errorMsg = 'Network error. Voice recognition requires internet connection.';
-                    break;
-                default:
-                    errorMsg = `Voice recognition error: ${event.error}`;
-            }
-            
-            addWizardMessage(`🎤 ${errorMsg}`);
-            
-            isListening = false;
-            if (jarvisVoiceBtn) {
-                jarvisVoiceBtn.classList.remove('listening');
-            }
-        };
-        
-        console.log('Voice recognition initialized successfully');
-        return true;
-        
-    } catch (e) {
-        console.error('Failed to initialize voice recognition:', e);
-        return false;
-    }
-}
-
-function toggleVoiceRecognition() {
-    if (!recognition) {
-        if (!initializeVoiceRecognition()) {
-            return;
-        }
-    }
-    
-    if (isListening) {
-        try {
-            recognition.stop();
-        } catch (e) {
-            console.error('Error stopping recognition:', e);
-            isListening = false;
-            if (jarvisVoiceBtn) {
-                jarvisVoiceBtn.classList.remove('listening');
-            }
-        }
-    } else {
-        try {
-            recognition.start();
-        } catch (e) {
-            console.error('Error starting recognition:', e);
-            
-            if (e.name === 'InvalidStateError') {
-                try {
-                    recognition.abort();
-                    setTimeout(() => {
-                        try {
-                            recognition.start();
-                        } catch (err) {
-                            addWizardMessage('🎤 Could not start voice recognition. Please refresh the page.');
-                        }
-                    }, 100);
-                } catch (err) {
-                    addWizardMessage('🎤 Voice recognition error. Please refresh the page.');
-                }
-            } else {
-                addWizardMessage('🎤 Could not start voice recognition. Please try again.');
-            }
-        }
-    }
-}
-
-function performSystemDiagnostic() {
-    const now = new Date();
-    const uptime = Math.floor(Math.random() * 24) + 1;
-    const activeUsers = Math.floor(Math.random() * 15) + 5;
-    const cpuLoad = Math.floor(Math.random() * 40) + 20;
-    const memoryUsage = Math.floor(Math.random() * 30) + 40;
-    
-    return {
-        timestamp: now.toLocaleString(),
-        system: 'Wizard.AI Pro v6.0',
-        uptime: `${uptime} hours`,
-        activeUsers: activeUsers,
-        cpuLoad: `${cpuLoad}%`,
-        memoryUsage: `${memoryUsage}%`,
-        responseTime: responseTimeEl ? responseTimeEl.textContent : '0.4s',
-        currentMode: currentMode,
-        totalChats: currentUser ? Object.keys(chats).length : guestChatIds.length,
-        totalMessages: messages.length,
-        features: ['web_search', 'file_upload', 'code_execution', 'image_generation', 'memory']
-    };
-}
-
-function activateSuitUpMode() {
-    document.body.classList.add('jarvis-mode-active');
-    
-    if (jarvisEasterEgg) {
-        jarvisEasterEgg.style.display = 'flex';
-    }
-    
-    if (jarvisVoiceBtn && currentMode === 'JARVIS') {
-        jarvisVoiceBtn.style.display = 'flex';
-    }
-    
-    const suitResponses = [
-        "🔷 SUIT UP mode activated. All systems at your command.",
-        "🔷 Nanotech engaged. Holographic interface online.",
-        "🔷 Stark Industries systems initialized. Ready when you are.",
-        "🔷 JARVIS at your service. Enhanced mode activated."
-    ];
-    
-    return suitResponses[Math.floor(Math.random() * suitResponses.length)];
-}
-
-function deactivateSuitUpMode() {
-    document.body.classList.remove('jarvis-mode-active');
-    
-    if (jarvisEasterEgg) {
-        jarvisEasterEgg.style.display = 'none';
-    }
-    
-    if (jarvisVoiceBtn) {
-        jarvisVoiceBtn.style.display = 'none';
-    }
-}
-
-function handleJarvisCommand(text) {
-    const lowerText = text.toLowerCase().trim();
-    
-    if (lowerText.includes('diagnostic') || lowerText.includes('system status') || lowerText.includes('system report')) {
-        const diag = performSystemDiagnostic();
-        return `🔷 **SYSTEM DIAGNOSTIC**\n\n` +
-               `• Time: ${diag.timestamp}\n` +
-               `• System: ${diag.system}\n` +
-               `• Uptime: ${diag.uptime}\n` +
-               `• Active Users: ${diag.activeUsers}\n` +
-               `• CPU Load: ${diag.cpuLoad}\n` +
-               `• Memory: ${diag.memoryUsage}\n` +
-               `• Response Time: ${diag.responseTime}\n` +
-               `• Current Mode: ${diag.currentMode}\n` +
-               `• Chats: ${diag.totalChats}\n` +
-               `• Messages: ${diag.totalMessages}\n\n` +
-               `All systems operational.`;
-    }
-    
-    if (lowerText.includes('suit up') || lowerText.includes('jarvis mode') || lowerText === 'suit') {
-        if (!document.body.classList.contains('jarvis-mode-active')) {
-            activateSuitUpMode();
-            return `*holographic displays flicker to life*\n\n🔷 **STARK INDUSTRIES SUIT-UP SEQUENCE INITIATED**\n\nWelcome to SUIT UP mode.`;
-        } else {
-            return "SUIT UP mode is already active.";
-        }
-    }
-    
-    if (lowerText.includes('voice') || lowerText.includes('mic') || lowerText.includes('speak')) {
-        if (jarvisVoiceBtn && jarvisVoiceBtn.style.display !== 'none') {
-            return `Voice commands are available. Click the 🎤 button and speak.`;
-        } else {
-            return `Voice commands are available in JARVIS mode only.`;
-        }
-    }
-    
-    if (lowerText.includes('status') || lowerText.includes('how are you')) {
-        const diag = performSystemDiagnostic();
-        return `Operating at ${diag.cpuLoad} capacity with ${diag.activeUsers} active users. Response time: ${diag.responseTime}.`;
-    }
-    
-    return null;
-}
-
-// ============================================
-// PRO FEATURES INITIALIZATION
-// ============================================
-function initProFeatures() {
-    if (searchBtn) {
-        searchBtn.addEventListener('click', toggleSearchMode);
-    }
-    
-    if (uploadBtn) {
-        uploadBtn.addEventListener('click', () => {
-            if (!currentUser) {
-                addWizardMessage('📎 Please log in or sign up to upload files! Your uploads will be saved to your account.');
-                showAuthModal(false);
-                return;
-            }
-            fileUpload.click();
-        });
-    }
-    
-    if (fileUpload) {
-        fileUpload.addEventListener('change', handleFileUpload);
-    }
-    
-    if (codeBtn) {
-        codeBtn.addEventListener('click', () => {
-            if (!currentUser) {
-                addWizardMessage('💻 Please log in or sign up to use the code interpreter! Your code history will be saved.');
-                showAuthModal(false);
-                return;
-            }
-            codeModal.style.display = 'flex';
-            codeOutput.innerHTML = '';
-        });
-    }
-    
-    if (imageBtn) {
-        imageBtn.addEventListener('click', () => {
-            if (!currentUser) {
-                addWizardMessage('🎨 Please log in or sign up to generate images! Your creations will be saved to your account.');
-                showAuthModal(false);
-                return;
-            }
-            imageModal.style.display = 'flex';
-            imageResult.innerHTML = '';
-            imagePrompt.value = '';
-        });
-    }
-    
-    if (memoryBtn) {
-        memoryBtn.addEventListener('click', () => {
-            if (!currentUser) {
-                addWizardMessage('🧠 Please log in or sign up to view your memories! Your memories are saved to your account.');
-                showAuthModal(false);
-                return;
-            }
-            loadMemories();
-        });
-    }
-    
-    if (closeCodeModal) {
-        closeCodeModal.addEventListener('click', () => codeModal.style.display = 'none');
-    }
-    
-    if (closeImageModal) {
-        closeImageModal.addEventListener('click', () => imageModal.style.display = 'none');
-    }
-    
-    if (closeMemoryModal) {
-        closeMemoryModal.addEventListener('click', () => memoryModal.style.display = 'none');
-    }
-    
-    if (runCodeBtn) {
-        runCodeBtn.addEventListener('click', executeCode);
-    }
-    
-    if (clearCodeBtn) {
-        clearCodeBtn.addEventListener('click', () => {
-            codeInput.value = '';
-            codeOutput.innerHTML = '';
-        });
-    }
-    
-    if (generateImageBtn) {
-        generateImageBtn.addEventListener('click', generateImage);
-    }
-    
-    window.addEventListener('click', (e) => {
-        if (e.target === codeModal) codeModal.style.display = 'none';
-        if (e.target === imageModal) imageModal.style.display = 'none';
-        if (e.target === memoryModal) memoryModal.style.display = 'none';
-    });
-}
-
-// ============================================
-// PRO FEATURES FUNCTIONS
-// ============================================
-function toggleSearchMode() {
-    searchMode = !searchMode;
-    if (searchMode) {
-        searchBtn.classList.add('active');
-        if (!currentUser) {
-            addWizardMessage('🌐 Web search activated! (Free searches: 1,000/month)');
-        } else {
-            addWizardMessage('🌐 Web search mode activated. I\'ll search the internet for answers.');
-        }
-    } else {
-        searchBtn.classList.remove('active');
-        addWizardMessage('🌐 Web search mode deactivated.');
-    }
-}
-
-async function handleFileUpload(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('chat_id', activeChatId);
-    
-    addWizardMessage(`📎 Uploading ${file.name}...`);
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/upload`, {
-            method: 'POST',
-            body: formData,
-            credentials: 'include'
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            uploadedFiles.push(data);
-            if (fileCountEl) {
-                fileCountEl.textContent = uploadedFiles.length;
-            }
-            addWizardMessage(`📎 File uploaded: ${data.filename}\nPreview: ${data.preview}`);
-        } else {
-            addWizardMessage(`📎 Upload failed: ${data.error || 'Unknown error'}`);
-        }
-    } catch (error) {
-        console.error('Upload error:', error);
-        addWizardMessage('📎 Upload failed. Please try again.');
-    }
-    
-    fileUpload.value = '';
-}
-
-async function executeCode() {
-    const code = codeInput.value.trim();
-    if (!code) return;
-    
-    codeOutput.innerHTML = 'Running...';
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/execute`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code }),
-            credentials: 'include'
-        });
-        
-        const data = await response.json();
-        
-        let outputHtml = '';
-        if (data.error) {
-            outputHtml = `<span style="color: #ff6b6b;">❌ Error: ${escapeHtml(data.error)}</span>`;
-        } else {
-            if (data.stdout) {
-                outputHtml += `<span style="color: #00ff00;">${escapeHtml(data.stdout)}</span>`;
-            }
-            if (data.stderr) {
-                outputHtml += `<span style="color: #ff6b6b;">${escapeHtml(data.stderr)}</span>`;
-            }
-            if (data.code !== undefined) {
-                outputHtml += `<div style="color: #888; margin-top: 10px;">Exit code: ${data.code}</div>`;
-            }
-        }
-        
-        codeOutput.innerHTML = outputHtml || 'No output';
-        
-    } catch (error) {
-        console.error('Code execution error:', error);
-        codeOutput.innerHTML = '❌ Error executing code.';
-    }
-}
-
-async function generateImage() {
-    const prompt = imagePrompt.value.trim();
-    if (!prompt) return;
-    
-    imageResult.innerHTML = 'Generating image...';
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/generate-image`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt }),
-            credentials: 'include'
-        });
-        
-        const data = await response.json();
-        
-        if (data.url) {
-            imageResult.innerHTML = `<img src="${data.url}" alt="${escapeHtml(prompt)}">`;
-        } else {
-            imageResult.innerHTML = '❌ Image generation failed.';
-        }
-    } catch (error) {
-        console.error('Image generation error:', error);
-        imageResult.innerHTML = '❌ Image generation failed.';
-    }
-}
-
-async function loadMemories() {
-    if (!memoryModal) return;
-    
-    memoryModal.style.display = 'flex';
-    if (memoryList) {
-        memoryList.innerHTML = 'Loading memories...';
-    }
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/memory`, {
-            credentials: 'include'
-        });
-        
-        const data = await response.json();
-        
-        if (memoryList) {
-            if (data.memories && data.memories.length > 0) {
-                let html = '';
-                data.memories.forEach(mem => {
-                    html += `
-                        <div class="memory-item">
-                            <div class="memory-key">${escapeHtml(mem.key)}</div>
-                            <div class="memory-value">${escapeHtml(mem.value)}</div>
-                            <span class="memory-category">${escapeHtml(mem.category)}</span>
-                            <span class="memory-confidence">${Math.round(mem.confidence * 100)}%</span>
-                        </div>
-                    `;
-                });
-                memoryList.innerHTML = html;
-                if (memoryCountEl) {
-                    memoryCountEl.textContent = data.memories.length;
-                }
-            } else {
-                memoryList.innerHTML = 'No memories yet. Chat with me and I\'ll remember things!';
-                if (memoryCountEl) {
-                    memoryCountEl.textContent = '0';
-                }
-            }
-        }
-    } catch (error) {
-        console.error('Memory load error:', error);
-        if (memoryList) {
-            memoryList.innerHTML = 'Failed to load memories.';
-        }
-    }
-}
-
-function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
-
-// ============================================
 // CHAT FUNCTIONS
 // ============================================
+
+function addWizardMessage(text) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message wizard';
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'message-icon';
+    iconSpan.textContent = '🧙';
+    
+    const textSpan = document.createElement('span');
+    textSpan.className = 'message-text';
+    textSpan.textContent = text;
+    
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'message-time';
+    const now = new Date();
+    timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    contentDiv.appendChild(iconSpan);
+    contentDiv.appendChild(textSpan);
+    messageDiv.appendChild(contentDiv);
+    messageDiv.appendChild(timeSpan);
+    
+    chatHistory.appendChild(messageDiv);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+    
+    return messageDiv;
+}
+
+function renderUserMessage(text) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message user';
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'message-icon';
+    iconSpan.textContent = '👤';
+    
+    const textSpan = document.createElement('span');
+    textSpan.className = 'message-text';
+    textSpan.textContent = text;
+    
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'message-time';
+    const now = new Date();
+    timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    contentDiv.appendChild(iconSpan);
+    contentDiv.appendChild(textSpan);
+    messageDiv.appendChild(contentDiv);
+    messageDiv.appendChild(timeSpan);
+    
+    chatHistory.appendChild(messageDiv);
+}
+
+function renderWizardMessage(text, mode = null) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message wizard';
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'message-icon';
+    
+    if (mode && modeData[mode]) {
+        iconSpan.textContent = modeData[mode].emoji;
+    } else {
+        iconSpan.textContent = '🧙';
+    }
+    
+    const textSpan = document.createElement('span');
+    textSpan.className = 'message-text';
+    textSpan.textContent = text;
+    
+    const timeSpan = document.createElement('span');
+    timeSpan.className = 'message-time';
+    const now = new Date();
+    timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    contentDiv.appendChild(iconSpan);
+    contentDiv.appendChild(textSpan);
+    messageDiv.appendChild(contentDiv);
+    messageDiv.appendChild(timeSpan);
+    
+    chatHistory.appendChild(messageDiv);
+}
+
 function renderChatsList() {
     if (!chatsList) return;
     
@@ -981,67 +909,6 @@ function switchChat(chatId) {
     }
 }
 
-function renderUserMessage(text) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message user';
-    
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'message-content';
-    
-    const iconSpan = document.createElement('span');
-    iconSpan.className = 'message-icon';
-    iconSpan.textContent = '👤';
-    
-    const textSpan = document.createElement('span');
-    textSpan.className = 'message-text';
-    textSpan.textContent = text;
-    
-    const timeSpan = document.createElement('span');
-    timeSpan.className = 'message-time';
-    const now = new Date();
-    timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    contentDiv.appendChild(iconSpan);
-    contentDiv.appendChild(textSpan);
-    messageDiv.appendChild(contentDiv);
-    messageDiv.appendChild(timeSpan);
-    
-    chatHistory.appendChild(messageDiv);
-}
-
-function renderWizardMessage(text, mode = null) {
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message wizard';
-    
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'message-content';
-    
-    const iconSpan = document.createElement('span');
-    iconSpan.className = 'message-icon';
-    
-    if (mode && modeData[mode]) {
-        iconSpan.textContent = modeData[mode].emoji;
-    } else {
-        iconSpan.textContent = '🧙';
-    }
-    
-    const textSpan = document.createElement('span');
-    textSpan.className = 'message-text';
-    textSpan.textContent = text;
-    
-    const timeSpan = document.createElement('span');
-    timeSpan.className = 'message-time';
-    const now = new Date();
-    timeSpan.textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    contentDiv.appendChild(iconSpan);
-    contentDiv.appendChild(textSpan);
-    messageDiv.appendChild(contentDiv);
-    messageDiv.appendChild(timeSpan);
-    
-    chatHistory.appendChild(messageDiv);
-}
-
 function createNewChat() {
     const chatNumber = (currentUser ? chatIds.length : guestChatIds.length) + 1;
     const chatId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
@@ -1073,7 +940,7 @@ function deleteChat(chatId) {
     const ids = currentUser ? chatIds : guestChatIds;
     
     if (ids.length <= 1) {
-        alert('Cannot delete the last chat');
+        showNotification('Cannot delete the last chat', 'error');
         return;
     }
     
@@ -1098,6 +965,7 @@ function deleteChat(chatId) {
     }
     
     renderChatsList();
+    showNotification('Chat deleted', 'success');
 }
 
 function renameChat(chatId, newName) {
@@ -1114,6 +982,7 @@ function renameChat(chatId, newName) {
     }
     
     renderChatsList();
+    showNotification('Chat renamed', 'success');
 }
 
 function openRenameModal(chatId) {
@@ -1141,6 +1010,7 @@ function resetCurrentChat() {
     
     updateMessageCount();
     addWizardMessage(`🧹 Chat cleared! Ready for new messages.`);
+    showNotification('Chat cleared', 'success');
 }
 
 function updateMessageCount() {
@@ -1152,6 +1022,7 @@ function updateMessageCount() {
 // ============================================
 // MODE FUNCTIONS
 // ============================================
+
 function updateModeDisplay() {
     const mode = modeData[currentMode] || modeData['JARVIS'];
     if (selectedDisplay) {
@@ -1173,13 +1044,17 @@ function updateModeDisplay() {
 function updateModelInfo() {
     const mode = modeData[currentMode] || { emoji: '✨', model: 'Loading...' };
     if (currentModel) {
-        currentModel.innerHTML = `${mode.emoji} ${mode.model}`;
+        currentModel.innerHTML = `
+            <span class="model-icon">${mode.emoji}</span>
+            <span class="model-name">${mode.model}</span>
+        `;
     }
 }
 
 // ============================================
 // DROPDOWN SETUP
 // ============================================
+
 function setupDropdown() {
     if (!dropdown || !dropdownContent) return;
     
@@ -1187,7 +1062,6 @@ function setupDropdown() {
     
     Object.keys(modeData).forEach(modeKey => {
         const mode = modeData[modeKey];
-        if (mode.hidden) return;
         
         const item = document.createElement('div');
         item.className = `dropdown-item ${modeKey === currentMode ? 'selected' : ''}`;
@@ -1220,14 +1094,10 @@ function setupDropdown() {
                 } else {
                     addWizardMessage(`🔄 Switched to JARVIS mode.`);
                 }
-                if (jarvisVoiceBtn) jarvisVoiceBtn.style.display = 'flex';
-                if (jarvisEasterEgg) jarvisEasterEgg.style.display = 'flex';
             } else {
                 if (document.body.classList.contains('jarvis-mode-active')) {
                     deactivateSuitUpMode();
                 }
-                if (jarvisVoiceBtn) jarvisVoiceBtn.style.display = 'none';
-                if (jarvisEasterEgg) jarvisEasterEgg.style.display = 'none';
                 addWizardMessage(`🔄 Switched to ${modeKey} mode! ${modeGreetings[modeKey] || ''}`);
             }
         });
@@ -1250,46 +1120,40 @@ function setupDropdown() {
 }
 
 // ============================================
-// TURBO MODE TOGGLE
+// JARVIS SPECIAL FUNCTIONS
 // ============================================
-function addTurboToggle() {
-    const container = document.getElementById('turbo-toggle-container');
-    if (!container) return;
+
+function activateSuitUpMode() {
+    document.body.classList.add('jarvis-mode-active');
+    return "🔷 SUIT UP mode activated. All systems at your command.";
+}
+
+function deactivateSuitUpMode() {
+    document.body.classList.remove('jarvis-mode-active');
+}
+
+// ============================================
+// TURBO MODE v8.0
+// ============================================
+
+function toggleTurboMode() {
+    turboMode = !turboMode;
     
-    const turboDiv = document.createElement('div');
-    turboDiv.className = 'mode-selector';
-    turboDiv.innerHTML = `
-        <h3 style="color: #c4b5fd; font-size: 14px; margin-bottom: 10px;">
-            <span>⚡</span> TURBO MODE
-        </h3>
-        <button id="turbo-btn" style="width: 100%; padding: 10px; background: #4b5563; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
-            <span>🔴</span> TURBO OFF
-        </button>
-    `;
-    
-    container.appendChild(turboDiv);
-    
-    const turboBtn = document.getElementById('turbo-btn');
-    if (turboBtn) {
-        turboBtn.addEventListener('click', () => {
-            turboMode = !turboMode;
-            
-            if (turboMode) {
-                turboBtn.style.background = '#ef4444';
-                turboBtn.innerHTML = '<span>⚡</span> TURBO ON';
-                addWizardMessage('⚡ Turbo mode activated!');
-            } else {
-                turboBtn.style.background = '#4b5563';
-                turboBtn.innerHTML = '<span>🔴</span> TURBO OFF';
-                addWizardMessage('✨ Turbo mode deactivated.');
-            }
-        });
+    if (turboMode) {
+        turboBtn.classList.add('active');
+        turboStatus.textContent = 'ON';
+        showNotification('⚡ Turbo mode activated! Faster responses!', 'success');
+    } else {
+        turboBtn.classList.remove('active');
+        turboStatus.textContent = 'OFF';
+        showNotification('Turbo mode deactivated', 'info');
     }
 }
 
 // ============================================
-// SEND MESSAGE - GUEST MODE SUPPORT
+// SEND MESSAGE
 // ============================================
+
 async function sendMessage() {
     if (isThinking) return;
     
@@ -1327,29 +1191,6 @@ async function sendMessage() {
     try {
         const startTime = Date.now();
         
-        // Check for JARVIS special commands first
-        if (currentMode === 'JARVIS') {
-            const jarvisResponse = handleJarvisCommand(text);
-            if (jarvisResponse) {
-                thinkingDiv.remove();
-                renderWizardMessage(jarvisResponse, currentMode);
-                messages.push({ sender: 'wizard', text: jarvisResponse, mode: currentMode });
-                updateMessageCount();
-                
-                if (chatsObj[activeChatId]) {
-                    chatsObj[activeChatId].messages = [...messages];
-                }
-                
-                isThinking = false;
-                chatInput.disabled = false;
-                sendBtn.disabled = false;
-                sendBtn.classList.remove('loading');
-                chatInput.focus();
-                return;
-            }
-        }
-        
-        // Prepare request
         const requestBody = {
             prompt: text,
             mode: currentMode,
@@ -1358,12 +1199,6 @@ async function sendMessage() {
             chat_id: activeChatId
         };
         
-        // Only add history if we have messages (for context)
-        if (messages.length > 1) {
-            requestBody.history = messages.slice(-10);
-        }
-        
-        // For guest users, add a flag that they're not logged in
         if (!currentUser) {
             requestBody.guest = true;
         }
@@ -1382,10 +1217,14 @@ async function sendMessage() {
             responseTimeEl.textContent = `${responseTime}s`;
         }
         
+        // Track stats
+        trackMessage(parseFloat(responseTime));
+        
         thinkingDiv.remove();
         
         // Show search results if any
         if (data.search_results && data.search_results.length > 0) {
+            trackSearch();
             const resultsDiv = document.createElement('div');
             resultsDiv.className = 'message wizard';
             let resultsHtml = '';
@@ -1413,22 +1252,17 @@ async function sendMessage() {
             chatsObj[activeChatId].messages = [...messages];
         }
         
-        // Add guest reminder occasionally (20% chance)
-        if (!currentUser && Math.random() < 0.2) {
-            const reminder = guestReminders[Math.floor(Math.random() * guestReminders.length)];
-            setTimeout(() => addWizardMessage(reminder), 1000);
+        // Save chats if logged in
+        if (currentUser) {
+            saveChatsToServer();
         }
         
     } catch (error) {
         console.error('Chat error:', error);
         thinkingDiv.remove();
         
-        // For guest users, show a friendly message
         if (!currentUser) {
             addWizardMessage('✨ Having trouble? Create a free account for a better experience!');
-            setTimeout(() => {
-                addWizardMessage('🔐 Click "Sign Up" in the sidebar to get started!');
-            }, 1500);
         } else {
             addWizardMessage('⚠️ Connection error! Please try again.');
         }
@@ -1442,8 +1276,44 @@ async function sendMessage() {
 }
 
 // ============================================
+// SAVE CHATS TO SERVER
+// ============================================
+
+async function saveChatsToServer() {
+    if (!currentUser) return;
+    
+    const chatsArray = [];
+    chatIds.forEach(id => {
+        if (chats[id]) {
+            chatsArray.push({
+                chat_id: id,
+                name: chats[id].name,
+                emoji: chats[id].emoji,
+                mode: chats[id].mode,
+                messages: chats[id].messages || []
+            });
+        }
+    });
+    
+    try {
+        await fetch(`${API_BASE_URL}/api/save-chats`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                chats: chatsArray,
+                chat_order: chatIds
+            }),
+            credentials: 'include'
+        });
+    } catch (error) {
+        console.error('Failed to save chats:', error);
+    }
+}
+
+// ============================================
 // AUTH FUNCTIONS
 // ============================================
+
 async function checkAuth() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/check-auth`, {
@@ -1496,10 +1366,17 @@ async function checkAuth() {
                                 }
                             });
                             updateMessageCount();
+                            
+                            // Update message stats
+                            userStats.messages = messages.length;
+                            updateStats();
                         } else {
                             addWizardMessage(`✨ Welcome back, ${currentUser.first_name}!`);
                         }
                     }
+                    
+                    // Load detailed stats
+                    loadDetailedStats();
                 }
             } catch (error) {
                 console.error('Failed to load chats:', error);
@@ -1532,14 +1409,10 @@ function updateUIForAuth() {
     } else {
         userInfo.style.display = 'none';
         authButtons.style.display = 'flex';
-        
-        // Pro features prompt login but remain clickable
-        // (they'll show login prompt when clicked)
     }
 }
 
 function initializeGuestChat() {
-    // Initialize guest chats
     guestChats = {
         'default': {
             chat_id: 'default',
@@ -1558,11 +1431,10 @@ function initializeGuestChat() {
     renderChatsList();
     updateModeDisplay();
     chatHistory.innerHTML = '';
-    addWizardMessage('✨ Welcome to Wizard.AI Pro! Chat with me, or sign up to save your conversations!');
+    addWizardMessage('✨ Welcome to Wizard.AI Pro v8.0! Chat with me, or sign up to save your conversations!');
     
-    // Add second welcome message
     setTimeout(() => {
-        addWizardMessage('🔐 Click "Sign Up" in the sidebar to create a free account and unlock all features!');
+        addWizardMessage('🔐 Click "Sign Up" in the sidebar to create a free account!');
     }, 2000);
 }
 
@@ -1622,8 +1494,9 @@ async function handleSignupStep1() {
             lastNameGroup.style.display = 'none';
             authConfirmGroup.style.display = 'none';
             verificationGroup.style.display = 'block';
-            authError.textContent = `Code sent to ${email}`;
+            authError.textContent = `✅ Code sent to ${email}`;
             authError.style.color = '#10b981';
+            showNotification(`Verification code sent to ${email}`, 'success');
         } else {
             authError.textContent = data.error || 'Signup failed';
             authError.style.color = '#ef4444';
@@ -1656,10 +1529,10 @@ async function handleSignupStep2() {
             currentUser = data.user;
             authModal.classList.remove('show');
             updateUIForAuth();
+            showNotification('✅ Account verified! Welcome to Wizard.AI!', 'success');
             
             // Transfer guest chats to user account
             if (Object.keys(guestChats).length > 0) {
-                // Save guest chats to user account
                 const chatsArray = [];
                 guestChatIds.forEach(id => {
                     if (guestChats[id]) {
@@ -1720,6 +1593,7 @@ async function handleLogin() {
             currentUser = data.user;
             authModal.classList.remove('show');
             updateUIForAuth();
+            showNotification(`✅ Welcome back, ${currentUser.first_name}!`, 'success');
             
             // Transfer guest chats if any
             if (Object.keys(guestChats).length > 0) {
@@ -1774,6 +1648,7 @@ async function handleLogout() {
     initializeGuestChat();
     deactivateSuitUpMode();
     addWizardMessage('👋 You have been logged out. Your guest chat is still here!');
+    showNotification('Logged out successfully', 'success');
 }
 
 async function resendVerificationCode() {
@@ -1788,6 +1663,7 @@ async function resendVerificationCode() {
         const data = await response.json();
         authError.textContent = data.message || 'Code resent';
         authError.style.color = '#10b981';
+        showNotification('Verification code resent!', 'success');
     } catch (error) {
         authError.textContent = 'Failed to resend';
         authError.style.color = '#ef4444';
@@ -1797,50 +1673,157 @@ async function resendVerificationCode() {
 // ============================================
 // STATUS FUNCTIONS
 // ============================================
+
 async function checkSystemStatus() {
     try {
         const response = await fetch(`${API_BASE_URL}/status`);
         
         if (response.ok) {
-            updateConnectionStatus('connected');
-            
-            if (modelList) {
-                modelList.innerHTML = `
-                    <div class="model-item">
-                        <span>⚡</span> Llama 3.1 8B <span style="color:#10b981;">✅</span>
-                    </div>
-                    <div class="model-item">
-                        <span>🧠</span> Llama 3.3 70B <span style="color:#10b981;">✅</span>
-                    </div>
-                `;
-            }
+            statusText.textContent = 'Connected';
+            statusDot.classList.remove('offline');
         } else {
-            updateConnectionStatus('offline');
+            statusText.textContent = 'Offline';
+            statusDot.classList.add('offline');
         }
     } catch (error) {
         console.error('Status check failed:', error);
-        updateConnectionStatus('offline');
-    }
-}
-
-function updateConnectionStatus(status) {
-    if (!statusText || !statusDot) return;
-    
-    if (status === 'connected') {
-        statusText.textContent = 'Connected';
-        statusDot.classList.remove('offline');
-    } else if (status === 'connecting') {
-        statusText.textContent = 'Connecting...';
-        statusDot.classList.add('offline');
-    } else {
         statusText.textContent = 'Offline';
         statusDot.classList.add('offline');
     }
 }
 
 // ============================================
+// MEMORY FUNCTIONS
+// ============================================
+
+async function loadMemories() {
+    if (!memoryModal) return;
+    
+    memoryModal.style.display = 'flex';
+    if (memoryList) {
+        memoryList.innerHTML = 'Loading memories...';
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/memory`, {
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (memoryList) {
+            if (data.memories && data.memories.length > 0) {
+                let html = '';
+                data.memories.forEach(mem => {
+                    html += `
+                        <div class="memory-item">
+                            <div class="memory-key">${escapeHtml(mem.key)}</div>
+                            <div class="memory-value">${escapeHtml(mem.value)}</div>
+                            <span class="memory-category">${escapeHtml(mem.category)}</span>
+                        </div>
+                    `;
+                });
+                memoryList.innerHTML = html;
+                userStats.memories = data.memories.length;
+                updateStats();
+            } else {
+                memoryList.innerHTML = 'No memories yet. Chat with me and I\'ll remember things!';
+                userStats.memories = 0;
+                updateStats();
+            }
+        }
+    } catch (error) {
+        console.error('Memory load error:', error);
+        if (memoryList) {
+            memoryList.innerHTML = 'Failed to load memories.';
+        }
+    }
+}
+
+// ============================================
+// CODE EXECUTION
+// ============================================
+
+async function executeCode() {
+    const code = codeInput.value.trim();
+    if (!code) {
+        showNotification('Please enter code to run', 'error');
+        return;
+    }
+    
+    codeOutput.innerHTML = 'Running...';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/execute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code }),
+            credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        let outputHtml = '';
+        if (data.error) {
+            outputHtml = `<span style="color: #ff6b6b;">❌ Error: ${escapeHtml(data.error)}</span>`;
+        } else {
+            if (data.stdout) {
+                outputHtml += `<span style="color: #00ff00;">${escapeHtml(data.stdout)}</span>`;
+            }
+            if (data.stderr) {
+                outputHtml += `<span style="color: #ff6b6b;">${escapeHtml(data.stderr)}</span>`;
+            }
+            if (data.code !== undefined) {
+                outputHtml += `<div style="color: #888; margin-top: 10px;">Exit code: ${data.code}</div>`;
+            }
+        }
+        
+        codeOutput.innerHTML = outputHtml || 'No output';
+        
+        if (!data.error && data.success) {
+            trackCode();
+            showNotification('✅ Code executed successfully', 'success');
+        }
+        
+    } catch (error) {
+        console.error('Code execution error:', error);
+        codeOutput.innerHTML = '❌ Error executing code.';
+        showNotification('❌ Code execution failed', 'error');
+    }
+}
+
+// ============================================
+// SEARCH TOGGLE
+// ============================================
+
+function toggleSearchMode() {
+    searchMode = !searchMode;
+    if (searchMode) {
+        searchBtn.classList.add('active');
+        showNotification('🌐 Web search activated', 'success');
+    } else {
+        searchBtn.classList.remove('active');
+        showNotification('Web search deactivated', 'info');
+    }
+}
+
+// ============================================
+// UTILITY FUNCTIONS
+// ============================================
+
+function escapeHtml(unsafe) {
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+// ============================================
 // MODAL SETUP
 // ============================================
+
 function setupModal() {
     if (!renameModal) return;
     
@@ -1871,12 +1854,141 @@ function setupModal() {
         if (e.target === authModal) {
             authModal.classList.remove('show');
         }
+        if (e.target === statsModal) {
+            statsModal.style.display = 'none';
+        }
+    });
+}
+
+// ============================================
+// PRO FEATURES INITIALIZATION
+// ============================================
+
+function initProFeatures() {
+    if (searchBtn) {
+        searchBtn.addEventListener('click', toggleSearchMode);
+    }
+    
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                showNotification('Please log in to upload files', 'error');
+                showAuthModal(false);
+                return;
+            }
+            fileUpload.click();
+        });
+    }
+    
+    if (fileUpload) {
+        fileUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                uploadFileWithProgress(file);
+            }
+            fileUpload.value = '';
+        });
+    }
+    
+    if (codeBtn) {
+        codeBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                showNotification('Please log in to use code interpreter', 'error');
+                showAuthModal(false);
+                return;
+            }
+            codeModal.style.display = 'flex';
+            codeOutput.innerHTML = '';
+        });
+    }
+    
+    if (imageBtn) {
+        imageBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                showNotification('Please log in to generate images', 'error');
+                showAuthModal(false);
+                return;
+            }
+            imageModal.style.display = 'flex';
+            imageResult.innerHTML = '';
+            imagePrompt.value = '';
+        });
+    }
+    
+    if (memoryBtn) {
+        memoryBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                showNotification('Please log in to view memories', 'error');
+                showAuthModal(false);
+                return;
+            }
+            loadMemories();
+        });
+    }
+    
+    if (statsBtn) {
+        statsBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                showNotification('Please log in to view stats', 'error');
+                showAuthModal(false);
+                return;
+            }
+            statsModal.style.display = 'flex';
+            loadDetailedStats();
+        });
+    }
+    
+    if (closeCodeModal) {
+        closeCodeModal.addEventListener('click', () => codeModal.style.display = 'none');
+    }
+    
+    if (closeImageModal) {
+        closeImageModal.addEventListener('click', () => imageModal.style.display = 'none');
+    }
+    
+    if (closeMemoryModal) {
+        closeMemoryModal.addEventListener('click', () => memoryModal.style.display = 'none');
+    }
+    
+    if (closeStatsModal) {
+        closeStatsModal.addEventListener('click', () => statsModal.style.display = 'none');
+    }
+    
+    if (runCodeBtn) {
+        runCodeBtn.addEventListener('click', executeCode);
+    }
+    
+    if (clearCodeBtn) {
+        clearCodeBtn.addEventListener('click', () => {
+            codeInput.value = '';
+            codeOutput.innerHTML = '';
+        });
+    }
+    
+    if (generateImageBtn) {
+        generateImageBtn.addEventListener('click', generateImage);
+    }
+    
+    if (turboBtn) {
+        turboBtn.addEventListener('click', toggleTurboMode);
+    }
+    
+    if (voiceBtn) {
+        voiceBtn.addEventListener('click', toggleVoiceInput);
+    }
+    
+    window.addEventListener('click', (e) => {
+        if (e.target === codeModal) codeModal.style.display = 'none';
+        if (e.target === imageModal) imageModal.style.display = 'none';
+        if (e.target === memoryModal) memoryModal.style.display = 'none';
+        if (e.target === statsModal) statsModal.style.display = 'none';
     });
 }
 
 // ============================================
 // EVENT LISTENERS
 // ============================================
+
 function setupEventListeners() {
     sendBtn.addEventListener('click', sendMessage);
     
@@ -1901,10 +2013,6 @@ function setupEventListeners() {
     
     if (resetCurrentBtn) {
         resetCurrentBtn.addEventListener('click', resetCurrentChat);
-    }
-    
-    if (jarvisVoiceBtn) {
-        jarvisVoiceBtn.addEventListener('click', toggleVoiceRecognition);
     }
     
     if (showLoginBtn) {
@@ -1945,34 +2053,49 @@ function setupEventListeners() {
 }
 
 // ============================================
+// BRAVE BROWSER DETECTION
+// ============================================
+
+function isBraveBrowser() {
+    if (window.navigator.brave && typeof window.navigator.brave.isBrave === 'function') {
+        return true;
+    }
+    const isChromium = window.chrome !== undefined;
+    const userAgent = window.navigator.userAgent;
+    return isChromium && userAgent.includes("Brave");
+}
+
+// ============================================
 // INITIALIZATION
 // ============================================
+
 async function init() {
-    console.log('🚀 Initializing Wizard.AI PRO...');
+    console.log('🚀 Initializing Wizard.AI PRO v8.0...');
     console.log('🔗 Backend URL:', API_BASE_URL);
     
     createTooltip();
-    updateConnectionStatus('connecting');
+    statusText.textContent = 'Connecting...';
     
     if (isBraveBrowser()) {
         addWizardMessage('⚠️ You\'re using Brave browser. Voice features work best in Chrome, Edge, or Safari.');
-        if (jarvisVoiceBtn) {
-            jarvisVoiceBtn.style.display = 'none';
+        if (voiceBtn) {
+            voiceBtn.style.display = 'none';
         }
     } else {
-        initializeVoiceRecognition();
+        initVoiceInput();
     }
     
-    await checkAuth(); // This will handle guest mode automatically
-    
+    await checkAuth();
     await checkSystemStatus();
     setupDropdown();
     setupEventListeners();
     setupModal();
-    addTurboToggle();
     initProFeatures();
     
-    console.log('✅ Wizard.AI PRO initialized successfully');
+    // Initialize stats
+    updateStats();
+    
+    console.log('✅ Wizard.AI PRO v8.0 initialized successfully');
 }
 
 // Emergency reset
@@ -1985,9 +2108,9 @@ document.addEventListener('keydown', (e) => {
         sendBtn.classList.remove('loading');
         chatInput.focus();
         addWizardMessage('🔧 Emergency reset - you can type again!');
+        showNotification('Emergency reset activated', 'info');
     }
 });
 
 // Start the app
 document.addEventListener('DOMContentLoaded', init);
-
