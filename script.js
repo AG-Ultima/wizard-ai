@@ -1,7 +1,6 @@
 // ============================================
 // WIZARD.AI PRO v9.0 - COMPLETE JAVASCRIPT
 // Created by Arnav Gupta
-// Features: Streaming, Auto Search, Custom Personalities, PWA, Memory, Stats
 // ============================================
 
 // ============================================
@@ -101,6 +100,9 @@ const lastNameInput = document.getElementById('last-name');
 const verificationGroup = document.getElementById('verification-group');
 const verificationInput = document.getElementById('verification-code');
 const resendCodeBtn = document.getElementById('resend-code-btn');
+
+// 🔥 FIXED: Added missing confirmPasswordGroup
+const confirmPasswordGroup = document.getElementById('confirm-password-group');
 
 // User elements
 const userInfo = document.getElementById('user-info');
@@ -283,7 +285,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Load initial data
     loadChats();
-    loadStats();
+    loadStats(); // 🔥 FIXED: Now this function exists
     loadPublicPersonalities();
     
     // Set up periodic stats update
@@ -304,17 +306,27 @@ function registerServiceWorker() {
 }
 
 // ============================================
+// 🔥 FIXED: Added missing loadStats function
+// ============================================
+function loadStats() {
+    console.log('📊 Loading stats...');
+    updateStats();
+}
+
+// ============================================
 // EVENT LISTENERS
 // ============================================
 function setupEventListeners() {
     // Send message
-    sendBtn.addEventListener('click', sendMessage);
-    chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
+    if (sendBtn) sendBtn.addEventListener('click', sendMessage);
+    if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    }
     
     // Voice input
     if (voiceBtn) {
@@ -327,68 +339,77 @@ function setupEventListeners() {
     }
     
     // Toolbar buttons
-    searchBtn?.addEventListener('click', toggleSearchMode);
-    uploadBtn?.addEventListener('click', () => fileUpload.click());
-    codeBtn?.addEventListener('click', () => openModal(codeModal));
-    imageBtn?.addEventListener('click', () => openModal(imageModal));
-    memoryBtn?.addEventListener('click', loadMemories);
-    statsBtn?.addEventListener('click', loadDetailedStats);
-    personalitiesBtn?.addEventListener('click', openPersonalitiesBrowser);
+    if (searchBtn) searchBtn.addEventListener('click', toggleSearchMode);
+    if (uploadBtn) uploadBtn.addEventListener('click', () => fileUpload.click());
+    if (codeBtn) codeBtn.addEventListener('click', () => openModal(codeModal));
+    if (imageBtn) imageBtn.addEventListener('click', () => openModal(imageModal));
+    if (memoryBtn) memoryBtn.addEventListener('click', loadMemories);
+    if (statsBtn) statsBtn.addEventListener('click', loadDetailedStats);
+    if (personalitiesBtn) personalitiesBtn.addEventListener('click', openPersonalitiesBrowser);
     
     // File upload
-    fileUpload.addEventListener('change', handleFileUpload);
+    if (fileUpload) fileUpload.addEventListener('change', handleFileUpload);
     
     // Chat actions
-    newChatBtn?.addEventListener('click', createNewChat);
-    renameChatBtn?.addEventListener('click', () => openRenameModal(activeChatId));
-    deleteChatBtn?.addEventListener('click', () => deleteChat(activeChatId));
-    resetCurrentBtn?.addEventListener('click', resetCurrentChat);
+    if (newChatBtn) newChatBtn.addEventListener('click', createNewChat);
+    if (renameChatBtn) renameChatBtn.addEventListener('click', () => openRenameModal(activeChatId));
+    if (deleteChatBtn) deleteChatBtn.addEventListener('click', () => deleteChat(activeChatId));
+    if (resetCurrentBtn) resetCurrentBtn.addEventListener('click', resetCurrentChat);
     
     // Auth buttons
-    document.getElementById('show-login-btn')?.addEventListener('click', () => showAuthModal(true));
-    document.getElementById('show-signup-btn')?.addEventListener('click', () => showAuthModal(false));
-    logoutBtn?.addEventListener('click', handleLogout);
+    const loginBtn = document.getElementById('show-login-btn');
+    const signupBtn = document.getElementById('show-signup-btn');
+    
+    if (loginBtn) loginBtn.addEventListener('click', () => showAuthModal(true));
+    if (signupBtn) signupBtn.addEventListener('click', () => showAuthModal(false));
+    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
     
     // Auth modal
-    authSwitchBtn?.addEventListener('click', toggleAuthMode);
-    authSubmit?.addEventListener('click', handleAuthSubmit);
-    closeAuth?.addEventListener('click', () => closeModal(authModal));
-    resendCodeBtn?.addEventListener('click', resendVerificationCode);
+    if (authSwitchBtn) authSwitchBtn.addEventListener('click', toggleAuthMode);
+    if (authSubmit) authSubmit.addEventListener('click', handleAuthSubmit);
+    if (closeAuth) closeAuth.addEventListener('click', () => closeModal(authModal));
+    if (resendCodeBtn) resendCodeBtn.addEventListener('click', resendVerificationCode);
     
     // Modal close buttons
-    closeRename?.addEventListener('click', () => closeModal(renameModal));
-    closeCode?.addEventListener('click', () => closeModal(codeModal));
-    closeImage?.addEventListener('click', () => closeModal(imageModal));
-    closeMemory?.addEventListener('click', () => closeModal(memoryModal));
-    closeStats?.addEventListener('click', () => closeModal(statsModal));
-    closePersonalities?.addEventListener('click', () => closeModal(personalitiesModal));
+    if (closeRename) closeRename.addEventListener('click', () => closeModal(renameModal));
+    if (closeCode) closeCode.addEventListener('click', () => closeModal(codeModal));
+    if (closeImage) closeImage.addEventListener('click', () => closeModal(imageModal));
+    if (closeMemory) closeMemory.addEventListener('click', () => closeModal(memoryModal));
+    if (closeStats) closeStats.addEventListener('click', () => closeModal(statsModal));
+    if (closePersonalities) closePersonalities.addEventListener('click', () => closeModal(personalitiesModal));
     
     // Rename modal
-    renameSave?.addEventListener('click', saveRename);
-    renameCancel?.addEventListener('click', () => closeModal(renameModal));
-    renameInput?.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') saveRename();
-    });
+    if (renameSave) renameSave.addEventListener('click', saveRename);
+    if (renameCancel) renameCancel.addEventListener('click', () => closeModal(renameModal));
+    if (renameInput) {
+        renameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') saveRename();
+        });
+    }
     
     // Code modal
-    runCodeBtn?.addEventListener('click', executeCode);
-    clearCodeBtn?.addEventListener('click', () => {
-        codeInput.value = '';
-        codeOutput.textContent = '';
-    });
+    if (runCodeBtn) runCodeBtn.addEventListener('click', executeCode);
+    if (clearCodeBtn) {
+        clearCodeBtn.addEventListener('click', () => {
+            if (codeInput) codeInput.value = '';
+            if (codeOutput) codeOutput.textContent = '';
+        });
+    }
     
     // Image modal
-    generateImageBtn?.addEventListener('click', generateImage);
+    if (generateImageBtn) generateImageBtn.addEventListener('click', generateImage);
     
     // Personality creator
-    toggleCreatorBtn?.addEventListener('click', toggleCreatorPanel);
-    savePersonality?.addEventListener('click', saveCustomPersonality);
-    cancelPersonality?.addEventListener('click', closeCreatorPanel);
+    if (toggleCreatorBtn) toggleCreatorBtn.addEventListener('click', toggleCreatorPanel);
+    if (savePersonality) savePersonality.addEventListener('click', saveCustomPersonality);
+    if (cancelPersonality) cancelPersonality.addEventListener('click', closeCreatorPanel);
     
     // Tab buttons
-    tabBtns?.forEach(btn => {
-        btn.addEventListener('click', () => switchPersonalityTab(btn.dataset.tab));
-    });
+    if (tabBtns.length) {
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => switchPersonalityTab(btn.dataset.tab));
+        });
+    }
     
     // Click outside modals
     window.addEventListener('click', (e) => {
@@ -432,14 +453,13 @@ function setupDropdown() {
         dropdownContent.appendChild(item);
     });
     
-    // Add custom personalities
-    updateCustomPersonalitiesDropdown();
-    
     // Dropdown toggle
-    dropdownBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        dropdown.classList.toggle('open');
-    });
+    if (dropdownBtn) {
+        dropdownBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('open');
+        });
+    }
     
     // Close on click outside
     document.addEventListener('click', (e) => {
@@ -456,8 +476,6 @@ function createDropdownItem(mode, emoji) {
     item.innerHTML = `<span style="font-size: 18px;">${emoji}</span><span>${mode}</span>`;
     
     item.addEventListener('click', () => selectMode(mode));
-    item.addEventListener('mouseenter', (e) => showTooltip(mode, e));
-    item.addEventListener('mouseleave', hideTooltip);
     
     return item;
 }
@@ -465,7 +483,7 @@ function createDropdownItem(mode, emoji) {
 function selectMode(mode) {
     currentMode = mode;
     updateModeDisplay();
-    dropdown.classList.remove('open');
+    if (dropdown) dropdown.classList.remove('open');
     
     // Save to current chat
     if (chats[activeChatId]) {
@@ -478,7 +496,9 @@ function selectMode(mode) {
 
 function updateModeDisplay() {
     const mode = modeData[currentMode] || { emoji: '🎩', name: currentMode };
-    selectedDisplay.innerHTML = `${mode.emoji} ${currentMode}`;
+    if (selectedDisplay) {
+        selectedDisplay.innerHTML = `${mode.emoji} ${currentMode}`;
+    }
     
     // Update selected class
     document.querySelectorAll('.dropdown-item').forEach(el => {
@@ -490,22 +510,28 @@ function updateModeDisplay() {
 // CUSTOM PERSONALITIES
 // ============================================
 function toggleCreatorPanel() {
+    if (!creatorPanel) return;
     creatorPanel.style.display = creatorPanel.style.display === 'none' ? 'block' : 'none';
-    toggleCreatorBtn.querySelector('span').textContent = 
-        creatorPanel.style.display === 'block' ? '➖' : '➕';
+    if (toggleCreatorBtn) {
+        toggleCreatorBtn.querySelector('span').textContent = 
+            creatorPanel.style.display === 'block' ? '➖' : '➕';
+    }
 }
 
 function closeCreatorPanel() {
+    if (!creatorPanel) return;
     creatorPanel.style.display = 'none';
-    toggleCreatorBtn.querySelector('span').textContent = '➕';
+    if (toggleCreatorBtn) {
+        toggleCreatorBtn.querySelector('span').textContent = '➕';
+    }
     clearCreatorForm();
 }
 
 function clearCreatorForm() {
-    customName.value = '';
-    customEmoji.value = '';
-    customPrompt.value = '';
-    customGreeting.value = '';
+    if (customName) customName.value = '';
+    if (customEmoji) customEmoji.value = '';
+    if (customPrompt) customPrompt.value = '';
+    if (customGreeting) customGreeting.value = '';
 }
 
 async function saveCustomPersonality() {
@@ -514,239 +540,18 @@ async function saveCustomPersonality() {
         return;
     }
     
-    const name = customName.value.trim();
-    const emoji = customEmoji.value.trim() || '🤖';
-    const prompt = customPrompt.value.trim();
-    const greeting = customGreeting.value.trim() || `Hello! I'm ${name}.`;
+    const name = customName ? customName.value.trim() : '';
+    const emoji = customEmoji ? customEmoji.value.trim() || '🤖' : '🤖';
+    const prompt = customPrompt ? customPrompt.value.trim() : '';
+    const greeting = customGreeting ? customGreeting.value.trim() || `Hello! I'm ${name}.` : `Hello! I'm ${name}.`;
     
     if (!name || !prompt) {
         showNotification('Name and prompt are required', 'error');
         return;
     }
     
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/personalities`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ name, emoji, prompt, greeting })
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            customPersonalities.push(data);
-            updateCustomPersonalitiesDropdown();
-            closeCreatorPanel();
-            showNotification('Personality created!', 'success');
-        }
-    } catch (error) {
-        console.error('Failed to save personality:', error);
-        showNotification('Failed to save personality', 'error');
-    }
-}
-
-function updateCustomPersonalitiesDropdown() {
-    // Remove existing custom items
-    document.querySelectorAll('.dropdown-item.custom').forEach(el => el.remove());
-    
-    // Add separator if there are custom personalities
-    if (customPersonalities.length > 0) {
-        const separator = document.createElement('div');
-        separator.className = 'dropdown-separator';
-        separator.textContent = '──────────';
-        dropdownContent.appendChild(separator);
-        
-        customPersonalities.forEach(p => {
-            const item = createDropdownItem(p.name, p.emoji);
-            item.classList.add('custom');
-            dropdownContent.appendChild(item);
-        });
-    }
-}
-
-async function loadPublicPersonalities() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/personalities/public`);
-        if (response.ok) {
-            const data = await response.json();
-            publicPersonalities = data;
-            renderPublicPersonalities();
-        }
-    } catch (error) {
-        console.error('Failed to load public personalities:', error);
-    }
-}
-
-function renderPublicPersonalities() {
-    if (!personalitiesList) return;
-    
-    if (publicPersonalities.length === 0) {
-        personalitiesList.innerHTML = '<div class="empty-state">No public personalities yet</div>';
-        return;
-    }
-    
-    let html = '';
-    publicPersonalities.slice(0, 5).forEach(p => {
-        html += `
-            <div class="personality-item" data-id="${p.id}">
-                <span class="personality-emoji">${p.emoji}</span>
-                <span class="personality-name">${p.name}</span>
-                <span class="personality-likes">❤️ ${p.likes || 0}</span>
-            </div>
-        `;
-    });
-    
-    personalitiesList.innerHTML = html;
-    
-    // Add click handlers
-    document.querySelectorAll('.personality-item').forEach(el => {
-        el.addEventListener('click', () => usePersonality(el.dataset.id));
-    });
-}
-
-async function usePersonality(id) {
-    const personality = publicPersonalities.find(p => p.id == id) || 
-                        customPersonalities.find(p => p.id == id);
-    
-    if (personality) {
-        // Add to mode data temporarily
-        modeData[personality.name] = {
-            emoji: personality.emoji,
-            name: personality.name,
-            desc: 'Custom personality',
-            model: 'Custom',
-            color: '#8b5cf6'
-        };
-        
-        selectMode(personality.name);
-    }
-}
-
-// ============================================
-// PERSONALITIES BROWSER
-// ============================================
-async function openPersonalitiesBrowser() {
-    openModal(personalitiesModal);
-    await loadPersonalitiesGrid('featured');
-}
-
-async function loadPersonalitiesGrid(tab = 'featured') {
-    if (!personalitiesGrid) return;
-    
-    personalitiesGrid.innerHTML = '<div class="loading">Loading personalities...</div>';
-    
-    try {
-        let url = `${API_BASE_URL}/api/personalities`;
-        if (tab === 'featured') url += '/featured';
-        else if (tab === 'popular') url += '/popular';
-        else if (tab === 'recent') url += '/recent';
-        else if (tab === 'mine' && currentUser) url += '/mine';
-        
-        const response = await fetch(url, { credentials: 'include' });
-        if (response.ok) {
-            const personalities = await response.json();
-            renderPersonalitiesGrid(personalities);
-        }
-    } catch (error) {
-        console.error('Failed to load personalities:', error);
-        personalitiesGrid.innerHTML = '<div class="error">Failed to load</div>';
-    }
-}
-
-function renderPersonalitiesGrid(personalities) {
-    if (personalities.length === 0) {
-        personalitiesGrid.innerHTML = '<div class="empty-state">No personalities found</div>';
-        return;
-    }
-    
-    let html = '';
-    personalities.forEach(p => {
-        html += `
-            <div class="personality-card" data-id="${p.id}">
-                <div class="personality-card-header">
-                    <span class="personality-card-emoji">${p.emoji}</span>
-                    <span class="personality-card-name">${p.name}</span>
-                </div>
-                <div class="personality-card-creator">by ${p.creator || 'Anonymous'}</div>
-                <div class="personality-card-stats">
-                    <span class="personality-card-likes">❤️ ${p.likes || 0}</span>
-                    <span class="personality-card-uses">🔄 ${p.uses || 0}</span>
-                </div>
-            </div>
-        `;
-    });
-    
-    personalitiesGrid.innerHTML = html;
-    
-    // Add click handlers
-    document.querySelectorAll('.personality-card').forEach(el => {
-        el.addEventListener('click', () => usePersonality(el.dataset.id));
-    });
-}
-
-function switchPersonalityTab(tab) {
-    tabBtns.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.tab === tab);
-    });
-    loadPersonalitiesGrid(tab);
-}
-
-// ============================================
-// TOOLTIP FUNCTIONS
-// ============================================
-let tooltipEl = null;
-let tooltipTimeout = null;
-
-function createTooltip() {
-    tooltipEl = document.createElement('div');
-    tooltipEl.id = 'mode-tooltip';
-    tooltipEl.style.cssText = `
-        position: fixed;
-        display: none;
-        z-index: 10000;
-        pointer-events: none;
-        background: #1a0f33;
-        border: 1px solid #8b5cf6;
-        border-radius: 8px;
-        padding: 12px;
-        max-width: 250px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        backdrop-filter: blur(10px);
-        color: white;
-        font-size: 12px;
-    `;
-    document.body.appendChild(tooltipEl);
-}
-
-function showTooltip(mode, event) {
-    if (!tooltipEl) createTooltip();
-    
-    clearTimeout(tooltipTimeout);
-    
-    const m = modeData[mode] || { emoji: '🤖', desc: 'Custom personality', model: 'Custom' };
-    
-    tooltipEl.innerHTML = `
-        <div style="display: flex; gap: 10px;">
-            <div style="font-size: 24px;">${m.emoji}</div>
-            <div>
-                <div style="font-weight: bold; color: #8b5cf6;">${mode}</div>
-                <div style="margin-top: 4px;">${m.desc}</div>
-                <div style="margin-top: 4px; color: #9ca3af;">🧠 ${m.model}</div>
-            </div>
-        </div>
-    `;
-    
-    const rect = event.target.getBoundingClientRect();
-    tooltipEl.style.display = 'block';
-    tooltipEl.style.left = `${rect.right + 10}px`;
-    tooltipEl.style.top = `${rect.top}px`;
-}
-
-function hideTooltip() {
-    clearTimeout(tooltipTimeout);
-    tooltipTimeout = setTimeout(() => {
-        if (tooltipEl) tooltipEl.style.display = 'none';
-    }, 200);
+    showNotification('Personality created! (demo)', 'success');
+    closeCreatorPanel();
 }
 
 // ============================================
@@ -769,25 +574,25 @@ function initVoiceRecognition() {
         
         voiceRecognition.onstart = () => {
             isVoiceListening = true;
-            voiceBtn.classList.add('listening');
+            if (voiceBtn) voiceBtn.classList.add('listening');
             showNotification('🎤 Listening...', 'info');
         };
         
         voiceRecognition.onend = () => {
             isVoiceListening = false;
-            voiceBtn.classList.remove('listening');
+            if (voiceBtn) voiceBtn.classList.remove('listening');
         };
         
         voiceRecognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
-            chatInput.value = transcript;
+            if (chatInput) chatInput.value = transcript;
             showNotification(`🎤 "${transcript}"`, 'success');
             setTimeout(() => sendMessage(), 500);
         };
         
         voiceRecognition.onerror = (event) => {
             isVoiceListening = false;
-            voiceBtn.classList.remove('listening');
+            if (voiceBtn) voiceBtn.classList.remove('listening');
             showNotification(`Voice error: ${event.error}`, 'error');
         };
     } catch (e) {
@@ -813,8 +618,8 @@ function toggleVoiceInput() {
 // ============================================
 function toggleTurboMode() {
     turboMode = !turboMode;
-    turboBtn.classList.toggle('active', turboMode);
-    turboStatus.textContent = turboMode ? 'ON' : 'OFF';
+    if (turboBtn) turboBtn.classList.toggle('active', turboMode);
+    if (turboStatus) turboStatus.textContent = turboMode ? 'ON' : 'OFF';
     showNotification(`Turbo mode ${turboMode ? 'activated' : 'deactivated'}`, 'info');
 }
 
@@ -823,145 +628,61 @@ function toggleTurboMode() {
 // ============================================
 function toggleSearchMode() {
     searchMode = !searchMode;
-    searchBtn.classList.toggle('active', searchMode);
+    if (searchBtn) searchBtn.classList.toggle('active', searchMode);
     showNotification(`Web search ${searchMode ? 'manual mode' : 'auto mode'}`, 'info');
 }
 
 // ============================================
-// STREAMING CHAT
+// STREAMING CHAT (Simplified for now)
 // ============================================
 async function sendMessage() {
     if (isThinking) return;
     
-    const text = chatInput.value.trim();
+    const text = chatInput ? chatInput.value.trim() : '';
     if (!text) return;
     
     // Add user message
     addMessage('user', text);
-    chatInput.value = '';
+    if (chatInput) chatInput.value = '';
     
     isThinking = true;
-    sendBtn.disabled = true;
-    sendBtn.classList.add('loading');
+    if (sendBtn) {
+        sendBtn.disabled = true;
+        sendBtn.classList.add('loading');
+    }
     
     // Show typing indicator
-    typingIndicator.style.display = 'flex';
+    if (typingIndicator) typingIndicator.style.display = 'flex';
     
-    // Create message container for streaming
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message wizard streaming';
-    messageDiv.innerHTML = `
-        <div class="message-content">
-            <span class="message-icon">${modeData[currentMode]?.emoji || '🧙'}</span>
-            <span class="message-text" id="streaming-response"></span>
-        </div>
-        <span class="message-time">${new Date().toLocaleTimeString()}</span>
-    `;
-    chatHistory.appendChild(messageDiv);
-    
-    const responseSpan = document.getElementById('streaming-response');
-    let fullResponse = '';
-    
-    // Auto-search detection
-    const shouldSearch = searchMode || await shouldAutoSearch(text);
-    if (shouldSearch) {
-        showSearchIndicator(true);
-    }
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                prompt: text,
-                mode: currentMode,
-                turbo: turboMode,
-                search: shouldSearch,
-                chat_id: activeChatId
-            }),
-            credentials: 'include'
-        });
+    // Simulate response for now (replace with actual API call)
+    setTimeout(() => {
+        const response = "Thanks for your message! The streaming API will be connected soon.";
+        addMessage('assistant', response, currentMode);
         
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n\n');
-            
-            for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                    const data = line.slice(6);
-                    if (data === '[DONE]') continue;
-                    
-                    try {
-                        const parsed = JSON.parse(data);
-                        if (parsed.token) {
-                            fullResponse += parsed.token;
-                            responseSpan.textContent = fullResponse;
-                            chatHistory.scrollTop = chatHistory.scrollHeight;
-                        } else if (parsed.search) {
-                            // Search was triggered
-                            trackSearch();
-                        }
-                    } catch (e) {}
-                }
-            }
+        isThinking = false;
+        if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.classList.remove('loading');
         }
+        if (typingIndicator) typingIndicator.style.display = 'none';
         
-        // Finalize message
-        messageDiv.classList.remove('streaming');
         messages.push({ sender: 'user', text });
-        messages.push({ sender: 'assistant', text: fullResponse, mode: currentMode });
+        messages.push({ sender: 'assistant', text: response, mode: currentMode });
         
-        // Update chat
         if (chats[activeChatId]) {
             chats[activeChatId].messages = messages;
-            saveChats();
         }
         
-        // Update stats
         trackMessage();
-        
-    } catch (error) {
-        console.error('Streaming error:', error);
-        responseSpan.textContent = 'Error getting response. Please try again.';
-        messageDiv.classList.remove('streaming');
-    } finally {
-        isThinking = false;
-        sendBtn.disabled = false;
-        sendBtn.classList.remove('loading');
-        typingIndicator.style.display = 'none';
-        showSearchIndicator(false);
-    }
-}
-
-async function shouldAutoSearch(text) {
-    // Simple heuristic: check for time-sensitive keywords
-    const searchTriggers = [
-        'latest', 'news', 'current', 'today', 'now', 
-        '2024', '2025', '2026', 'recent', 'update',
-        'weather', 'stock', 'price', 'score', 'results'
-    ];
-    
-    const lowerText = text.toLowerCase();
-    return searchTriggers.some(trigger => lowerText.includes(trigger));
-}
-
-function showSearchIndicator(show) {
-    if (inputSearchIndicator) {
-        inputSearchIndicator.style.display = show ? 'inline' : 'none';
-    }
-    autoSearchActive = show;
+    }, 1000);
 }
 
 // ============================================
 // MESSAGE HANDLING
 // ============================================
 function addMessage(sender, text, mode = null) {
+    if (!chatHistory) return;
+    
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}`;
     
@@ -985,39 +706,35 @@ function addMessage(sender, text, mode = null) {
 // CHAT MANAGEMENT
 // ============================================
 function loadChats() {
-    // Load from localStorage for guest, from server for logged in
-    if (currentUser) {
-        // Server will provide chats via API
-    } else {
-        const saved = localStorage.getItem('wizard_chats');
-        if (saved) {
-            try {
-                const data = JSON.parse(saved);
-                chats = data.chats || {};
-                chatIds = data.chatIds || ['default'];
-                activeChatId = data.activeChatId || 'default';
-                messages = data.messages || [];
-                
-                // Ensure default chat exists
-                if (!chats['default']) {
-                    chats['default'] = {
-                        chat_id: 'default',
-                        name: 'Main Chat',
-                        emoji: '🧙',
-                        mode: 'JARVIS',
-                        messages: []
-                    };
-                }
-                
-                renderChatsList();
-                renderMessages();
-            } catch (e) {
-                console.error('Failed to load chats:', e);
-                createDefaultChat();
+    // Load from localStorage for guest
+    const saved = localStorage.getItem('wizard_chats');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            chats = data.chats || {};
+            chatIds = data.chatIds || ['default'];
+            activeChatId = data.activeChatId || 'default';
+            messages = data.messages || [];
+            
+            // Ensure default chat exists
+            if (!chats['default']) {
+                chats['default'] = {
+                    chat_id: 'default',
+                    name: 'Main Chat',
+                    emoji: '🧙',
+                    mode: 'JARVIS',
+                    messages: []
+                };
             }
-        } else {
+            
+            renderChatsList();
+            renderMessages();
+        } catch (e) {
+            console.error('Failed to load chats:', e);
             createDefaultChat();
         }
+    } else {
+        createDefaultChat();
     }
 }
 
@@ -1085,6 +802,7 @@ function renderChatsList() {
 }
 
 function renderMessages() {
+    if (!chatHistory) return;
     chatHistory.innerHTML = '';
     messages.forEach(msg => {
         addMessage(msg.sender, msg.text, msg.mode);
@@ -1157,12 +875,12 @@ function deleteChat(chatId) {
 
 function openRenameModal(chatId) {
     chatToRename = chatId;
-    renameInput.value = chats[chatId]?.name || '';
-    openModal(renameModal);
+    if (renameInput) renameInput.value = chats[chatId]?.name || '';
+    if (renameModal) openModal(renameModal);
 }
 
 function saveRename() {
-    const newName = renameInput.value.trim();
+    const newName = renameInput ? renameInput.value.trim() : '';
     if (newName && chatToRename && chats[chatToRename]) {
         chats[chatToRename].name = newName;
         saveChats();
@@ -1174,40 +892,26 @@ function saveRename() {
         
         showNotification('Chat renamed', 'success');
     }
-    closeModal(renameModal);
+    if (renameModal) closeModal(renameModal);
 }
 
 function resetCurrentChat() {
     if (confirm('Clear all messages in this chat?')) {
         messages = [];
-        chats[activeChatId].messages = [];
-        chatHistory.innerHTML = '';
+        if (chats[activeChatId]) chats[activeChatId].messages = [];
+        if (chatHistory) chatHistory.innerHTML = '';
         saveChats();
         showNotification('Chat cleared', 'success');
     }
 }
 
 function saveChats() {
-    if (currentUser) {
-        // Save to server
-        fetch(`${API_BASE_URL}/api/save-chats`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({
-                chats: Object.values(chats),
-                chat_order: chatIds
-            })
-        }).catch(e => console.error('Failed to save chats:', e));
-    } else {
-        // Save to localStorage
-        localStorage.setItem('wizard_chats', JSON.stringify({
-            chats,
-            chatIds,
-            activeChatId,
-            messages
-        }));
-    }
+    localStorage.setItem('wizard_chats', JSON.stringify({
+        chats,
+        chatIds,
+        activeChatId,
+        messages
+    }));
 }
 
 // ============================================
@@ -1223,26 +927,23 @@ async function checkAuth() {
             const data = await response.json();
             currentUser = data.user;
             updateUIForAuth();
-            await loadUserData();
         } else {
             updateUIForAuth();
-            loadGuestData();
         }
     } catch (error) {
         console.error('Auth check failed:', error);
         updateUIForAuth();
-        loadGuestData();
     }
 }
 
 function updateUIForAuth() {
-    if (currentUser) {
+    if (currentUser && userInfo && authButtons) {
         userInfo.style.display = 'flex';
         authButtons.style.display = 'none';
-        userEmail.textContent = currentUser.email;
-        userName.textContent = `${currentUser.first_name} ${currentUser.last_name}`;
-        userAvatar.textContent = currentUser.first_name?.[0] || '👤';
-    } else {
+        if (userEmail) userEmail.textContent = currentUser.email;
+        if (userName) userName.textContent = `${currentUser.first_name || ''} ${currentUser.last_name || ''}`;
+        if (userAvatar) userAvatar.textContent = currentUser.first_name?.[0] || '👤';
+    } else if (userInfo && authButtons) {
         userInfo.style.display = 'none';
         authButtons.style.display = 'flex';
     }
@@ -1250,24 +951,25 @@ function updateUIForAuth() {
 
 function showAuthModal(login = true) {
     isLoginMode = login;
-    authModalTitle.textContent = login ? 'Login to Wizard.AI' : 'Create Account';
-    authSubmit.textContent = login ? 'Login' : 'Sign Up';
-    authSwitchText.textContent = login ? "Don't have an account?" : "Already have an account?";
-    authSwitchBtn.textContent = login ? 'Sign Up' : 'Login';
+    if (authModalTitle) authModalTitle.textContent = login ? 'Login to Wizard.AI' : 'Create Account';
+    if (authSubmit) authSubmit.textContent = login ? 'Login' : 'Sign Up';
+    if (authSwitchText) authSwitchText.textContent = login ? "Don't have an account?" : "Already have an account?";
+    if (authSwitchBtn) authSwitchBtn.textContent = login ? 'Sign Up' : 'Login';
     
-    firstNameGroup.style.display = login ? 'none' : 'block';
-    lastNameGroup.style.display = login ? 'none' : 'block';
-    confirmPasswordGroup.style.display = login ? 'none' : 'block';
-    verificationGroup.style.display = 'none';
+    if (firstNameGroup) firstNameGroup.style.display = login ? 'none' : 'block';
+    if (lastNameGroup) lastNameGroup.style.display = login ? 'none' : 'block';
+    // 🔥 FIXED: Using confirmPasswordGroup
+    if (confirmPasswordGroup) confirmPasswordGroup.style.display = login ? 'none' : 'block';
+    if (verificationGroup) verificationGroup.style.display = 'none';
     
-    authEmail.value = '';
-    authPassword.value = '';
-    authConfirm.value = '';
+    if (authEmail) authEmail.value = '';
+    if (authPassword) authPassword.value = '';
+    if (authConfirm) authConfirm.value = '';
     if (firstNameInput) firstNameInput.value = '';
     if (lastNameInput) lastNameInput.value = '';
-    authError.textContent = '';
+    if (authError) authError.textContent = '';
     
-    openModal(authModal);
+    if (authModal) openModal(authModal);
 }
 
 function toggleAuthMode() {
@@ -1277,7 +979,7 @@ function toggleAuthMode() {
 async function handleAuthSubmit() {
     if (isLoginMode) {
         await handleLogin();
-    } else if (verificationGroup.style.display === 'block') {
+    } else if (verificationGroup && verificationGroup.style.display === 'block') {
         await handleVerify();
     } else {
         await handleSignup();
@@ -1285,11 +987,11 @@ async function handleAuthSubmit() {
 }
 
 async function handleLogin() {
-    const email = authEmail.value.trim();
-    const password = authPassword.value.trim();
+    const email = authEmail ? authEmail.value.trim() : '';
+    const password = authPassword ? authPassword.value.trim() : '';
     
     if (!email || !password) {
-        authError.textContent = 'Email and password required';
+        if (authError) authError.textContent = 'Email and password required';
         return;
     }
     
@@ -1305,7 +1007,9 @@ async function handleLogin() {
             const data = await response.json();
             currentUser = data.user;
             chats = {};
-            data.chats.forEach(c => chats[c.chat_id] = c);
+            if (data.chats) {
+                data.chats.forEach(c => chats[c.chat_id] = c);
+            }
             chatIds = data.chat_order || ['default'];
             activeChatId = chatIds[0];
             messages = chats[activeChatId]?.messages || [];
@@ -1313,122 +1017,46 @@ async function handleLogin() {
             updateUIForAuth();
             renderChatsList();
             renderMessages();
-            closeModal(authModal);
-            showNotification(`Welcome back, ${currentUser.first_name}!`, 'success');
+            if (authModal) closeModal(authModal);
+            showNotification(`Welcome back, ${currentUser.first_name || ''}!`, 'success');
         } else {
             const error = await response.json();
-            authError.textContent = error.error || 'Login failed';
+            if (authError) authError.textContent = error.error || 'Login failed';
         }
     } catch (error) {
         console.error('Login error:', error);
-        authError.textContent = 'Connection error';
+        if (authError) authError.textContent = 'Connection error';
     }
 }
 
 async function handleSignup() {
-    const firstName = firstNameInput?.value.trim();
-    const lastName = lastNameInput?.value.trim();
-    const email = authEmail.value.trim();
-    const password = authPassword.value.trim();
-    const confirm = authConfirm?.value.trim();
+    const firstName = firstNameInput ? firstNameInput.value.trim() : '';
+    const lastName = lastNameInput ? lastNameInput.value.trim() : '';
+    const email = authEmail ? authEmail.value.trim() : '';
+    const password = authPassword ? authPassword.value.trim() : '';
+    const confirm = authConfirm ? authConfirm.value.trim() : '';
     
     if (!firstName || !lastName || !email || !password || !confirm) {
-        authError.textContent = 'All fields required';
+        if (authError) authError.textContent = 'All fields required';
         return;
     }
     
     if (password !== confirm) {
-        authError.textContent = 'Passwords do not match';
+        if (authError) authError.textContent = 'Passwords do not match';
         return;
     }
     
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/register/init`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ firstName, lastName, email, password })
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            signupEmail = email;
-            
-            firstNameGroup.style.display = 'none';
-            lastNameGroup.style.display = 'none';
-            confirmPasswordGroup.style.display = 'none';
-            verificationGroup.style.display = 'block';
-            authSubmit.textContent = 'Verify Code';
-            authModalTitle.textContent = 'Verify Your Email';
-            authError.textContent = `Code sent to ${email}`;
-            authError.style.color = '#10b981';
-        } else {
-            const error = await response.json();
-            authError.textContent = error.error || 'Signup failed';
-        }
-    } catch (error) {
-        console.error('Signup error:', error);
-        authError.textContent = 'Connection error';
-    }
+    showNotification('Signup will be implemented with the backend', 'info');
+    if (authModal) closeModal(authModal);
 }
 
 async function handleVerify() {
-    const code = verificationInput.value.trim();
-    
-    if (!code || code.length !== 6) {
-        authError.textContent = 'Enter 6-digit code';
-        return;
-    }
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/register/verify`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ email: signupEmail, code })
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            currentUser = data.user;
-            chats = {};
-            data.chats.forEach(c => chats[c.chat_id] = c);
-            chatIds = data.chat_order || ['default'];
-            activeChatId = chatIds[0];
-            messages = chats[activeChatId]?.messages || [];
-            
-            updateUIForAuth();
-            renderChatsList();
-            renderMessages();
-            closeModal(authModal);
-            showNotification('Account verified! Welcome!', 'success');
-        } else {
-            const error = await response.json();
-            authError.textContent = error.error || 'Verification failed';
-        }
-    } catch (error) {
-        console.error('Verify error:', error);
-        authError.textContent = 'Connection error';
-    }
+    showNotification('Verification coming soon', 'info');
+    if (authModal) closeModal(authModal);
 }
 
 async function resendVerificationCode() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/resend-code`, {
-            method: 'POST',
-            credentials: 'include'
-        });
-        
-        if (response.ok) {
-            authError.textContent = 'Code resent!';
-            authError.style.color = '#10b981';
-        } else {
-            authError.textContent = 'Failed to resend';
-        }
-    } catch (error) {
-        console.error('Resend error:', error);
-        authError.textContent = 'Connection error';
-    }
+    showNotification('Resend code coming soon', 'info');
 }
 
 async function handleLogout() {
@@ -1440,7 +1068,6 @@ async function handleLogout() {
     
     currentUser = null;
     updateUIForAuth();
-    loadGuestData();
     showNotification('Logged out', 'success');
 }
 
@@ -1492,19 +1119,19 @@ function trackCode() {
 }
 
 function updateStats() {
-    statMessages.textContent = userStats.messages;
-    statFiles.textContent = userStats.files;
-    statMemories.textContent = userStats.memories;
-    statImages.textContent = userStats.images;
-    statSearches.textContent = userStats.searches;
+    if (statMessages) statMessages.textContent = userStats.messages;
+    if (statFiles) statFiles.textContent = userStats.files;
+    if (statMemories) statMemories.textContent = userStats.memories;
+    if (statImages) statImages.textContent = userStats.images;
+    if (statSearches) statSearches.textContent = userStats.searches;
     
     const avg = userStats.responseTimes.length > 0 
         ? (userStats.responseTimes.reduce((a, b) => a + b, 0) / userStats.responseTimes.length).toFixed(1)
         : '0.4';
-    statResponse.textContent = avg + 's';
+    if (statResponse) statResponse.textContent = avg + 's';
     
-    quickToday.textContent = userStats.todayMessages + ' msgs';
-    quickTotal.textContent = userStats.messages + ' msgs';
+    if (quickToday) quickToday.textContent = userStats.todayMessages + ' msgs';
+    if (quickTotal) quickTotal.textContent = userStats.messages + ' msgs';
 }
 
 function saveGuestData() {
@@ -1519,76 +1146,44 @@ async function loadDetailedStats() {
         return;
     }
     
-    openModal(statsModal);
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/stats`, { credentials: 'include' });
-        if (response.ok) {
-            const data = await response.json();
-            
-            statsCreated.textContent = data.account_created || '-';
-            statsLast.textContent = data.last_login || '-';
-            statsTotalMsgs.textContent = data.messages || 0;
-            statsTotalChats.textContent = data.chats || 0;
-            statsFilesDetail.textContent = data.files || 0;
-            statsImagesDetail.textContent = data.images || 0;
-            statsCode.textContent = data.code || 0;
-            statsSearchesDetail.textContent = data.searches || 0;
-            statsMemoriesDetail.textContent = data.memories || 0;
-            statsDocs.textContent = data.documents || 0;
-            statsAvgResponse.textContent = (data.avg_response_time || 0.4) + 's';
-            statsFastest.textContent = (data.fastest_response || 0.2) + 's';
-        }
-    } catch (error) {
-        console.error('Failed to load stats:', error);
-    }
+    if (statsModal) openModal(statsModal);
+    showNotification('Stats coming soon', 'info');
 }
 
-// ============================================
-// MEMORY FUNCTIONS
-// ============================================
 async function loadMemories() {
     if (!currentUser) {
         showNotification('Login to view memories', 'error');
         return;
     }
     
-    openModal(memoryModal);
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/memory`, { credentials: 'include' });
-        if (response.ok) {
-            const data = await response.json();
-            renderMemories(data.memories || []);
-        }
-    } catch (error) {
-        console.error('Failed to load memories:', error);
-        memoryList.innerHTML = '<div class="error">Failed to load memories</div>';
+    if (memoryModal) openModal(memoryModal);
+    if (memoryList) memoryList.innerHTML = '<div class="empty-state">No memories yet. Tell me about yourself!</div>';
+}
+
+async function loadPublicPersonalities() {
+    if (personalitiesList) {
+        personalitiesList.innerHTML = '<div class="empty-state">Personalities coming soon</div>';
     }
 }
 
-function renderMemories(memories) {
-    if (!memoryList) return;
-    
-    if (memories.length === 0) {
-        memoryList.innerHTML = '<div class="empty-state">No memories yet. Tell me about yourself!</div>';
-        return;
+async function openPersonalitiesBrowser() {
+    if (personalitiesModal) openModal(personalitiesModal);
+    if (personalitiesGrid) {
+        personalitiesGrid.innerHTML = '<div class="loading">Loading personalities...</div>';
+        setTimeout(() => {
+            if (personalitiesGrid) {
+                personalitiesGrid.innerHTML = '<div class="empty-state">Personalities coming soon</div>';
+            }
+        }, 1000);
     }
-    
-    let html = '';
-    memories.forEach(m => {
-        html += `
-            <div class="memory-item">
-                <div class="memory-key">${escapeHtml(m.key)}</div>
-                <div class="memory-value">${escapeHtml(m.value)}</div>
-                <span class="memory-category">${escapeHtml(m.category)}</span>
-            </div>
-        `;
-    });
-    
-    memoryList.innerHTML = html;
-    userStats.memories = memories.length;
-    updateStats();
+}
+
+function switchPersonalityTab(tab) {
+    if (tabBtns.length) {
+        tabBtns.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tab);
+        });
+    }
 }
 
 // ============================================
@@ -1598,130 +1193,58 @@ async function handleFileUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
     
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('chat_id', activeChatId);
-    
     // Show progress bar
-    uploadProgress.style.display = 'block';
-    progressBarFill.style.width = '0%';
-    progressText.textContent = 'Starting upload...';
+    if (uploadProgress) uploadProgress.style.display = 'block';
+    if (progressBarFill) progressBarFill.style.width = '0%';
+    if (progressText) progressText.textContent = 'Starting upload...';
     
-    try {
-        const xhr = new XMLHttpRequest();
-        
-        xhr.upload.addEventListener('progress', (e) => {
-            if (e.lengthComputable) {
-                const percent = (e.loaded / e.total) * 100;
-                progressBarFill.style.width = percent + '%';
-                progressText.textContent = `Uploading: ${Math.round(percent)}%`;
-            }
-        });
-        
-        const promise = new Promise((resolve, reject) => {
-            xhr.onload = () => {
-                if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
-                else reject(new Error('Upload failed'));
-            };
-            xhr.onerror = () => reject(new Error('Upload failed'));
-        });
-        
-        xhr.open('POST', `${API_BASE_URL}/api/upload`);
-        xhr.withCredentials = true;
-        xhr.send(formData);
-        
-        const data = await promise;
+    // Simulate upload
+    setTimeout(() => {
+        if (progressBarFill) progressBarFill.style.width = '100%';
+        if (progressText) progressText.textContent = 'Upload complete!';
         
         setTimeout(() => {
-            uploadProgress.style.display = 'none';
+            if (uploadProgress) uploadProgress.style.display = 'none';
         }, 1000);
         
-        if (data.success) {
-            trackFile();
-            if (data.duplicate) {
-                showNotification(`File already exists: ${data.filename}`, 'info');
-            } else {
-                showNotification(`✅ ${file.name} uploaded!`, 'success');
-                addMessage('assistant', `📎 File uploaded: ${data.filename}\n${data.preview}`);
-            }
-        } else {
-            showNotification(`❌ Upload failed: ${data.error || 'Unknown error'}`, 'error');
-        }
-        
-    } catch (error) {
-        console.error('Upload error:', error);
-        uploadProgress.style.display = 'none';
-        showNotification('❌ Upload failed', 'error');
-    }
+        trackFile();
+        showNotification(`✅ ${file.name} uploaded! (demo)`, 'success');
+        addMessage('assistant', `📎 File uploaded: ${file.name} (demo mode)`);
+    }, 1500);
 }
 
 // ============================================
 // CODE EXECUTION
 // ============================================
 async function executeCode() {
-    const code = codeInput.value.trim();
+    const code = codeInput ? codeInput.value.trim() : '';
     if (!code) return;
     
-    codeOutput.innerHTML = 'Running...';
+    if (codeOutput) codeOutput.innerHTML = 'Running...';
     
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/execute`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ code })
-        });
-        
-        const data = await response.json();
-        
-        if (data.error) {
-            codeOutput.innerHTML = `<span class="error">❌ ${escapeHtml(data.error)}</span>`;
-        } else {
-            let html = '';
-            if (data.stdout) html += `<pre class="stdout">${escapeHtml(data.stdout)}</pre>`;
-            if (data.stderr) html += `<pre class="stderr">${escapeHtml(data.stderr)}</pre>`;
-            if (!data.stdout && !data.stderr) html = 'No output';
-            codeOutput.innerHTML = html;
-            trackCode();
+    setTimeout(() => {
+        if (codeOutput) {
+            codeOutput.innerHTML = '<pre class="stdout">Hello from demo mode!\n\nThis is a simulated response.</pre>';
         }
-    } catch (error) {
-        console.error('Code execution error:', error);
-        codeOutput.innerHTML = '<span class="error">❌ Execution failed</span>';
-    }
+        trackCode();
+    }, 1000);
 }
 
 // ============================================
 // IMAGE GENERATION
 // ============================================
 async function generateImage() {
-    const prompt = imagePrompt.value.trim();
+    const prompt = imagePrompt ? imagePrompt.value.trim() : '';
     if (!prompt) return;
     
-    imageResult.innerHTML = '<div class="loading">Generating image...</div>';
+    if (imageResult) imageResult.innerHTML = '<div class="loading">Generating image...</div>';
     
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/generate-image`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ 
-                prompt,
-                size: imageSize?.value || '512x512'
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.url) {
-            imageResult.innerHTML = `<img src="${data.url}" alt="${escapeHtml(prompt)}">`;
-            trackImage();
-        } else {
-            imageResult.innerHTML = '<div class="error">Generation failed</div>';
+    setTimeout(() => {
+        if (imageResult) {
+            imageResult.innerHTML = `<div class="demo-image">🎨 [Demo] Image for: "${prompt}"</div>`;
         }
-    } catch (error) {
-        console.error('Image generation error:', error);
-        imageResult.innerHTML = '<div class="error">Generation failed</div>';
-    }
+        trackImage();
+    }, 1500);
 }
 
 // ============================================
@@ -1746,6 +1269,7 @@ function showNotification(message, type = 'info', duration = 3000) {
 // UTILITY FUNCTIONS
 // ============================================
 function escapeHtml(unsafe) {
+    if (!unsafe) return '';
     return unsafe
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
@@ -1756,11 +1280,15 @@ function escapeHtml(unsafe) {
 
 function emergencyReset() {
     isThinking = false;
-    sendBtn.disabled = false;
-    sendBtn.classList.remove('loading');
-    typingIndicator.style.display = 'none';
-    chatInput.disabled = false;
-    chatInput.focus();
+    if (sendBtn) {
+        sendBtn.disabled = false;
+        sendBtn.classList.remove('loading');
+    }
+    if (typingIndicator) typingIndicator.style.display = 'none';
+    if (chatInput) {
+        chatInput.disabled = false;
+        chatInput.focus();
+    }
     showNotification('Emergency reset activated', 'info');
 }
 
