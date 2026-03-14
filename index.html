@@ -7,23 +7,23 @@
     
     <!-- Primary Meta Tags -->
     <meta name="title" content="Wizard.AI Pro v9.0 - Your Magical AI Assistant">
-    <meta name="description" content="Wizard.AI is a full AI platform with RAG, persistent memory, web search, code execution, image generation, and 7 unique personalities. Built by a 12-year-old in 25 hours.">
-    <meta name="keywords" content="AI, chatbot, RAG, machine learning, Flask, Groq, Llama, Arnav Gupta">
+    <meta name="description" content="Wizard.AI is a full AI platform with RAG, persistent memory, web search, code execution, image generation, and 7 unique personalities.">
+    <meta name="keywords" content="AI, chatbot, RAG, machine learning, Flask, Groq, Llama">
     <meta name="author" content="Arnav Gupta">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://wizardai.dpdns.org/">
+    <meta property="og:url" content="https://www.wizardai.dpdns.org/">
     <meta property="og:title" content="Wizard.AI Pro v9.0 - Your Magical AI Assistant">
     <meta property="og:description" content="Full AI platform with RAG, memory, web search, code execution, image generation, and 7 personalities. Try it free!">
-    <meta property="og:image" content="https://wizardai.dpdns.org/og-image.png">
+    <meta property="og:image" content="https://www.wizardai.dpdns.org/og-image.png">
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://wizardai.dpdns.org/">
+    <meta property="twitter:url" content="https://www.wizardai.dpdns.org/">
     <meta property="twitter:title" content="Wizard.AI Pro v9.0 - Your Magical AI Assistant">
     <meta property="twitter:description" content="Full AI platform with RAG, memory, web search, code execution, image generation, and 7 personalities. Try it free!">
-    <meta property="twitter:image" content="https://wizardai.dpdns.org/og-image.png">
+    <meta property="twitter:image" content="https://www.wizardai.dpdns.org/og-image.png">
     
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧙</text></svg>">
@@ -77,12 +77,14 @@
                 </div>
             </div>
             
-            <!-- Mode Selector -->
-            <div class="mode-selector glass-panel">
-                <h2>
+            <!-- ===== FIXED: Mode Selector MOVED ABOVE Stats ===== -->
+            <div class="mode-section glass-panel">
+                <div class="section-header">
                     <span class="section-icon">🧠</span>
-                    Personality Mode
-                </h2>
+                    <h2>Personality Mode</h2>
+                </div>
+                
+                <!-- Custom Dropdown -->
                 <div class="custom-dropdown" id="mode-dropdown">
                     <div class="custom-dropdown-btn" id="dropdown-btn">
                         <span id="selected-mode-display">🎩 JARVIS</span>
@@ -93,30 +95,50 @@
                     </div>
                 </div>
                 
-                <!-- Custom Personality Creator (Collapsible) -->
-                <div class="custom-personality-creator" id="custom-personality-creator" style="display: none;">
-                    <button class="toggle-creator-btn" id="toggle-creator-btn">
-                        <span>➕</span> Create Custom Personality
-                    </button>
-                    <div class="creator-panel" id="creator-panel" style="display: none;">
-                        <input type="text" id="custom-name" placeholder="Personality name" maxlength="30">
-                        <input type="text" id="custom-emoji" placeholder="Emoji (e.g., 🤖)" maxlength="2">
-                        <textarea id="custom-prompt" placeholder="System prompt..."></textarea>
-                        <input type="text" id="custom-greeting" placeholder="Greeting message">
+                <!-- Create Personality Button - MOVED HERE -->
+                <button class="create-personality-btn" id="toggle-creator-btn">
+                    <span class="btn-icon">➕</span>
+                    <span class="btn-text">Create New Personality</span>
+                </button>
+                
+                <!-- Personality Creator Panel (Hidden by Default) -->
+                <div class="creator-panel" id="creator-panel" style="display: none;">
+                    <div class="creator-header">
+                        <h3>Create Custom Personality</h3>
+                        <button class="close-creator" id="close-creator">&times;</button>
+                    </div>
+                    <div class="creator-body">
+                        <div class="form-row">
+                            <input type="text" id="custom-name" placeholder="Personality name (e.g., 'Pirate')" maxlength="30">
+                        </div>
+                        <div class="form-row">
+                            <input type="text" id="custom-emoji" placeholder="Emoji (e.g., '🏴‍☠️')" maxlength="2">
+                        </div>
+                        <div class="form-row">
+                            <textarea id="custom-prompt" placeholder="System prompt... (e.g., 'You are a pirate who talks like Captain Jack Sparrow')" rows="3"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <input type="text" id="custom-greeting" placeholder="Greeting message (optional)">
+                        </div>
+                        <div class="form-row checkbox">
+                            <label>
+                                <input type="checkbox" id="custom-public" checked> Make public (share with community)
+                            </label>
+                        </div>
                         <div class="creator-actions">
-                            <button class="creator-save" id="save-personality">Save</button>
+                            <button class="creator-save" id="save-personality">Save Personality</button>
                             <button class="creator-cancel" id="cancel-personality">Cancel</button>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Stats Dashboard v9.0 -->
+            <!-- Stats Dashboard - NOW BELOW Mode Selector -->
             <div class="stats-dashboard glass-panel">
-                <h3>
+                <div class="section-header">
                     <span class="section-icon">📊</span>
-                    Your Stats
-                </h3>
+                    <h3>Your Stats</h3>
+                </div>
                 <div class="stats-grid">
                     <div class="stat-card" title="Total messages sent">
                         <span class="stat-icon">💬</span>
@@ -158,14 +180,15 @@
                     <span class="turbo-text">TURBO MODE</span>
                     <span class="turbo-status" id="turbo-status">OFF</span>
                 </button>
+                <p class="turbo-description">2x faster responses, uses more tokens</p>
             </div>
             
             <!-- Active Model Display -->
             <div class="model-status glass-panel" id="model-status">
-                <h2>
+                <div class="section-header">
                     <span class="section-icon">📦</span>
-                    Active Model
-                </h2>
+                    <h2>Active Model</h2>
+                </div>
                 <div class="model-info" id="current-model">
                     <span class="model-icon">🎩</span>
                     <span class="model-name">Llama 3.1 8B</span>
@@ -201,7 +224,7 @@
                 </div>
             </div>
             
-            <!-- Pro Toolbar v9.0 -->
+            <!-- Pro Toolbar -->
             <div class="pro-toolbar" id="pro-toolbar">
                 <button class="pro-btn" id="search-btn" title="Web Search (auto-detects when needed)">
                     <span class="btn-icon">🌐</span>
@@ -234,12 +257,12 @@
                 </button>
             </div>
             
-            <!-- Chat History with Streaming Support -->
+            <!-- Chat History -->
             <div id="chat-history" class="chat-history" role="log" aria-live="polite">
                 <!-- Messages will appear here -->
             </div>
             
-            <!-- Input Area with Voice + Auto-Search Indicator -->
+            <!-- Input Area with Voice -->
             <div class="input-area glass-panel">
                 <div class="input-wrapper">
                     <input 
@@ -264,7 +287,7 @@
                 </button>
             </div>
             
-            <!-- Typing Indicator (shown during streaming) -->
+            <!-- Typing Indicator -->
             <div id="typing-indicator" class="typing-indicator" style="display: none;">
                 <span></span>
                 <span></span>
@@ -286,10 +309,10 @@
              ============================================ -->
         <div class="chats-sidebar">
             <div class="chats-header glass-panel">
-                <h2>
+                <div class="section-header">
                     <span class="section-icon">💬</span>
-                    Your Chats
-                </h2>
+                    <h2>Your Chats</h2>
+                </div>
                 <button id="new-chat-btn" class="new-chat-btn" title="New Chat">➕</button>
             </div>
             
@@ -299,10 +322,10 @@
             
             <!-- Public Personalities Section -->
             <div class="public-personalities glass-panel">
-                <h3>
+                <div class="section-header">
                     <span class="section-icon">🎭</span>
-                    Community Personalities
-                </h3>
+                    <h3>Community Personalities</h3>
+                </div>
                 <div class="personalities-list" id="personalities-list">
                     <div class="loading-personalities">Loading personalities...</div>
                 </div>
@@ -559,13 +582,13 @@
     <!-- Notification Toast -->
     <div id="notification-toast" class="notification-toast"></div>
 
-    <!-- Service Worker Registration for PWA -->
+    <!-- Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js')
-                    .then(reg => console.log('Service Worker registered'))
-                    .catch(err => console.log('Service Worker error:', err));
+                    .then(reg => console.log('✅ Service Worker registered'))
+                    .catch(err => console.log('❌ Service Worker error:', err));
             });
         }
     </script>
