@@ -1,7 +1,7 @@
 // ============================================
-// WIZARD.AI PRO v9.0 - ULTIMATE FRONTEND CONTROLLER
+// WIZARD.AI PRO v9.0 - COMPLETE FRONTEND CONTROLLER
 // Created by Arnav Gupta
-// ALL ISSUES FIXED: Connecting, Dropdown Position, Custom Personalities, Tooltips
+// Features: Streaming, Memory, API Keys, Personalities, Stats, Email Verification
 // ============================================
 
 // ============================================
@@ -20,11 +20,11 @@ const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 const voiceBtn = document.getElementById('voice-input-btn');
 
-// Status elements - FIXED: Connecting issue
+// Status elements
 const statusText = document.getElementById('status-text');
 const statusDot = document.querySelector('.status-dot');
 
-// Mode dropdown - FIXED: Position issue
+// Mode dropdown
 const dropdown = document.getElementById('mode-dropdown');
 const dropdownBtn = document.getElementById('dropdown-btn');
 const dropdownContent = document.getElementById('dropdown-content');
@@ -228,7 +228,7 @@ let userStats = {
 };
 
 // ============================================
-// MODE DATA - 7 EPIC PERSONALITIES + CUSTOM
+// MODE DATA - 7 EPIC PERSONALITIES
 // ============================================
 const modeData = {
     'Fast': {
@@ -283,7 +283,7 @@ const modeData = {
 };
 
 // ============================================
-// TOOLTIP SYSTEM - FIXED: Added tooltips for personalities
+// TOOLTIP SYSTEM
 // ============================================
 let tooltipEl = null;
 
@@ -297,18 +297,16 @@ function createTooltip() {
         display: none;
         z-index: 10000;
         background: linear-gradient(135deg, #1a1035, #0d0a1f);
-        border: 2px solid var(--primary, #8b5cf6);
+        border: 2px solid #8b5cf6;
         border-radius: 12px;
         padding: 12px 16px;
         max-width: 280px;
-        box-shadow: 0 0 30px rgba(139, 92, 246, 0.5), 0 10px 30px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
         backdrop-filter: blur(10px);
         color: white;
         font-size: 13px;
-        line-height: 1.5;
         pointer-events: none;
-        transition: opacity 0.2s;
-        border-left: 4px solid var(--primary, #8b5cf6);
+        border-left: 4px solid #8b5cf6;
     `;
     document.body.appendChild(tooltipEl);
 }
@@ -326,14 +324,11 @@ function showTooltip(modeKey, event) {
     
     tooltipEl.innerHTML = `
         <div style="display: flex; gap: 12px;">
-            <div style="font-size: 32px; line-height: 1;">${emoji}</div>
-            <div style="flex: 1;">
-                <div style="font-weight: bold; color: ${mode.color || '#8b5cf6'}; font-size: 15px; margin-bottom: 5px;">${name}</div>
-                <div style="color: #e0e7ff; font-size: 12px; margin-bottom: 8px;">${desc}</div>
-                <div style="color: #9ca3af; font-size: 11px; display: flex; align-items: center; gap: 6px;">
-                    <span>🧠 ${model}</span>
-                    ${mode.uses ? `<span style="background: rgba(139,92,246,0.2); padding: 2px 6px; border-radius: 10px;">❤️ ${mode.likes || 0} uses</span>` : ''}
-                </div>
+            <div style="font-size: 32px;">${emoji}</div>
+            <div>
+                <div style="font-weight: bold; color: ${mode.color || '#8b5cf6'}; font-size: 15px;">${name}</div>
+                <div style="color: #e0e7ff; font-size: 12px; margin-top: 4px;">${desc}</div>
+                <div style="color: #9ca3af; font-size: 11px; margin-top: 8px;">🧠 ${model}</div>
             </div>
         </div>
     `;
@@ -343,7 +338,6 @@ function showTooltip(modeKey, event) {
     tooltipEl.style.left = `${rect.right + 15}px`;
     tooltipEl.style.top = `${rect.top}px`;
     
-    // Keep within viewport
     const tooltipRect = tooltipEl.getBoundingClientRect();
     if (tooltipRect.right > window.innerWidth) {
         tooltipEl.style.left = `${rect.left - tooltipRect.width - 15}px`;
@@ -357,62 +351,31 @@ function hideTooltip() {
 }
 
 // ============================================
-// INITIALIZATION - FIXED: Connecting issue
+// INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Initializing Wizard.AI v9.0...');
     
-    // Show startup animation
     showNotification('🧙 Summoning the Wizard...', 'info', 2000);
     
-    // Register service worker for PWA
     registerServiceWorker();
-    
-    // Initialize UI
     setupEventListeners();
     setupDropdown();
     setupModals();
     initVoiceRecognition();
     loadGuestData();
     
-    // Check authentication
     await checkAuth();
-    
-    // Load custom personalities from localStorage FIRST
     loadCustomPersonalities();
-    
-    // Load initial data
     loadChats();
     await loadStats();
     loadPublicPersonalities();
     
-    // Set up periodic stats update
     setInterval(updateStatsDisplay, 30000);
-    
-    // FIXED: Update status to Connected after backend check
     checkBackendStatus();
     
     console.log('✅ Wizard.AI v9.0 ready!');
 });
-
-// FIXED: New function to check backend status and update "Connecting..."
-async function checkBackendStatus() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/status`);
-        if (response.ok) {
-            if (statusText) statusText.textContent = 'Connected';
-            if (statusDot) statusDot.classList.remove('offline');
-            showNotification('✨ Connected to Wizard.AI', 'success', 2000);
-        } else {
-            if (statusText) statusText.textContent = 'Offline';
-            if (statusDot) statusDot.classList.add('offline');
-        }
-    } catch (error) {
-        console.log('Backend not reachable, using offline mode');
-        if (statusText) statusText.textContent = 'Offline Mode';
-        if (statusDot) statusDot.classList.add('offline');
-    }
-}
 
 // ============================================
 // SERVICE WORKER (PWA)
@@ -426,15 +389,35 @@ function registerServiceWorker() {
 }
 
 // ============================================
-// STATS FUNCTIONS - REAL IMPLEMENTATION
+// BACKEND STATUS CHECK
+// ============================================
+async function checkBackendStatus() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/status`);
+        if (response.ok) {
+            const data = await response.json();
+            if (statusText) statusText.textContent = 'Connected';
+            if (statusDot) statusDot.classList.remove('offline');
+            console.log('✅ Backend connected:', data);
+        } else {
+            if (statusText) statusText.textContent = 'Offline';
+            if (statusDot) statusDot.classList.add('offline');
+        }
+    } catch (error) {
+        console.log('⚠️ Backend not reachable, using offline mode');
+        if (statusText) statusText.textContent = 'Offline Mode';
+        if (statusDot) statusDot.classList.add('offline');
+    }
+}
+
+// ============================================
+// STATS FUNCTIONS
 // ============================================
 
-// Load stats from localStorage or API
 async function loadStats() {
     console.log('📊 Loading real stats...');
     
     if (currentUser) {
-        // Load from API for logged-in users
         try {
             const response = await fetch(`${API_BASE_URL}/api/stats`, {
                 credentials: 'include'
@@ -448,7 +431,6 @@ async function loadStats() {
                 userStats.searches = data.searches || 0;
                 userStats.codeExecutions = data.code || 0;
                 
-                // Update detailed stats if modal is open
                 if (statsCreated) statsCreated.textContent = data.account_created || '-';
                 if (statsLast) statsLast.textContent = data.last_login || '-';
                 if (statsTotalMsgs) statsTotalMsgs.textContent = data.messages || 0;
@@ -461,20 +443,19 @@ async function loadStats() {
                 if (statsDocs) statsDocs.textContent = data.documents || 0;
                 if (statsAvgResponse) statsAvgResponse.textContent = (data.avg_response_time || 0.4) + 's';
                 if (statsFastest) statsFastest.textContent = (data.fastest_response || 0.2) + 's';
+                if (statsApiKeys) statsApiKeys.textContent = data.api_keys || 0;
             }
         } catch (error) {
             console.error('Failed to load stats from API:', error);
             loadStatsFromStorage();
         }
     } else {
-        // Load from localStorage for guests
         loadStatsFromStorage();
     }
     
     updateStatsDisplay();
 }
 
-// Load stats from localStorage
 function loadStatsFromStorage() {
     const saved = localStorage.getItem('wizard_stats');
     if (saved) {
@@ -487,7 +468,6 @@ function loadStatsFromStorage() {
     }
 }
 
-// Save stats to localStorage (for guests)
 function saveStatsToStorage() {
     if (!currentUser) {
         localStorage.setItem('wizard_stats', JSON.stringify({
@@ -501,7 +481,6 @@ function saveStatsToStorage() {
     }
 }
 
-// Update the stats display in UI
 function updateStatsDisplay() {
     if (statMessages) statMessages.textContent = userStats.messages;
     if (statFiles) statFiles.textContent = userStats.files;
@@ -509,24 +488,20 @@ function updateStatsDisplay() {
     if (statImages) statImages.textContent = userStats.images;
     if (statSearches) statSearches.textContent = userStats.searches;
     
-    // Calculate average response time
     const avgResponse = userStats.responseTimes.length > 0 
         ? (userStats.responseTimes.reduce((a, b) => a + b, 0) / userStats.responseTimes.length).toFixed(1)
         : '0.4';
     if (statResponse) statResponse.textContent = avgResponse + 's';
     
-    // Update quick stats
     if (quickToday) quickToday.textContent = userStats.todayMessages + ' msgs';
     if (quickTotal) quickTotal.textContent = userStats.messages + ' msgs';
 }
 
-// Track a new message
 function trackMessage(responseTime) {
     userStats.messages++;
     userStats.todayMessages++;
     if (responseTime) {
         userStats.responseTimes.push(responseTime);
-        // Keep only last 100 response times
         if (userStats.responseTimes.length > 100) {
             userStats.responseTimes.shift();
         }
@@ -563,7 +538,6 @@ function trackCode() {
 // EVENT LISTENERS
 // ============================================
 function setupEventListeners() {
-    // Send message
     if (sendBtn) sendBtn.addEventListener('click', sendMessage);
     if (chatInput) {
         chatInput.addEventListener('keypress', (e) => {
@@ -574,17 +548,9 @@ function setupEventListeners() {
         });
     }
     
-    // Voice input
-    if (voiceBtn) {
-        voiceBtn.addEventListener('click', toggleVoiceInput);
-    }
+    if (voiceBtn) voiceBtn.addEventListener('click', toggleVoiceInput);
+    if (turboBtn) turboBtn.addEventListener('click', toggleTurboMode);
     
-    // Turbo mode
-    if (turboBtn) {
-        turboBtn.addEventListener('click', toggleTurboMode);
-    }
-    
-    // Toolbar buttons
     if (searchBtn) searchBtn.addEventListener('click', toggleSearchMode);
     if (uploadBtn) uploadBtn.addEventListener('click', () => fileUpload.click());
     if (codeBtn) codeBtn.addEventListener('click', () => openModal(codeModal));
@@ -594,16 +560,13 @@ function setupEventListeners() {
     if (personalitiesBtn) personalitiesBtn.addEventListener('click', openPersonalitiesBrowser);
     if (apiKeysBtn) apiKeysBtn.addEventListener('click', openApiKeysModal);
     
-    // File upload
     if (fileUpload) fileUpload.addEventListener('change', handleFileUpload);
     
-    // Chat actions
     if (newChatBtn) newChatBtn.addEventListener('click', createNewChat);
     if (renameChatBtn) renameChatBtn.addEventListener('click', () => openRenameModal(activeChatId));
     if (deleteChatBtn) deleteChatBtn.addEventListener('click', () => deleteChat(activeChatId));
     if (resetCurrentBtn) resetCurrentBtn.addEventListener('click', resetCurrentChat);
     
-    // Auth buttons
     const loginBtn = document.getElementById('show-login-btn');
     const signupBtn = document.getElementById('show-signup-btn');
     
@@ -611,13 +574,11 @@ function setupEventListeners() {
     if (signupBtn) signupBtn.addEventListener('click', () => showAuthModal(false));
     if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
     
-    // Auth modal
     if (authSwitchBtn) authSwitchBtn.addEventListener('click', toggleAuthMode);
     if (authSubmit) authSubmit.addEventListener('click', handleAuthSubmit);
     if (closeAuth) closeAuth.addEventListener('click', () => closeModal(authModal));
     if (resendCodeBtn) resendCodeBtn.addEventListener('click', resendVerificationCode);
     
-    // Modal close buttons
     if (closeRename) closeRename.addEventListener('click', () => closeModal(renameModal));
     if (closeCode) closeCode.addEventListener('click', () => closeModal(codeModal));
     if (closeImage) closeImage.addEventListener('click', () => closeModal(imageModal));
@@ -627,7 +588,6 @@ function setupEventListeners() {
     if (closeApiKeys) closeApiKeys.addEventListener('click', () => closeModal(apiKeysModal));
     if (closeNewKey) closeNewKey.addEventListener('click', () => closeModal(newKeyModal));
     
-    // Rename modal
     if (renameSave) renameSave.addEventListener('click', saveRename);
     if (renameCancel) renameCancel.addEventListener('click', () => closeModal(renameModal));
     if (renameInput) {
@@ -636,7 +596,6 @@ function setupEventListeners() {
         });
     }
     
-    // Code modal
     if (runCodeBtn) runCodeBtn.addEventListener('click', executeCode);
     if (clearCodeBtn) {
         clearCodeBtn.addEventListener('click', () => {
@@ -645,35 +604,29 @@ function setupEventListeners() {
         });
     }
     
-    // Image modal
     if (generateImageBtn) generateImageBtn.addEventListener('click', generateImage);
     
-    // Personality creator
     if (toggleCreatorBtn) toggleCreatorBtn.addEventListener('click', toggleCreatorPanel);
     if (savePersonality) savePersonality.addEventListener('click', saveCustomPersonality);
     if (cancelPersonality) cancelPersonality.addEventListener('click', closeCreatorPanel);
     if (closeCreator) closeCreator.addEventListener('click', closeCreatorPanel);
     
-    // Tab buttons
     if (tabBtns.length) {
         tabBtns.forEach(btn => {
             btn.addEventListener('click', () => switchPersonalityTab(btn.dataset.tab));
         });
     }
     
-    // API Keys
     if (createApiKeyBtn) createApiKeyBtn.addEventListener('click', createApiKey);
     if (createApiKeyModalBtn) createApiKeyModalBtn.addEventListener('click', createApiKey);
     if (copyNewKeyBtn) copyNewKeyBtn.addEventListener('click', copyApiKeyToClipboard);
     
-    // Click outside modals
     window.addEventListener('click', (e) => {
         if (e.target.classList.contains('modal-overlay')) {
             closeModal(e.target);
         }
     });
     
-    // Emergency reset (F2)
     document.addEventListener('keydown', (e) => {
         if (e.key === 'F2') {
             e.preventDefault();
@@ -694,24 +647,20 @@ function closeModal(modal) {
 }
 
 // ============================================
-// DROPDOWN SETUP - FIXED: Position and custom personalities
+// DROPDOWN SETUP
 // ============================================
 function setupDropdown() {
     if (!dropdownContent) return;
     
-    // Clear existing
     dropdownContent.innerHTML = '';
     
-    // Add built-in modes
     Object.keys(modeData).forEach(mode => {
         const item = createDropdownItem(mode, modeData[mode].emoji);
         dropdownContent.appendChild(item);
     });
     
-    // Add separator and custom personalities if any
     updateCustomPersonalitiesDropdown();
     
-    // Dropdown toggle
     if (dropdownBtn) {
         dropdownBtn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -719,7 +668,6 @@ function setupDropdown() {
         });
     }
     
-    // Close on click outside
     document.addEventListener('click', (e) => {
         if (!dropdown.contains(e.target)) {
             dropdown.classList.remove('open');
@@ -733,17 +681,8 @@ function createDropdownItem(mode, emoji, isCustom = false) {
     item.setAttribute('data-mode', mode);
     item.innerHTML = `<span style="font-size: 18px;">${emoji}</span><span>${mode}</span>`;
     
-    // Add tooltip events
     item.addEventListener('mouseenter', (e) => showTooltip(mode, e));
-    item.addEventListener('mousemove', (e) => {
-        if (tooltipEl && tooltipEl.style.display === 'block') {
-            const rect = e.target.getBoundingClientRect();
-            tooltipEl.style.left = `${rect.right + 15}px`;
-            tooltipEl.style.top = `${rect.top}px`;
-        }
-    });
     item.addEventListener('mouseleave', hideTooltip);
-    
     item.addEventListener('click', () => selectMode(mode));
     
     return item;
@@ -755,7 +694,6 @@ function selectMode(mode) {
     if (dropdown) dropdown.classList.remove('open');
     hideTooltip();
     
-    // Save to current chat
     if (chats[activeChatId]) {
         chats[activeChatId].mode = mode;
         saveChats();
@@ -770,14 +708,13 @@ function updateModeDisplay() {
         selectedDisplay.innerHTML = `${mode.emoji || '🤖'} ${currentMode}`;
     }
     
-    // Update selected class
     document.querySelectorAll('.dropdown-item').forEach(el => {
         el.classList.toggle('selected', el.dataset.mode === currentMode);
     });
 }
 
 // ============================================
-// CUSTOM PERSONALITIES - FIXED: Loading and saving
+// CUSTOM PERSONALITIES
 // ============================================
 function loadCustomPersonalities() {
     const saved = localStorage.getItem('wizard_custom_personalities');
@@ -798,21 +735,19 @@ function saveCustomPersonalitiesToStorage() {
 function updateCustomPersonalitiesDropdown() {
     if (!dropdownContent) return;
     
-    // Remove existing custom items and separator
     document.querySelectorAll('.dropdown-item.custom, .dropdown-separator').forEach(el => el.remove());
     
-    // Add separator if there are custom personalities
     if (customPersonalities.length > 0) {
         const separator = document.createElement('div');
         separator.className = 'dropdown-separator';
         separator.style.cssText = `
             padding: 8px 15px;
-            color: var(--text-muted);
+            color: #9ca3af;
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            border-top: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
+            border-top: 1px solid rgba(139, 92, 246, 0.3);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.3);
             background: rgba(0,0,0,0.2);
         `;
         separator.textContent = '✨ CUSTOM PERSONALITIES';
@@ -886,7 +821,6 @@ async function saveCustomPersonality() {
         if (response.ok) {
             const personality = await response.json();
             
-            // Add to local custom personalities
             customPersonalities.push({
                 name: personality.name,
                 emoji: personality.emoji,
@@ -895,10 +829,7 @@ async function saveCustomPersonality() {
                 id: personality.id
             });
             
-            // Save to localStorage
             saveCustomPersonalitiesToStorage();
-            
-            // Update dropdown
             updateCustomPersonalitiesDropdown();
             
             showNotification('Personality created!', 'success');
@@ -1015,7 +946,6 @@ async function sendMessage() {
     const text = chatInput ? chatInput.value.trim() : '';
     if (!text) return;
     
-    // Add user message
     addMessage('user', text);
     if (chatInput) chatInput.value = '';
     
@@ -1025,16 +955,13 @@ async function sendMessage() {
         sendBtn.classList.add('loading');
     }
     
-    // Show typing indicator
     if (typingIndicator) typingIndicator.style.display = 'flex';
     
-    // Determine if we should search
     const shouldSearch = searchMode || shouldAutoSearch(text);
     if (shouldSearch && inputSearchIndicator) {
         inputSearchIndicator.style.display = 'inline';
     }
     
-    // Create message container for streaming
     const messageDiv = document.createElement('div');
     messageDiv.className = 'message wizard streaming';
     messageDiv.innerHTML = `
@@ -1095,28 +1022,23 @@ async function sendMessage() {
                             fullResponse = 'Error: ' + parsed.error;
                             if (responseSpan) responseSpan.textContent = fullResponse;
                         }
-                    } catch (e) {
-                        // Not JSON, ignore
-                    }
+                    } catch (e) {}
                 }
             }
         }
         
         const responseTime = (Date.now() - startTime) / 1000;
         
-        // Finalize message
         if (messageDiv) messageDiv.classList.remove('streaming');
         
         messages.push({ sender: 'user', text });
         messages.push({ sender: 'assistant', text: fullResponse, mode: currentMode });
         
-        // Update chat
         if (chats[activeChatId]) {
             chats[activeChatId].messages = messages;
             saveChats();
         }
         
-        // Update stats
         trackMessage(responseTime);
         if (shouldSearch) trackSearch();
         
@@ -1164,7 +1086,6 @@ function addMessage(sender, text, mode = null) {
 // CHAT MANAGEMENT
 // ============================================
 function loadChats() {
-    // Load from localStorage for guest
     const saved = localStorage.getItem('wizard_chats');
     if (saved) {
         try {
@@ -1174,7 +1095,6 @@ function loadChats() {
             activeChatId = data.activeChatId || 'default';
             messages = data.messages || [];
             
-            // Ensure default chat exists
             if (!chats['default']) {
                 chats['default'] = {
                     chat_id: 'default',
@@ -1235,7 +1155,6 @@ function renderChatsList() {
     
     chatsList.innerHTML = html;
     
-    // Add click handlers
     document.querySelectorAll('.chat-item').forEach(el => {
         el.addEventListener('click', (e) => {
             if (!e.target.closest('button')) {
@@ -1268,17 +1187,14 @@ function renderMessages() {
 }
 
 function switchChat(chatId) {
-    // Save current chat
     if (chats[activeChatId]) {
         chats[activeChatId].messages = messages;
     }
     
-    // Switch to new chat
     activeChatId = chatId;
     messages = chats[chatId]?.messages || [];
     currentMode = chats[chatId]?.mode || 'JARVIS';
     
-    // Update UI
     updateModeDisplay();
     renderMessages();
     renderChatsList();
@@ -1371,7 +1287,6 @@ function saveChats() {
         messages
     }));
     
-    // If user is logged in, also save to server
     if (currentUser) {
         fetch(`${API_BASE_URL}/api/save-chats`, {
             method: 'POST',
@@ -1399,12 +1314,10 @@ async function checkAuth() {
             currentUser = data.user;
             updateUIForAuth();
             
-            // Load user data
             if (data.memories) {
                 userStats.memories = data.memories.length;
             }
             
-            // Load custom personalities from server
             loadUserPersonalitiesFromServer();
         } else {
             updateUIForAuth();
@@ -1509,7 +1422,6 @@ async function handleLogin() {
             const data = await response.json();
             currentUser = data.user;
             
-            // Load chats
             if (data.chats) {
                 chats = {};
                 data.chats.forEach(c => chats[c.chat_id] = c);
@@ -1518,7 +1430,6 @@ async function handleLogin() {
                 messages = chats[activeChatId]?.messages || [];
             }
             
-            // Load memories
             if (data.memories) {
                 userStats.memories = data.memories.length;
             }
@@ -1528,7 +1439,6 @@ async function handleLogin() {
             renderMessages();
             updateStatsDisplay();
             
-            // Load custom personalities
             loadUserPersonalitiesFromServer();
             
             if (authModal) closeModal(authModal);
@@ -1579,18 +1489,17 @@ async function handleSignup() {
             if (authSubmit) authSubmit.textContent = 'Verify Code';
             if (authModalTitle) authModalTitle.textContent = 'Verify Your Email';
             
-            // Show code for development
-            if (data.dev_code) {
-                if (authError) {
-                    authError.textContent = `🔐 Your verification code: ${data.dev_code}`;
+            if (authError) {
+                if (data.dev_code) {
+                    authError.textContent = `🔐 Development code: ${data.dev_code}`;
                     authError.style.color = '#10b981';
-                }
-            } else {
-                if (authError) {
-                    authError.textContent = `Code sent to ${email}`;
+                } else {
+                    authError.textContent = `📧 Verification code sent to ${email}`;
                     authError.style.color = '#10b981';
                 }
             }
+            
+            showNotification('📧 Verification code sent!', 'success');
         } else {
             const error = await response.json();
             if (authError) authError.textContent = error.error || 'Signup failed';
@@ -1649,20 +1558,36 @@ async function resendVerificationCode() {
     try {
         const response = await fetch(`${API_BASE_URL}/api/resend-code`, {
             method: 'POST',
-            credentials: 'include'
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
         
         if (response.ok) {
+            const data = await response.json();
             if (authError) {
-                authError.textContent = 'Code resent!';
+                if (data.dev_code) {
+                    authError.textContent = `🔐 New code: ${data.dev_code}`;
+                } else {
+                    authError.textContent = 'Verification code resent! Check your email.';
+                }
                 authError.style.color = '#10b981';
             }
+            showNotification('📧 Verification code resent!', 'success');
         } else {
-            if (authError) authError.textContent = 'Failed to resend';
+            const error = await response.json();
+            if (authError) {
+                authError.textContent = error.error || 'Failed to resend code';
+                authError.style.color = '#ef4444';
+            }
         }
     } catch (error) {
         console.error('Resend error:', error);
-        if (authError) authError.textContent = 'Connection error';
+        if (authError) {
+            authError.textContent = 'Connection error';
+            authError.style.color = '#ef4444';
+        }
     }
 }
 
@@ -1767,10 +1692,8 @@ async function loadPublicPersonalities() {
                 });
                 personalitiesList.innerHTML = html;
                 
-                // Add click handlers
                 document.querySelectorAll('.personality-item').forEach(el => {
                     el.addEventListener('click', () => usePersonality(el.dataset.id));
-                    // Add tooltips
                     el.addEventListener('mouseenter', (e) => {
                         const personality = publicPersonalities.find(p => p.id == el.dataset.id);
                         if (personality) showTooltip(personality.name, e);
@@ -1789,7 +1712,6 @@ async function usePersonality(id) {
     const personality = publicPersonalities.find(p => p.id == id);
     
     if (personality) {
-        // Track usage
         try {
             await fetch(`${API_BASE_URL}/api/personalities/${id}/use`, {
                 method: 'POST',
@@ -1799,7 +1721,6 @@ async function usePersonality(id) {
             console.error('Failed to track usage:', e);
         }
         
-        // Add to mode data temporarily
         if (!modeData[personality.name]) {
             modeData[personality.name] = {
                 emoji: personality.emoji || '🤖',
@@ -1874,20 +1795,11 @@ function renderPersonalitiesGrid(personalities) {
     
     personalitiesGrid.innerHTML = html;
     
-    // Add click handlers
     document.querySelectorAll('.personality-card').forEach(el => {
         el.addEventListener('click', () => usePersonality(el.dataset.id));
-        // Add tooltips
         el.addEventListener('mouseenter', (e) => {
             const personality = personalities.find(p => p.id == el.dataset.id);
             if (personality) {
-                const tempMode = {
-                    name: personality.name,
-                    emoji: personality.emoji,
-                    desc: personality.system_prompt ? personality.system_prompt.substring(0, 100) + '...' : 'Custom personality',
-                    likes: personality.likes,
-                    uses: personality.uses
-                };
                 showTooltip(personality.name, e);
             }
         });
@@ -1920,7 +1832,6 @@ async function handleFileUpload(e) {
     formData.append('file', file);
     formData.append('chat_id', activeChatId);
     
-    // Show progress bar
     if (uploadProgress) uploadProgress.style.display = 'block';
     if (progressBarFill) progressBarFill.style.width = '0%';
     if (progressText) progressText.textContent = 'Starting upload...';
@@ -2172,11 +2083,9 @@ async function createApiKey() {
         if (response.ok) {
             const key = await response.json();
             
-            // Show the new key in a modal
             if (newKeyValue) newKeyValue.textContent = key.key;
             if (newKeyModal) openModal(newKeyModal);
             
-            // Refresh list
             await loadApiKeys();
         } else {
             showNotification('Failed to create API key', 'error');
@@ -2275,7 +2184,6 @@ function emergencyReset() {
 // MODAL SETUP
 // ============================================
 function setupModals() {
-    // Close modals with Escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             document.querySelectorAll('.modal-overlay.active').forEach(closeModal);
