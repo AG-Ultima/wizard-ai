@@ -100,8 +100,6 @@ const lastNameInput = document.getElementById('last-name');
 const verificationGroup = document.getElementById('verification-group');
 const verificationInput = document.getElementById('verification-code');
 const resendCodeBtn = document.getElementById('resend-code-btn');
-
-// 🔥 FIXED: Added missing confirmPasswordGroup
 const confirmPasswordGroup = document.getElementById('confirm-password-group');
 
 // User elements
@@ -285,11 +283,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Load initial data
     loadChats();
-    loadStats(); // 🔥 FIXED: Now this function exists
+    await loadStats(); // Now this is defined
     loadPublicPersonalities();
     
     // Set up periodic stats update
-    setInterval(updateStats, 30000);
+    setInterval(updateStatsDisplay, 30000);
     
     console.log('✅ Wizard.AI v9.0 ready!');
 });
@@ -306,11 +304,123 @@ function registerServiceWorker() {
 }
 
 // ============================================
-// 🔥 FIXED: Added missing loadStats function
+// STATS FUNCTIONS - REAL IMPLEMENTATION
 // ============================================
-function loadStats() {
-    console.log('📊 Loading stats...');
-    updateStats();
+
+// Load stats from localStorage or API
+async function loadStats() {
+    console.log('📊 Loading real stats...');
+    
+    if (currentUser) {
+        // Load from API for logged-in users
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/stats`, {
+                credentials: 'include'
+            });
+            if (response.ok) {
+                const data = await response.json();
+                userStats.messages = data.messages || 0;
+                userStats.files = data.files || 0;
+                userStats.memories = data.memories || 0;
+                userStats.images = data.images || 0;
+                userStats.searches = data.searches || 0;
+                userStats.codeExecutions = data.code || 0;
+            }
+        } catch (error) {
+            console.error('Failed to load stats from API:', error);
+            loadStatsFromStorage();
+        }
+    } else {
+        // Load from localStorage for guests
+        loadStatsFromStorage();
+    }
+    
+    updateStatsDisplay();
+}
+
+// Load stats from localStorage
+function loadStatsFromStorage() {
+    const saved = localStorage.getItem('wizard_stats');
+    if (saved) {
+        try {
+            const data = JSON.parse(saved);
+            userStats = { ...userStats, ...data };
+        } catch (e) {
+            console.error('Failed to parse saved stats:', e);
+        }
+    }
+}
+
+// Save stats to localStorage (for guests)
+function saveStatsToStorage() {
+    if (!currentUser) {
+        localStorage.setItem('wizard_stats', JSON.stringify({
+            messages: userStats.messages,
+            files: userStats.files,
+            memories: userStats.memories,
+            images: userStats.images,
+            searches: userStats.searches,
+            codeExecutions: userStats.codeExecutions
+        }));
+    }
+}
+
+// Update the stats display in UI
+function updateStatsDisplay() {
+    if (statMessages) statMessages.textContent = userStats.messages;
+    if (statFiles) statFiles.textContent = userStats.files;
+    if (statMemories) statMemories.textContent = userStats.memories;
+    if (statImages) statImages.textContent = userStats.images;
+    if (statSearches) statSearches.textContent = userStats.searches;
+    
+    // Calculate average response time
+    const avgResponse = userStats.responseTimes.length > 0 
+        ? (userStats.responseTimes.reduce((a, b) => a + b, 0) / userStats.responseTimes.length).toFixed(1)
+        : '0.4';
+    if (statResponse) statResponse.textContent = avgResponse + 's';
+    
+    // Update quick stats
+    if (quickToday) quickToday.textContent = userStats.todayMessages + ' msgs';
+    if (quickTotal) quickTotal.textContent = userStats.messages + ' msgs';
+}
+
+// Track a new message
+function trackMessage(responseTime) {
+    userStats.messages++;
+    userStats.todayMessages++;
+    if (responseTime) {
+        userStats.responseTimes.push(responseTime);
+        // Keep only last 100 response times
+        if (userStats.responseTimes.length > 100) {
+            userStats.responseTimes.shift();
+        }
+    }
+    updateStatsDisplay();
+    saveStatsToStorage();
+}
+
+function trackFile() {
+    userStats.files++;
+    updateStatsDisplay();
+    saveStatsToStorage();
+}
+
+function trackImage() {
+    userStats.images++;
+    updateStatsDisplay();
+    saveStatsToStorage();
+}
+
+function trackSearch() {
+    userStats.searches++;
+    updateStatsDisplay();
+    saveStatsToStorage();
+}
+
+function trackCode() {
+    userStats.codeExecutions++;
+    updateStatsDisplay();
+    saveStatsToStorage();
 }
 
 // ============================================
@@ -513,8 +623,8 @@ function toggleCreatorPanel() {
     if (!creatorPanel) return;
     creatorPanel.style.display = creatorPanel.style.display === 'none' ? 'block' : 'none';
     if (toggleCreatorBtn) {
-        toggleCreatorBtn.querySelector('span').textContent = 
-            creatorPanel.style.display === 'block' ? '➖' : '➕';
+        const span = toggleCreatorBtn.querySelector('span');
+        if (span) span.textContent = creatorPanel.style.display === 'block' ? '➖' : '➕';
     }
 }
 
@@ -522,7 +632,8 @@ function closeCreatorPanel() {
     if (!creatorPanel) return;
     creatorPanel.style.display = 'none';
     if (toggleCreatorBtn) {
-        toggleCreatorBtn.querySelector('span').textContent = '➕';
+        const span = toggleCreatorBtn.querySelector('span');
+        if (span) span.textContent = '➕';
     }
     clearCreatorForm();
 }
@@ -550,8 +661,26 @@ async function saveCustomPersonality() {
         return;
     }
     
-    showNotification('Personality created! (demo)', 'success');
-    closeCreatorPanel();
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/personalities`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ name, emoji, prompt, greeting, is_public: true })
+        });
+        
+        if (response.ok) {
+            const personality = await response.json();
+            customPersonalities.push(personality);
+            showNotification('Personality created!', 'success');
+            closeCreatorPanel();
+        } else {
+            showNotification('Failed to create personality', 'error');
+        }
+    } catch (error) {
+        console.error('Error creating personality:', error);
+        showNotification('Error creating personality', 'error');
+    }
 }
 
 // ============================================
@@ -633,7 +762,22 @@ function toggleSearchMode() {
 }
 
 // ============================================
-// STREAMING CHAT (Simplified for now)
+// AUTO SEARCH DETECTION
+// ============================================
+function shouldAutoSearch(text) {
+    const searchTriggers = [
+        'latest', 'news', 'current', 'today', 'now', 
+        '2024', '2025', '2026', 'recent', 'update',
+        'weather', 'stock', 'price', 'score', 'results',
+        'who is', 'what is', 'tell me about'
+    ];
+    
+    const lowerText = text.toLowerCase();
+    return searchTriggers.some(trigger => lowerText.includes(trigger));
+}
+
+// ============================================
+// STREAMING CHAT
 // ============================================
 async function sendMessage() {
     if (isThinking) return;
@@ -654,27 +798,111 @@ async function sendMessage() {
     // Show typing indicator
     if (typingIndicator) typingIndicator.style.display = 'flex';
     
-    // Simulate response for now (replace with actual API call)
-    setTimeout(() => {
-        const response = "Thanks for your message! The streaming API will be connected soon.";
-        addMessage('assistant', response, currentMode);
+    // Determine if we should search
+    const shouldSearch = searchMode || shouldAutoSearch(text);
+    if (shouldSearch && inputSearchIndicator) {
+        inputSearchIndicator.style.display = 'inline';
+    }
+    
+    // Create message container for streaming
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'message wizard streaming';
+    messageDiv.innerHTML = `
+        <div class="message-content">
+            <span class="message-icon">${modeData[currentMode]?.emoji || '🧙'}</span>
+            <span class="message-text" id="streaming-response"></span>
+        </div>
+        <span class="message-time">${new Date().toLocaleTimeString()}</span>
+    `;
+    if (chatHistory) chatHistory.appendChild(messageDiv);
+    
+    const responseSpan = document.getElementById('streaming-response');
+    let fullResponse = '';
+    
+    try {
+        const startTime = Date.now();
         
+        const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                prompt: text,
+                mode: currentMode,
+                turbo: turboMode,
+                search: shouldSearch,
+                chat_id: activeChatId
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n\n');
+            
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = line.slice(6);
+                    if (data === '[DONE]') continue;
+                    
+                    try {
+                        const parsed = JSON.parse(data);
+                        if (parsed.token) {
+                            fullResponse += parsed.token;
+                            if (responseSpan) responseSpan.textContent = fullResponse;
+                            if (chatHistory) chatHistory.scrollTop = chatHistory.scrollHeight;
+                        } else if (parsed.error) {
+                            console.error('Stream error:', parsed.error);
+                            fullResponse = 'Error: ' + parsed.error;
+                            if (responseSpan) responseSpan.textContent = fullResponse;
+                        }
+                    } catch (e) {
+                        // Not JSON, ignore
+                    }
+                }
+            }
+        }
+        
+        const responseTime = (Date.now() - startTime) / 1000;
+        
+        // Finalize message
+        if (messageDiv) messageDiv.classList.remove('streaming');
+        
+        messages.push({ sender: 'user', text });
+        messages.push({ sender: 'assistant', text: fullResponse, mode: currentMode });
+        
+        // Update chat
+        if (chats[activeChatId]) {
+            chats[activeChatId].messages = messages;
+            saveChats();
+        }
+        
+        // Update stats
+        trackMessage(responseTime);
+        if (shouldSearch) trackSearch();
+        
+    } catch (error) {
+        console.error('Streaming error:', error);
+        if (responseSpan) responseSpan.textContent = 'Error getting response. Please try again.';
+        if (messageDiv) messageDiv.classList.remove('streaming');
+    } finally {
         isThinking = false;
         if (sendBtn) {
             sendBtn.disabled = false;
             sendBtn.classList.remove('loading');
         }
         if (typingIndicator) typingIndicator.style.display = 'none';
-        
-        messages.push({ sender: 'user', text });
-        messages.push({ sender: 'assistant', text: response, mode: currentMode });
-        
-        if (chats[activeChatId]) {
-            chats[activeChatId].messages = messages;
-        }
-        
-        trackMessage();
-    }, 1000);
+        if (inputSearchIndicator) inputSearchIndicator.style.display = 'none';
+    }
 }
 
 // ============================================
@@ -912,6 +1140,19 @@ function saveChats() {
         activeChatId,
         messages
     }));
+    
+    // If user is logged in, also save to server
+    if (currentUser) {
+        fetch(`${API_BASE_URL}/api/save-chats`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                chats: Object.values(chats),
+                chat_order: chatIds
+            })
+        }).catch(e => console.error('Failed to save chats to server:', e));
+    }
 }
 
 // ============================================
@@ -927,6 +1168,11 @@ async function checkAuth() {
             const data = await response.json();
             currentUser = data.user;
             updateUIForAuth();
+            
+            // Load user data
+            if (data.memories) {
+                userStats.memories = data.memories.length;
+            }
         } else {
             updateUIForAuth();
         }
@@ -941,7 +1187,7 @@ function updateUIForAuth() {
         userInfo.style.display = 'flex';
         authButtons.style.display = 'none';
         if (userEmail) userEmail.textContent = currentUser.email;
-        if (userName) userName.textContent = `${currentUser.first_name || ''} ${currentUser.last_name || ''}`;
+        if (userName) userName.textContent = `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || 'User';
         if (userAvatar) userAvatar.textContent = currentUser.first_name?.[0] || '👤';
     } else if (userInfo && authButtons) {
         userInfo.style.display = 'none';
@@ -958,7 +1204,6 @@ function showAuthModal(login = true) {
     
     if (firstNameGroup) firstNameGroup.style.display = login ? 'none' : 'block';
     if (lastNameGroup) lastNameGroup.style.display = login ? 'none' : 'block';
-    // 🔥 FIXED: Using confirmPasswordGroup
     if (confirmPasswordGroup) confirmPasswordGroup.style.display = login ? 'none' : 'block';
     if (verificationGroup) verificationGroup.style.display = 'none';
     
@@ -1006,17 +1251,26 @@ async function handleLogin() {
         if (response.ok) {
             const data = await response.json();
             currentUser = data.user;
-            chats = {};
+            
+            // Load chats
             if (data.chats) {
+                chats = {};
                 data.chats.forEach(c => chats[c.chat_id] = c);
+                chatIds = data.chat_order || ['default'];
+                activeChatId = chatIds[0];
+                messages = chats[activeChatId]?.messages || [];
             }
-            chatIds = data.chat_order || ['default'];
-            activeChatId = chatIds[0];
-            messages = chats[activeChatId]?.messages || [];
+            
+            // Load memories
+            if (data.memories) {
+                userStats.memories = data.memories.length;
+            }
             
             updateUIForAuth();
             renderChatsList();
             renderMessages();
+            updateStatsDisplay();
+            
             if (authModal) closeModal(authModal);
             showNotification(`Welcome back, ${currentUser.first_name || ''}!`, 'success');
         } else {
@@ -1046,17 +1300,100 @@ async function handleSignup() {
         return;
     }
     
-    showNotification('Signup will be implemented with the backend', 'info');
-    if (authModal) closeModal(authModal);
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/register/init`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ firstName, lastName, email, password })
+        });
+        
+        if (response.ok) {
+            signupEmail = email;
+            
+            if (firstNameGroup) firstNameGroup.style.display = 'none';
+            if (lastNameGroup) lastNameGroup.style.display = 'none';
+            if (confirmPasswordGroup) confirmPasswordGroup.style.display = 'none';
+            if (verificationGroup) verificationGroup.style.display = 'block';
+            if (authSubmit) authSubmit.textContent = 'Verify Code';
+            if (authModalTitle) authModalTitle.textContent = 'Verify Your Email';
+            if (authError) {
+                authError.textContent = `Code sent to ${email}`;
+                authError.style.color = '#10b981';
+            }
+        } else {
+            const error = await response.json();
+            if (authError) authError.textContent = error.error || 'Signup failed';
+        }
+    } catch (error) {
+        console.error('Signup error:', error);
+        if (authError) authError.textContent = 'Connection error';
+    }
 }
 
 async function handleVerify() {
-    showNotification('Verification coming soon', 'info');
-    if (authModal) closeModal(authModal);
+    const code = verificationInput ? verificationInput.value.trim() : '';
+    
+    if (!code || code.length !== 6) {
+        if (authError) authError.textContent = 'Enter 6-digit code';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/register/verify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ email: signupEmail, code })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            currentUser = data.user;
+            
+            if (data.chats) {
+                chats = {};
+                data.chats.forEach(c => chats[c.chat_id] = c);
+                chatIds = data.chat_order || ['default'];
+                activeChatId = chatIds[0];
+                messages = chats[activeChatId]?.messages || [];
+            }
+            
+            updateUIForAuth();
+            renderChatsList();
+            renderMessages();
+            
+            if (authModal) closeModal(authModal);
+            showNotification('Account verified! Welcome!', 'success');
+        } else {
+            const error = await response.json();
+            if (authError) authError.textContent = error.error || 'Verification failed';
+        }
+    } catch (error) {
+        console.error('Verify error:', error);
+        if (authError) authError.textContent = 'Connection error';
+    }
 }
 
 async function resendVerificationCode() {
-    showNotification('Resend code coming soon', 'info');
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/resend-code`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            if (authError) {
+                authError.textContent = 'Code resent!';
+                authError.style.color = '#10b981';
+            }
+        } else {
+            if (authError) authError.textContent = 'Failed to resend';
+        }
+    } catch (error) {
+        console.error('Resend error:', error);
+        if (authError) authError.textContent = 'Connection error';
+    }
 }
 
 async function handleLogout() {
@@ -1068,6 +1405,7 @@ async function handleLogout() {
     
     currentUser = null;
     updateUIForAuth();
+    loadGuestData();
     showNotification('Logged out', 'success');
 }
 
@@ -1077,79 +1415,14 @@ function loadGuestData() {
         try {
             const data = JSON.parse(saved);
             userStats = data.stats || userStats;
-            updateStats();
+            updateStatsDisplay();
         } catch (e) {}
     }
 }
 
 // ============================================
-// STATS FUNCTIONS
+// MEMORY FUNCTIONS
 // ============================================
-function trackMessage() {
-    userStats.messages++;
-    userStats.todayMessages++;
-    updateStats();
-    saveGuestData();
-}
-
-function trackFile() {
-    userStats.files++;
-    updateStats();
-    saveGuestData();
-}
-
-function trackImage() {
-    userStats.images++;
-    updateStats();
-    saveGuestData();
-}
-
-function trackSearch() {
-    userStats.searches++;
-    if (statSearches) {
-        statSearches.textContent = userStats.searches;
-    }
-    saveGuestData();
-}
-
-function trackCode() {
-    userStats.codeExecutions++;
-    updateStats();
-    saveGuestData();
-}
-
-function updateStats() {
-    if (statMessages) statMessages.textContent = userStats.messages;
-    if (statFiles) statFiles.textContent = userStats.files;
-    if (statMemories) statMemories.textContent = userStats.memories;
-    if (statImages) statImages.textContent = userStats.images;
-    if (statSearches) statSearches.textContent = userStats.searches;
-    
-    const avg = userStats.responseTimes.length > 0 
-        ? (userStats.responseTimes.reduce((a, b) => a + b, 0) / userStats.responseTimes.length).toFixed(1)
-        : '0.4';
-    if (statResponse) statResponse.textContent = avg + 's';
-    
-    if (quickToday) quickToday.textContent = userStats.todayMessages + ' msgs';
-    if (quickTotal) quickTotal.textContent = userStats.messages + ' msgs';
-}
-
-function saveGuestData() {
-    if (!currentUser) {
-        localStorage.setItem('wizard_guest_data', JSON.stringify({ stats: userStats }));
-    }
-}
-
-async function loadDetailedStats() {
-    if (!currentUser) {
-        showNotification('Login to view detailed stats', 'error');
-        return;
-    }
-    
-    if (statsModal) openModal(statsModal);
-    showNotification('Stats coming soon', 'info');
-}
-
 async function loadMemories() {
     if (!currentUser) {
         showNotification('Login to view memories', 'error');
@@ -1157,25 +1430,174 @@ async function loadMemories() {
     }
     
     if (memoryModal) openModal(memoryModal);
-    if (memoryList) memoryList.innerHTML = '<div class="empty-state">No memories yet. Tell me about yourself!</div>';
+    if (memoryList) memoryList.innerHTML = '<div class="loading">Loading memories...</div>';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/memory`, {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            const memories = data.memories || [];
+            
+            userStats.memories = memories.length;
+            updateStatsDisplay();
+            
+            if (memoryList) {
+                if (memories.length === 0) {
+                    memoryList.innerHTML = '<div class="empty-state">No memories yet. Tell me about yourself!</div>';
+                } else {
+                    let html = '';
+                    memories.forEach(m => {
+                        html += `
+                            <div class="memory-item">
+                                <div class="memory-key">${escapeHtml(m.key)}</div>
+                                <div class="memory-value">${escapeHtml(m.value)}</div>
+                                <span class="memory-category">${escapeHtml(m.category)}</span>
+                            </div>
+                        `;
+                    });
+                    memoryList.innerHTML = html;
+                }
+            }
+        } else {
+            if (memoryList) memoryList.innerHTML = '<div class="error">Failed to load memories</div>';
+        }
+    } catch (error) {
+        console.error('Error loading memories:', error);
+        if (memoryList) memoryList.innerHTML = '<div class="error">Error loading memories</div>';
+    }
 }
 
+// ============================================
+// PUBLIC PERSONALITIES
+// ============================================
 async function loadPublicPersonalities() {
-    if (personalitiesList) {
-        personalitiesList.innerHTML = '<div class="empty-state">Personalities coming soon</div>';
+    if (!personalitiesList) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/personalities`);
+        if (response.ok) {
+            const data = await response.json();
+            publicPersonalities = data;
+            
+            if (publicPersonalities.length === 0) {
+                personalitiesList.innerHTML = '<div class="empty-state">No public personalities yet</div>';
+            } else {
+                let html = '';
+                publicPersonalities.slice(0, 5).forEach(p => {
+                    html += `
+                        <div class="personality-item" data-id="${p.id}">
+                            <span class="personality-emoji">${p.emoji || '🤖'}</span>
+                            <span class="personality-name">${p.name}</span>
+                            <span class="personality-likes">❤️ ${p.likes || 0}</span>
+                        </div>
+                    `;
+                });
+                personalitiesList.innerHTML = html;
+                
+                // Add click handlers
+                document.querySelectorAll('.personality-item').forEach(el => {
+                    el.addEventListener('click', () => usePersonality(el.dataset.id));
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Failed to load personalities:', error);
+        personalitiesList.innerHTML = '<div class="error">Failed to load</div>';
+    }
+}
+
+async function usePersonality(id) {
+    const personality = publicPersonalities.find(p => p.id == id);
+    
+    if (personality) {
+        // Track usage
+        try {
+            await fetch(`${API_BASE_URL}/api/personalities/${id}/use`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+        } catch (e) {
+            console.error('Failed to track usage:', e);
+        }
+        
+        // Add to mode data temporarily
+        modeData[personality.name] = {
+            emoji: personality.emoji || '🤖',
+            name: personality.name,
+            desc: 'Custom personality',
+            model: 'Custom',
+            color: '#8b5cf6'
+        };
+        
+        selectMode(personality.name);
+        showNotification(`Switched to ${personality.name}`, 'success');
     }
 }
 
 async function openPersonalitiesBrowser() {
     if (personalitiesModal) openModal(personalitiesModal);
-    if (personalitiesGrid) {
-        personalitiesGrid.innerHTML = '<div class="loading">Loading personalities...</div>';
-        setTimeout(() => {
-            if (personalitiesGrid) {
-                personalitiesGrid.innerHTML = '<div class="empty-state">Personalities coming soon</div>';
-            }
-        }, 1000);
+    await loadPersonalitiesGrid('featured');
+}
+
+async function loadPersonalitiesGrid(tab = 'featured') {
+    if (!personalitiesGrid) return;
+    
+    personalitiesGrid.innerHTML = '<div class="loading">Loading personalities...</div>';
+    
+    try {
+        let url = `${API_BASE_URL}/api/personalities`;
+        if (tab === 'featured') url += '/featured';
+        else if (tab === 'popular') url += '/popular';
+        else if (tab === 'recent') url += '/recent';
+        else if (tab === 'mine' && currentUser) url += '/mine';
+        
+        const response = await fetch(url, { credentials: 'include' });
+        if (response.ok) {
+            const personalities = await response.json();
+            renderPersonalitiesGrid(personalities);
+        } else {
+            personalitiesGrid.innerHTML = '<div class="error">Failed to load</div>';
+        }
+    } catch (error) {
+        console.error('Failed to load personalities:', error);
+        personalitiesGrid.innerHTML = '<div class="error">Failed to load</div>';
     }
+}
+
+function renderPersonalitiesGrid(personalities) {
+    if (!personalitiesGrid) return;
+    
+    if (personalities.length === 0) {
+        personalitiesGrid.innerHTML = '<div class="empty-state">No personalities found</div>';
+        return;
+    }
+    
+    let html = '';
+    personalities.forEach(p => {
+        html += `
+            <div class="personality-card" data-id="${p.id}">
+                <div class="personality-card-header">
+                    <span class="personality-card-emoji">${p.emoji || '🤖'}</span>
+                    <span class="personality-card-name">${p.name}</span>
+                </div>
+                <div class="personality-card-creator">by ${p.creator || 'Anonymous'}</div>
+                <div class="personality-card-stats">
+                    <span class="personality-card-likes">❤️ ${p.likes || 0}</span>
+                    <span class="personality-card-uses">🔄 ${p.uses || 0}</span>
+                </div>
+            </div>
+        `;
+    });
+    
+    personalitiesGrid.innerHTML = html;
+    
+    // Add click handlers
+    document.querySelectorAll('.personality-card').forEach(el => {
+        el.addEventListener('click', () => usePersonality(el.dataset.id));
+    });
 }
 
 function switchPersonalityTab(tab) {
@@ -1184,6 +1606,7 @@ function switchPersonalityTab(tab) {
             btn.classList.toggle('active', btn.dataset.tab === tab);
         });
     }
+    loadPersonalitiesGrid(tab);
 }
 
 // ============================================
@@ -1193,24 +1616,66 @@ async function handleFileUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
     
+    if (!currentUser) {
+        showNotification('Please login to upload files', 'error');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('chat_id', activeChatId);
+    
     // Show progress bar
     if (uploadProgress) uploadProgress.style.display = 'block';
     if (progressBarFill) progressBarFill.style.width = '0%';
     if (progressText) progressText.textContent = 'Starting upload...';
     
-    // Simulate upload
-    setTimeout(() => {
-        if (progressBarFill) progressBarFill.style.width = '100%';
-        if (progressText) progressText.textContent = 'Upload complete!';
+    try {
+        const xhr = new XMLHttpRequest();
+        
+        xhr.upload.addEventListener('progress', (e) => {
+            if (e.lengthComputable) {
+                const percent = (e.loaded / e.total) * 100;
+                if (progressBarFill) progressBarFill.style.width = percent + '%';
+                if (progressText) progressText.textContent = `Uploading: ${Math.round(percent)}%`;
+            }
+        });
+        
+        const promise = new Promise((resolve, reject) => {
+            xhr.onload = () => {
+                if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
+                else reject(new Error('Upload failed'));
+            };
+            xhr.onerror = () => reject(new Error('Upload failed'));
+        });
+        
+        xhr.open('POST', `${API_BASE_URL}/api/upload`);
+        xhr.withCredentials = true;
+        xhr.send(formData);
+        
+        const data = await promise;
         
         setTimeout(() => {
             if (uploadProgress) uploadProgress.style.display = 'none';
         }, 1000);
         
-        trackFile();
-        showNotification(`✅ ${file.name} uploaded! (demo)`, 'success');
-        addMessage('assistant', `📎 File uploaded: ${file.name} (demo mode)`);
-    }, 1500);
+        if (data.success) {
+            trackFile();
+            if (data.duplicate) {
+                showNotification(`File already exists: ${data.filename}`, 'info');
+            } else {
+                showNotification(`✅ ${file.name} uploaded!`, 'success');
+                addMessage('assistant', `📎 File uploaded: ${data.filename}\n${data.preview || ''}`);
+            }
+        } else {
+            showNotification(`❌ Upload failed: ${data.error || 'Unknown error'}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Upload error:', error);
+        if (uploadProgress) uploadProgress.style.display = 'none';
+        showNotification('❌ Upload failed', 'error');
+    }
 }
 
 // ============================================
@@ -1220,14 +1685,37 @@ async function executeCode() {
     const code = codeInput ? codeInput.value.trim() : '';
     if (!code) return;
     
+    if (!currentUser) {
+        showNotification('Please login to execute code', 'error');
+        return;
+    }
+    
     if (codeOutput) codeOutput.innerHTML = 'Running...';
     
-    setTimeout(() => {
-        if (codeOutput) {
-            codeOutput.innerHTML = '<pre class="stdout">Hello from demo mode!\n\nThis is a simulated response.</pre>';
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/execute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ code })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            if (codeOutput) codeOutput.innerHTML = `<span class="error">❌ ${escapeHtml(data.error)}</span>`;
+        } else {
+            let html = '';
+            if (data.stdout) html += `<pre class="stdout">${escapeHtml(data.stdout)}</pre>`;
+            if (data.stderr) html += `<pre class="stderr">${escapeHtml(data.stderr)}</pre>`;
+            if (!data.stdout && !data.stderr) html = 'No output';
+            if (codeOutput) codeOutput.innerHTML = html;
+            trackCode();
         }
-        trackCode();
-    }, 1000);
+    } catch (error) {
+        console.error('Code execution error:', error);
+        if (codeOutput) codeOutput.innerHTML = '<span class="error">❌ Execution failed</span>';
+    }
 }
 
 // ============================================
@@ -1237,14 +1725,71 @@ async function generateImage() {
     const prompt = imagePrompt ? imagePrompt.value.trim() : '';
     if (!prompt) return;
     
+    if (!currentUser) {
+        showNotification('Please login to generate images', 'error');
+        return;
+    }
+    
     if (imageResult) imageResult.innerHTML = '<div class="loading">Generating image...</div>';
     
-    setTimeout(() => {
-        if (imageResult) {
-            imageResult.innerHTML = `<div class="demo-image">🎨 [Demo] Image for: "${prompt}"</div>`;
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/generate-image`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ 
+                prompt,
+                size: imageSize?.value || '512x512'
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.url) {
+            if (imageResult) imageResult.innerHTML = `<img src="${data.url}" alt="${escapeHtml(prompt)}">`;
+            trackImage();
+        } else {
+            if (imageResult) imageResult.innerHTML = '<div class="error">Generation failed</div>';
         }
-        trackImage();
-    }, 1500);
+    } catch (error) {
+        console.error('Image generation error:', error);
+        if (imageResult) imageResult.innerHTML = '<div class="error">Generation failed</div>';
+    }
+}
+
+// ============================================
+// DETAILED STATS
+// ============================================
+async function loadDetailedStats() {
+    if (!currentUser) {
+        showNotification('Login to view detailed stats', 'error');
+        return;
+    }
+    
+    if (statsModal) openModal(statsModal);
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/stats`, { credentials: 'include' });
+        if (response.ok) {
+            const data = await response.json();
+            
+            if (statsCreated) statsCreated.textContent = data.account_created || '-';
+            if (statsLast) statsLast.textContent = data.last_login || '-';
+            if (statsTotalMsgs) statsTotalMsgs.textContent = data.messages || 0;
+            if (statsTotalChats) statsTotalChats.textContent = data.chats || 0;
+            if (statsFilesDetail) statsFilesDetail.textContent = data.files || 0;
+            if (statsImagesDetail) statsImagesDetail.textContent = data.images || 0;
+            if (statsCode) statsCode.textContent = data.code || 0;
+            if (statsSearchesDetail) statsSearchesDetail.textContent = data.searches || 0;
+            if (statsMemoriesDetail) statsMemoriesDetail.textContent = data.memories || 0;
+            if (statsDocs) statsDocs.textContent = data.documents || 0;
+            if (statsAvgResponse) statsAvgResponse.textContent = (data.avg_response_time || 0.4) + 's';
+            if (statsFastest) statsFastest.textContent = (data.fastest_response || 0.2) + 's';
+        }
+    } catch (error) {
+        console.error('Failed to load stats:', error);
+        showNotification('Failed to load stats', 'error');
+    }
 }
 
 // ============================================
@@ -1270,7 +1815,7 @@ function showNotification(message, type = 'info', duration = 3000) {
 // ============================================
 function escapeHtml(unsafe) {
     if (!unsafe) return '';
-    return unsafe
+    return String(unsafe)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -1289,6 +1834,7 @@ function emergencyReset() {
         chatInput.disabled = false;
         chatInput.focus();
     }
+    if (inputSearchIndicator) inputSearchIndicator.style.display = 'none';
     showNotification('Emergency reset activated', 'info');
 }
 
