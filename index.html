@@ -77,7 +77,7 @@
                 </div>
             </div>
             
-            <!-- ===== FIXED: Mode Selector MOVED ABOVE Stats ===== -->
+            <!-- ===== FIXED: MODE SECTION (NOW ABOVE STATS) ===== -->
             <div class="mode-section glass-panel">
                 <div class="section-header">
                     <span class="section-icon">🧠</span>
@@ -95,7 +95,7 @@
                     </div>
                 </div>
                 
-                <!-- Create Personality Button - MOVED HERE -->
+                <!-- ===== NEW: CREATE PERSONALITY BUTTON ===== -->
                 <button class="create-personality-btn" id="toggle-creator-btn">
                     <span class="btn-icon">➕</span>
                     <span class="btn-text">Create New Personality</span>
@@ -133,7 +133,7 @@
                 </div>
             </div>
             
-            <!-- Stats Dashboard - NOW BELOW Mode Selector -->
+            <!-- Stats Dashboard - NOW BELOW Mode Section -->
             <div class="stats-dashboard glass-panel">
                 <div class="section-header">
                     <span class="section-icon">📊</span>
@@ -171,6 +171,21 @@
                         <span class="stat-label">Avg Response</span>
                     </div>
                 </div>
+            </div>
+            
+            <!-- API Keys Section (NEW) -->
+            <div class="api-keys-section glass-panel">
+                <div class="section-header">
+                    <span class="section-icon">🔑</span>
+                    <h3>API Keys</h3>
+                </div>
+                <div class="api-keys-list" id="api-keys-list">
+                    <div class="no-keys-message">No API keys yet</div>
+                </div>
+                <button class="create-key-btn" id="create-api-key">
+                    <span class="btn-icon">➕</span>
+                    <span class="btn-text">Generate New Key</span>
+                </button>
             </div>
             
             <!-- Turbo Mode Toggle -->
@@ -254,6 +269,10 @@
                 <button class="pro-btn" id="personalities-btn" title="Browse Custom Personalities">
                     <span class="btn-icon">🎭</span>
                     <span class="btn-text">Personalities</span>
+                </button>
+                <button class="pro-btn" id="api-keys-btn" title="Manage API Keys">
+                    <span class="btn-icon">🔑</span>
+                    <span class="btn-text">API Keys</span>
                 </button>
             </div>
             
@@ -548,6 +567,18 @@
                             <span id="stats-fastest">0.2s</span>
                         </div>
                     </div>
+                    
+                    <div class="stats-section">
+                        <h4>🔑 API Usage</h4>
+                        <div class="stats-row">
+                            <span>API Keys:</span>
+                            <span id="stats-api-keys">0</span>
+                        </div>
+                        <div class="stats-row">
+                            <span>API Requests:</span>
+                            <span id="stats-api-requests">0</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -571,6 +602,48 @@
                     <div class="personalities-grid" id="personalities-grid">
                         <!-- Personalities will load here -->
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Keys Modal (NEW) -->
+    <div class="modal-overlay" id="api-keys-modal-overlay">
+        <div class="modal glass-panel large-modal" id="api-keys-modal">
+            <div class="modal-header">
+                <h3>🔑 Your API Keys</h3>
+                <button class="close-modal" id="close-api-keys-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="api-keys-manager">
+                    <p class="api-info">Use these keys to access Wizard.AI via the OpenAI-compatible API.</p>
+                    <div class="api-endpoint">
+                        <strong>Endpoint:</strong> <code>https://api.wizardai.dpdns.org/v1</code>
+                    </div>
+                    <div class="api-keys-table" id="api-keys-table">
+                        <!-- API keys will load here -->
+                    </div>
+                    <button class="create-key-btn large" id="create-api-key-modal">
+                        <span class="btn-icon">➕</span>
+                        <span class="btn-text">Generate New API Key</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New API Key Modal (for displaying newly created key) -->
+    <div class="modal-overlay" id="new-key-modal-overlay">
+        <div class="modal glass-panel" id="new-key-modal">
+            <div class="modal-header">
+                <h3>🔑 API Key Generated</h3>
+                <button class="close-modal" id="close-new-key-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="new-key-display">
+                    <p class="warning">⚠️ Copy this key now. You won't be able to see it again!</p>
+                    <div class="key-box" id="new-key-value">wiz_abc123...</div>
+                    <button class="copy-key-btn" id="copy-new-key">📋 Copy to Clipboard</button>
                 </div>
             </div>
         </div>
