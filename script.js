@@ -1,6 +1,7 @@
 // ============================================
-// WIZARD.AI PRO v9.0 - COMPLETE JAVASCRIPT
+// WIZARD.AI PRO v9.0 - ULTIMATE FRONTEND CONTROLLER
 // Created by Arnav Gupta
+// ALL ISSUES FIXED: Connecting, Dropdown Position, Custom Personalities, Tooltips
 // ============================================
 
 // ============================================
@@ -10,19 +11,20 @@ const API_BASE_URL = 'https://arnav0928.pythonanywhere.com';
 const SITE_URL = 'https://www.wizardai.dpdns.org';
 
 // ============================================
-// DOM ELEMENTS
+// DOM ELEMENTS - COMPLETE COLLECTION
 // ============================================
+
 // Main containers
 const chatHistory = document.getElementById('chat-history');
 const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
 const voiceBtn = document.getElementById('voice-input-btn');
 
-// Status elements
+// Status elements - FIXED: Connecting issue
 const statusText = document.getElementById('status-text');
 const statusDot = document.querySelector('.status-dot');
 
-// Mode dropdown
+// Mode dropdown - FIXED: Position issue
 const dropdown = document.getElementById('mode-dropdown');
 const dropdownBtn = document.getElementById('dropdown-btn');
 const dropdownContent = document.getElementById('dropdown-content');
@@ -55,6 +57,7 @@ const imageBtn = document.getElementById('image-btn');
 const memoryBtn = document.getElementById('memory-btn');
 const statsBtn = document.getElementById('stats-btn');
 const personalitiesBtn = document.getElementById('personalities-btn');
+const apiKeysBtn = document.getElementById('api-keys-btn');
 
 // Indicators
 const searchIndicator = document.getElementById('search-indicator');
@@ -74,6 +77,8 @@ const imageModal = document.getElementById('image-modal-overlay');
 const memoryModal = document.getElementById('memory-modal-overlay');
 const statsModal = document.getElementById('stats-modal-overlay');
 const personalitiesModal = document.getElementById('personalities-modal-overlay');
+const apiKeysModal = document.getElementById('api-keys-modal-overlay');
+const newKeyModal = document.getElementById('new-key-modal-overlay');
 
 // Modal close buttons
 const closeAuth = document.getElementById('close-auth-modal');
@@ -83,6 +88,8 @@ const closeImage = document.getElementById('close-image-modal');
 const closeMemory = document.getElementById('close-memory-modal');
 const closeStats = document.getElementById('close-stats-modal');
 const closePersonalities = document.getElementById('close-personalities-modal');
+const closeApiKeys = document.getElementById('close-api-keys-modal');
+const closeNewKey = document.getElementById('close-new-key-modal');
 
 // Auth elements
 const authEmail = document.getElementById('auth-email');
@@ -117,13 +124,23 @@ const customName = document.getElementById('custom-name');
 const customEmoji = document.getElementById('custom-emoji');
 const customPrompt = document.getElementById('custom-prompt');
 const customGreeting = document.getElementById('custom-greeting');
+const customPublic = document.getElementById('custom-public');
 const savePersonality = document.getElementById('save-personality');
 const cancelPersonality = document.getElementById('cancel-personality');
+const closeCreator = document.getElementById('close-creator');
 
 // Personalities browser
 const personalitiesList = document.getElementById('personalities-list');
 const personalitiesGrid = document.getElementById('personalities-grid');
 const tabBtns = document.querySelectorAll('.tab-btn');
+
+// API Keys elements
+const apiKeysList = document.getElementById('api-keys-list');
+const apiKeysTable = document.getElementById('api-keys-table');
+const createApiKeyBtn = document.getElementById('create-api-key');
+const createApiKeyModalBtn = document.getElementById('create-api-key-modal');
+const newKeyValue = document.getElementById('new-key-value');
+const copyNewKeyBtn = document.getElementById('copy-new-key');
 
 // Hidden inputs
 const fileUpload = document.getElementById('file-upload');
@@ -148,14 +165,16 @@ const statsCreated = document.getElementById('stats-created');
 const statsLast = document.getElementById('stats-last');
 const statsTotalMsgs = document.getElementById('stats-total-msgs');
 const statsTotalChats = document.getElementById('stats-total-chats');
-const statsFilesDetail = document.getElementById('stats-files');
-const statsImagesDetail = document.getElementById('stats-images');
+const statsFiles = document.getElementById('stats-files');
+const statsImages = document.getElementById('stats-images');
 const statsCode = document.getElementById('stats-code');
-const statsSearchesDetail = document.getElementById('stats-searches');
-const statsMemoriesDetail = document.getElementById('stats-memories');
+const statsSearches = document.getElementById('stats-searches');
+const statsMemories = document.getElementById('stats-memories');
 const statsDocs = document.getElementById('stats-docs');
 const statsAvgResponse = document.getElementById('stats-avg-response');
 const statsFastest = document.getElementById('stats-fastest');
+const statsApiKeys = document.getElementById('stats-api-keys');
+const statsApiRequests = document.getElementById('stats-api-requests');
 
 // Rename modal
 const renameInput = document.getElementById('rename-input');
@@ -189,6 +208,7 @@ let chatToRename = null;
 let signupEmail = '';
 let streamingController = null;
 let autoSearchActive = false;
+let apiKeys = [];
 
 // Voice recognition
 let voiceRecognition = null;
@@ -208,7 +228,7 @@ let userStats = {
 };
 
 // ============================================
-// MODE DATA
+// MODE DATA - 7 EPIC PERSONALITIES + CUSTOM
 // ============================================
 const modeData = {
     'Fast': {
@@ -263,10 +283,87 @@ const modeData = {
 };
 
 // ============================================
-// INITIALIZATION
+// TOOLTIP SYSTEM - FIXED: Added tooltips for personalities
+// ============================================
+let tooltipEl = null;
+
+function createTooltip() {
+    if (tooltipEl) return;
+    
+    tooltipEl = document.createElement('div');
+    tooltipEl.className = 'mode-tooltip';
+    tooltipEl.style.cssText = `
+        position: fixed;
+        display: none;
+        z-index: 10000;
+        background: linear-gradient(135deg, #1a1035, #0d0a1f);
+        border: 2px solid var(--primary, #8b5cf6);
+        border-radius: 12px;
+        padding: 12px 16px;
+        max-width: 280px;
+        box-shadow: 0 0 30px rgba(139, 92, 246, 0.5), 0 10px 30px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+        color: white;
+        font-size: 13px;
+        line-height: 1.5;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        border-left: 4px solid var(--primary, #8b5cf6);
+    `;
+    document.body.appendChild(tooltipEl);
+}
+
+function showTooltip(modeKey, event) {
+    if (!tooltipEl) createTooltip();
+    
+    const mode = modeData[modeKey] || customPersonalities.find(p => p.name === modeKey);
+    if (!mode) return;
+    
+    const emoji = mode.emoji || '🤖';
+    const name = mode.name || modeKey;
+    const desc = mode.desc || (mode.system_prompt ? mode.system_prompt.substring(0, 100) + '...' : 'Custom personality');
+    const model = mode.model || 'Custom';
+    
+    tooltipEl.innerHTML = `
+        <div style="display: flex; gap: 12px;">
+            <div style="font-size: 32px; line-height: 1;">${emoji}</div>
+            <div style="flex: 1;">
+                <div style="font-weight: bold; color: ${mode.color || '#8b5cf6'}; font-size: 15px; margin-bottom: 5px;">${name}</div>
+                <div style="color: #e0e7ff; font-size: 12px; margin-bottom: 8px;">${desc}</div>
+                <div style="color: #9ca3af; font-size: 11px; display: flex; align-items: center; gap: 6px;">
+                    <span>🧠 ${model}</span>
+                    ${mode.uses ? `<span style="background: rgba(139,92,246,0.2); padding: 2px 6px; border-radius: 10px;">❤️ ${mode.likes || 0} uses</span>` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    const rect = event.target.getBoundingClientRect();
+    tooltipEl.style.display = 'block';
+    tooltipEl.style.left = `${rect.right + 15}px`;
+    tooltipEl.style.top = `${rect.top}px`;
+    
+    // Keep within viewport
+    const tooltipRect = tooltipEl.getBoundingClientRect();
+    if (tooltipRect.right > window.innerWidth) {
+        tooltipEl.style.left = `${rect.left - tooltipRect.width - 15}px`;
+    }
+}
+
+function hideTooltip() {
+    if (tooltipEl) {
+        tooltipEl.style.display = 'none';
+    }
+}
+
+// ============================================
+// INITIALIZATION - FIXED: Connecting issue
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Initializing Wizard.AI v9.0...');
+    
+    // Show startup animation
+    showNotification('🧙 Summoning the Wizard...', 'info', 2000);
     
     // Register service worker for PWA
     registerServiceWorker();
@@ -281,16 +378,41 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Check authentication
     await checkAuth();
     
+    // Load custom personalities from localStorage FIRST
+    loadCustomPersonalities();
+    
     // Load initial data
     loadChats();
-    await loadStats(); // Now this is defined
+    await loadStats();
     loadPublicPersonalities();
     
     // Set up periodic stats update
     setInterval(updateStatsDisplay, 30000);
     
+    // FIXED: Update status to Connected after backend check
+    checkBackendStatus();
+    
     console.log('✅ Wizard.AI v9.0 ready!');
 });
+
+// FIXED: New function to check backend status and update "Connecting..."
+async function checkBackendStatus() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/status`);
+        if (response.ok) {
+            if (statusText) statusText.textContent = 'Connected';
+            if (statusDot) statusDot.classList.remove('offline');
+            showNotification('✨ Connected to Wizard.AI', 'success', 2000);
+        } else {
+            if (statusText) statusText.textContent = 'Offline';
+            if (statusDot) statusDot.classList.add('offline');
+        }
+    } catch (error) {
+        console.log('Backend not reachable, using offline mode');
+        if (statusText) statusText.textContent = 'Offline Mode';
+        if (statusDot) statusDot.classList.add('offline');
+    }
+}
 
 // ============================================
 // SERVICE WORKER (PWA)
@@ -325,6 +447,20 @@ async function loadStats() {
                 userStats.images = data.images || 0;
                 userStats.searches = data.searches || 0;
                 userStats.codeExecutions = data.code || 0;
+                
+                // Update detailed stats if modal is open
+                if (statsCreated) statsCreated.textContent = data.account_created || '-';
+                if (statsLast) statsLast.textContent = data.last_login || '-';
+                if (statsTotalMsgs) statsTotalMsgs.textContent = data.messages || 0;
+                if (statsTotalChats) statsTotalChats.textContent = data.chats || 0;
+                if (statsFiles) statsFiles.textContent = data.files || 0;
+                if (statsImages) statsImages.textContent = data.images || 0;
+                if (statsCode) statsCode.textContent = data.code || 0;
+                if (statsSearches) statsSearches.textContent = data.searches || 0;
+                if (statsMemories) statsMemories.textContent = data.memories || 0;
+                if (statsDocs) statsDocs.textContent = data.documents || 0;
+                if (statsAvgResponse) statsAvgResponse.textContent = (data.avg_response_time || 0.4) + 's';
+                if (statsFastest) statsFastest.textContent = (data.fastest_response || 0.2) + 's';
             }
         } catch (error) {
             console.error('Failed to load stats from API:', error);
@@ -456,6 +592,7 @@ function setupEventListeners() {
     if (memoryBtn) memoryBtn.addEventListener('click', loadMemories);
     if (statsBtn) statsBtn.addEventListener('click', loadDetailedStats);
     if (personalitiesBtn) personalitiesBtn.addEventListener('click', openPersonalitiesBrowser);
+    if (apiKeysBtn) apiKeysBtn.addEventListener('click', openApiKeysModal);
     
     // File upload
     if (fileUpload) fileUpload.addEventListener('change', handleFileUpload);
@@ -487,6 +624,8 @@ function setupEventListeners() {
     if (closeMemory) closeMemory.addEventListener('click', () => closeModal(memoryModal));
     if (closeStats) closeStats.addEventListener('click', () => closeModal(statsModal));
     if (closePersonalities) closePersonalities.addEventListener('click', () => closeModal(personalitiesModal));
+    if (closeApiKeys) closeApiKeys.addEventListener('click', () => closeModal(apiKeysModal));
+    if (closeNewKey) closeNewKey.addEventListener('click', () => closeModal(newKeyModal));
     
     // Rename modal
     if (renameSave) renameSave.addEventListener('click', saveRename);
@@ -513,6 +652,7 @@ function setupEventListeners() {
     if (toggleCreatorBtn) toggleCreatorBtn.addEventListener('click', toggleCreatorPanel);
     if (savePersonality) savePersonality.addEventListener('click', saveCustomPersonality);
     if (cancelPersonality) cancelPersonality.addEventListener('click', closeCreatorPanel);
+    if (closeCreator) closeCreator.addEventListener('click', closeCreatorPanel);
     
     // Tab buttons
     if (tabBtns.length) {
@@ -520,6 +660,11 @@ function setupEventListeners() {
             btn.addEventListener('click', () => switchPersonalityTab(btn.dataset.tab));
         });
     }
+    
+    // API Keys
+    if (createApiKeyBtn) createApiKeyBtn.addEventListener('click', createApiKey);
+    if (createApiKeyModalBtn) createApiKeyModalBtn.addEventListener('click', createApiKey);
+    if (copyNewKeyBtn) copyNewKeyBtn.addEventListener('click', copyApiKeyToClipboard);
     
     // Click outside modals
     window.addEventListener('click', (e) => {
@@ -549,7 +694,7 @@ function closeModal(modal) {
 }
 
 // ============================================
-// DROPDOWN SETUP
+// DROPDOWN SETUP - FIXED: Position and custom personalities
 // ============================================
 function setupDropdown() {
     if (!dropdownContent) return;
@@ -562,6 +707,9 @@ function setupDropdown() {
         const item = createDropdownItem(mode, modeData[mode].emoji);
         dropdownContent.appendChild(item);
     });
+    
+    // Add separator and custom personalities if any
+    updateCustomPersonalitiesDropdown();
     
     // Dropdown toggle
     if (dropdownBtn) {
@@ -579,11 +727,22 @@ function setupDropdown() {
     });
 }
 
-function createDropdownItem(mode, emoji) {
+function createDropdownItem(mode, emoji, isCustom = false) {
     const item = document.createElement('div');
-    item.className = `dropdown-item ${mode === currentMode ? 'selected' : ''}`;
+    item.className = `dropdown-item ${mode === currentMode ? 'selected' : ''} ${isCustom ? 'custom' : ''}`;
     item.setAttribute('data-mode', mode);
     item.innerHTML = `<span style="font-size: 18px;">${emoji}</span><span>${mode}</span>`;
+    
+    // Add tooltip events
+    item.addEventListener('mouseenter', (e) => showTooltip(mode, e));
+    item.addEventListener('mousemove', (e) => {
+        if (tooltipEl && tooltipEl.style.display === 'block') {
+            const rect = e.target.getBoundingClientRect();
+            tooltipEl.style.left = `${rect.right + 15}px`;
+            tooltipEl.style.top = `${rect.top}px`;
+        }
+    });
+    item.addEventListener('mouseleave', hideTooltip);
     
     item.addEventListener('click', () => selectMode(mode));
     
@@ -594,6 +753,7 @@ function selectMode(mode) {
     currentMode = mode;
     updateModeDisplay();
     if (dropdown) dropdown.classList.remove('open');
+    hideTooltip();
     
     // Save to current chat
     if (chats[activeChatId]) {
@@ -605,9 +765,9 @@ function selectMode(mode) {
 }
 
 function updateModeDisplay() {
-    const mode = modeData[currentMode] || { emoji: '🎩', name: currentMode };
+    const mode = modeData[currentMode] || customPersonalities.find(p => p.name === currentMode) || { emoji: '🎩', name: currentMode };
     if (selectedDisplay) {
-        selectedDisplay.innerHTML = `${mode.emoji} ${currentMode}`;
+        selectedDisplay.innerHTML = `${mode.emoji || '🤖'} ${currentMode}`;
     }
     
     // Update selected class
@@ -617,13 +777,59 @@ function updateModeDisplay() {
 }
 
 // ============================================
-// CUSTOM PERSONALITIES
+// CUSTOM PERSONALITIES - FIXED: Loading and saving
 // ============================================
+function loadCustomPersonalities() {
+    const saved = localStorage.getItem('wizard_custom_personalities');
+    if (saved) {
+        try {
+            customPersonalities = JSON.parse(saved);
+            updateCustomPersonalitiesDropdown();
+        } catch (e) {
+            console.error('Failed to load custom personalities:', e);
+        }
+    }
+}
+
+function saveCustomPersonalitiesToStorage() {
+    localStorage.setItem('wizard_custom_personalities', JSON.stringify(customPersonalities));
+}
+
+function updateCustomPersonalitiesDropdown() {
+    if (!dropdownContent) return;
+    
+    // Remove existing custom items and separator
+    document.querySelectorAll('.dropdown-item.custom, .dropdown-separator').forEach(el => el.remove());
+    
+    // Add separator if there are custom personalities
+    if (customPersonalities.length > 0) {
+        const separator = document.createElement('div');
+        separator.className = 'dropdown-separator';
+        separator.style.cssText = `
+            padding: 8px 15px;
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(0,0,0,0.2);
+        `;
+        separator.textContent = '✨ CUSTOM PERSONALITIES';
+        dropdownContent.appendChild(separator);
+        
+        customPersonalities.forEach(p => {
+            const item = createDropdownItem(p.name, p.emoji || '🤖', true);
+            dropdownContent.appendChild(item);
+        });
+    }
+}
+
 function toggleCreatorPanel() {
     if (!creatorPanel) return;
     creatorPanel.style.display = creatorPanel.style.display === 'none' ? 'block' : 'none';
     if (toggleCreatorBtn) {
-        const span = toggleCreatorBtn.querySelector('span');
+        const span = toggleCreatorBtn.querySelector('.btn-icon');
         if (span) span.textContent = creatorPanel.style.display === 'block' ? '➖' : '➕';
     }
 }
@@ -632,7 +838,7 @@ function closeCreatorPanel() {
     if (!creatorPanel) return;
     creatorPanel.style.display = 'none';
     if (toggleCreatorBtn) {
-        const span = toggleCreatorBtn.querySelector('span');
+        const span = toggleCreatorBtn.querySelector('.btn-icon');
         if (span) span.textContent = '➕';
     }
     clearCreatorForm();
@@ -643,6 +849,7 @@ function clearCreatorForm() {
     if (customEmoji) customEmoji.value = '';
     if (customPrompt) customPrompt.value = '';
     if (customGreeting) customGreeting.value = '';
+    if (customPublic) customPublic.checked = true;
 }
 
 async function saveCustomPersonality() {
@@ -655,6 +862,7 @@ async function saveCustomPersonality() {
     const emoji = customEmoji ? customEmoji.value.trim() || '🤖' : '🤖';
     const prompt = customPrompt ? customPrompt.value.trim() : '';
     const greeting = customGreeting ? customGreeting.value.trim() || `Hello! I'm ${name}.` : `Hello! I'm ${name}.`;
+    const isPublic = customPublic ? customPublic.checked : true;
     
     if (!name || !prompt) {
         showNotification('Name and prompt are required', 'error');
@@ -666,16 +874,38 @@ async function saveCustomPersonality() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ name, emoji, prompt, greeting, is_public: true })
+            body: JSON.stringify({ 
+                name, 
+                emoji, 
+                prompt, 
+                greeting, 
+                is_public: isPublic 
+            })
         });
         
         if (response.ok) {
             const personality = await response.json();
-            customPersonalities.push(personality);
+            
+            // Add to local custom personalities
+            customPersonalities.push({
+                name: personality.name,
+                emoji: personality.emoji,
+                system_prompt: personality.system_prompt,
+                greeting: personality.greeting,
+                id: personality.id
+            });
+            
+            // Save to localStorage
+            saveCustomPersonalitiesToStorage();
+            
+            // Update dropdown
+            updateCustomPersonalitiesDropdown();
+            
             showNotification('Personality created!', 'success');
             closeCreatorPanel();
         } else {
-            showNotification('Failed to create personality', 'error');
+            const error = await response.json();
+            showNotification(error.error || 'Failed to create personality', 'error');
         }
     } catch (error) {
         console.error('Error creating personality:', error);
@@ -1173,12 +1403,39 @@ async function checkAuth() {
             if (data.memories) {
                 userStats.memories = data.memories.length;
             }
+            
+            // Load custom personalities from server
+            loadUserPersonalitiesFromServer();
         } else {
             updateUIForAuth();
         }
     } catch (error) {
         console.error('Auth check failed:', error);
         updateUIForAuth();
+    }
+}
+
+async function loadUserPersonalitiesFromServer() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/personalities/mine`, {
+            credentials: 'include'
+        });
+        if (response.ok) {
+            const personalities = await response.json();
+            customPersonalities = personalities.map(p => ({
+                name: p.name,
+                emoji: p.emoji,
+                system_prompt: p.system_prompt,
+                greeting: p.greeting,
+                id: p.id,
+                likes: p.likes,
+                uses: p.uses
+            }));
+            saveCustomPersonalitiesToStorage();
+            updateCustomPersonalitiesDropdown();
+        }
+    } catch (error) {
+        console.error('Failed to load user personalities:', error);
     }
 }
 
@@ -1271,6 +1528,9 @@ async function handleLogin() {
             renderMessages();
             updateStatsDisplay();
             
+            // Load custom personalities
+            loadUserPersonalitiesFromServer();
+            
             if (authModal) closeModal(authModal);
             showNotification(`Welcome back, ${currentUser.first_name || ''}!`, 'success');
         } else {
@@ -1309,6 +1569,7 @@ async function handleSignup() {
         });
         
         if (response.ok) {
+            const data = await response.json();
             signupEmail = email;
             
             if (firstNameGroup) firstNameGroup.style.display = 'none';
@@ -1317,9 +1578,18 @@ async function handleSignup() {
             if (verificationGroup) verificationGroup.style.display = 'block';
             if (authSubmit) authSubmit.textContent = 'Verify Code';
             if (authModalTitle) authModalTitle.textContent = 'Verify Your Email';
-            if (authError) {
-                authError.textContent = `Code sent to ${email}`;
-                authError.style.color = '#10b981';
+            
+            // Show code for development
+            if (data.dev_code) {
+                if (authError) {
+                    authError.textContent = `🔐 Your verification code: ${data.dev_code}`;
+                    authError.style.color = '#10b981';
+                }
+            } else {
+                if (authError) {
+                    authError.textContent = `Code sent to ${email}`;
+                    authError.style.color = '#10b981';
+                }
             }
         } else {
             const error = await response.json();
@@ -1500,6 +1770,12 @@ async function loadPublicPersonalities() {
                 // Add click handlers
                 document.querySelectorAll('.personality-item').forEach(el => {
                     el.addEventListener('click', () => usePersonality(el.dataset.id));
+                    // Add tooltips
+                    el.addEventListener('mouseenter', (e) => {
+                        const personality = publicPersonalities.find(p => p.id == el.dataset.id);
+                        if (personality) showTooltip(personality.name, e);
+                    });
+                    el.addEventListener('mouseleave', hideTooltip);
                 });
             }
         }
@@ -1524,13 +1800,17 @@ async function usePersonality(id) {
         }
         
         // Add to mode data temporarily
-        modeData[personality.name] = {
-            emoji: personality.emoji || '🤖',
-            name: personality.name,
-            desc: 'Custom personality',
-            model: 'Custom',
-            color: '#8b5cf6'
-        };
+        if (!modeData[personality.name]) {
+            modeData[personality.name] = {
+                emoji: personality.emoji || '🤖',
+                name: personality.name,
+                desc: personality.system_prompt ? personality.system_prompt.substring(0, 100) + '...' : 'Custom personality',
+                model: 'Custom',
+                color: '#8b5cf6',
+                likes: personality.likes,
+                uses: personality.uses
+            };
+        }
         
         selectMode(personality.name);
         showNotification(`Switched to ${personality.name}`, 'success');
@@ -1597,6 +1877,21 @@ function renderPersonalitiesGrid(personalities) {
     // Add click handlers
     document.querySelectorAll('.personality-card').forEach(el => {
         el.addEventListener('click', () => usePersonality(el.dataset.id));
+        // Add tooltips
+        el.addEventListener('mouseenter', (e) => {
+            const personality = personalities.find(p => p.id == el.dataset.id);
+            if (personality) {
+                const tempMode = {
+                    name: personality.name,
+                    emoji: personality.emoji,
+                    desc: personality.system_prompt ? personality.system_prompt.substring(0, 100) + '...' : 'Custom personality',
+                    likes: personality.likes,
+                    uses: personality.uses
+                };
+                showTooltip(personality.name, e);
+            }
+        });
+        el.addEventListener('mouseleave', hideTooltip);
     });
 }
 
@@ -1777,18 +2072,156 @@ async function loadDetailedStats() {
             if (statsLast) statsLast.textContent = data.last_login || '-';
             if (statsTotalMsgs) statsTotalMsgs.textContent = data.messages || 0;
             if (statsTotalChats) statsTotalChats.textContent = data.chats || 0;
-            if (statsFilesDetail) statsFilesDetail.textContent = data.files || 0;
-            if (statsImagesDetail) statsImagesDetail.textContent = data.images || 0;
+            if (statsFiles) statsFiles.textContent = data.files || 0;
+            if (statsImages) statsImages.textContent = data.images || 0;
             if (statsCode) statsCode.textContent = data.code || 0;
-            if (statsSearchesDetail) statsSearchesDetail.textContent = data.searches || 0;
-            if (statsMemoriesDetail) statsMemoriesDetail.textContent = data.memories || 0;
+            if (statsSearches) statsSearches.textContent = data.searches || 0;
+            if (statsMemories) statsMemories.textContent = data.memories || 0;
             if (statsDocs) statsDocs.textContent = data.documents || 0;
             if (statsAvgResponse) statsAvgResponse.textContent = (data.avg_response_time || 0.4) + 's';
             if (statsFastest) statsFastest.textContent = (data.fastest_response || 0.2) + 's';
+            if (statsApiKeys) statsApiKeys.textContent = data.api_keys || 0;
         }
     } catch (error) {
         console.error('Failed to load stats:', error);
         showNotification('Failed to load stats', 'error');
+    }
+}
+
+// ============================================
+// API KEYS FUNCTIONS
+// ============================================
+async function openApiKeysModal() {
+    if (!currentUser) {
+        showNotification('Login to manage API keys', 'error');
+        return;
+    }
+    
+    if (apiKeysModal) openModal(apiKeysModal);
+    await loadApiKeys();
+}
+
+async function loadApiKeys() {
+    if (!apiKeysTable) return;
+    
+    apiKeysTable.innerHTML = '<div class="loading">Loading API keys...</div>';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/keys`, {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const keys = await response.json();
+            apiKeys = keys;
+            renderApiKeys(keys);
+        } else {
+            apiKeysTable.innerHTML = '<div class="error">Failed to load API keys</div>';
+        }
+    } catch (error) {
+        console.error('Failed to load API keys:', error);
+        apiKeysTable.innerHTML = '<div class="error">Error loading API keys</div>';
+    }
+}
+
+function renderApiKeys(keys) {
+    if (!apiKeysTable) return;
+    
+    if (keys.length === 0) {
+        apiKeysTable.innerHTML = '<div class="empty-state">No API keys yet. Create one to get started!</div>';
+        return;
+    }
+    
+    let html = '';
+    keys.forEach(key => {
+        html += `
+            <div class="api-key-row" data-id="${key.id}">
+                <div class="api-key-info">
+                    <div class="api-key-name">${escapeHtml(key.name)}</div>
+                    <div class="api-key-value">${key.key.substring(0, 20)}...${key.key.substring(key.key.length - 10)}</div>
+                    <div class="api-key-stats">Created: ${new Date(key.created_at).toLocaleDateString()} · ${key.requests} requests</div>
+                </div>
+                <div class="api-key-actions">
+                    <button class="api-key-copy" onclick="copyApiKey('${key.key}')" title="Copy">📋</button>
+                    <button class="api-key-revoke" onclick="revokeApiKey(${key.id})" title="Revoke">🗑️</button>
+                </div>
+            </div>
+        `;
+    });
+    
+    apiKeysTable.innerHTML = html;
+}
+
+async function createApiKey() {
+    if (!currentUser) {
+        showNotification('Login to create API keys', 'error');
+        return;
+    }
+    
+    const name = prompt('Enter a name for this API key (e.g., "My App"):');
+    if (!name) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/keys/create`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ name })
+        });
+        
+        if (response.ok) {
+            const key = await response.json();
+            
+            // Show the new key in a modal
+            if (newKeyValue) newKeyValue.textContent = key.key;
+            if (newKeyModal) openModal(newKeyModal);
+            
+            // Refresh list
+            await loadApiKeys();
+        } else {
+            showNotification('Failed to create API key', 'error');
+        }
+    } catch (error) {
+        console.error('Failed to create API key:', error);
+        showNotification('Error creating API key', 'error');
+    }
+}
+
+function copyApiKey(key) {
+    navigator.clipboard.writeText(key).then(() => {
+        showNotification('API key copied to clipboard!', 'success');
+    }).catch(() => {
+        showNotification('Failed to copy', 'error');
+    });
+}
+
+function copyApiKeyToClipboard() {
+    if (newKeyValue) {
+        copyApiKey(newKeyValue.textContent);
+        setTimeout(() => closeModal(newKeyModal), 1000);
+    }
+}
+
+async function revokeApiKey(id) {
+    if (!confirm('Are you sure you want to revoke this API key? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/keys/${id}/revoke`, {
+            method: 'POST',
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            showNotification('API key revoked', 'success');
+            await loadApiKeys();
+        } else {
+            showNotification('Failed to revoke API key', 'error');
+        }
+    } catch (error) {
+        console.error('Failed to revoke API key:', error);
+        showNotification('Error revoking API key', 'error');
     }
 }
 
@@ -1835,7 +2268,7 @@ function emergencyReset() {
         chatInput.focus();
     }
     if (inputSearchIndicator) inputSearchIndicator.style.display = 'none';
-    showNotification('Emergency reset activated', 'info');
+    showNotification('⚠️ Emergency reset activated', 'warning', 3000);
 }
 
 // ============================================
