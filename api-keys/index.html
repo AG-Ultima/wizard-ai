@@ -3,23 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧙 Wizard.AI Pro - API Keys Management</title>
-    
-    <!-- Meta Tags -->
-    <meta name="title" content="Wizard.AI Pro - API Keys">
-    <meta name="description" content="Manage your Wizard.AI API keys for programmatic access to JARVIS, ORACLE, and more!">
-    <meta name="author" content="Arnav Gupta">
-    
-    <!-- Open Graph -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://wizardai.dpdns.org/api-keys/">
-    <meta property="og:title" content="Wizard.AI Pro - API Keys">
-    <meta property="og:description" content="Manage your Wizard.AI API keys for programmatic access">
-    
-    <!-- Fonts & Icons -->
+    <title>🧙 Wizard.AI Pro - API Keys</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧙</text></svg>">
-    
     <style>
         * {
             margin: 0;
@@ -34,26 +19,18 @@
             --secondary: #10b981;
             --danger: #ef4444;
             --warning: #f59e0b;
-            
             --bg-deep: #030614;
             --bg-dark: #0a0f1a;
             --bg-card: rgba(15, 20, 30, 0.95);
-            --bg-sidebar: rgba(8, 12, 22, 0.95);
-            
             --text-primary: #ffffff;
             --text-secondary: #e0e7ff;
             --text-muted: #9ca3af;
             --text-accent: #c4b5fd;
-            
             --border-color: rgba(139, 92, 246, 0.3);
             --border-hover: rgba(139, 92, 246, 0.6);
-            
             --shadow-sm: 0 5px 15px rgba(0, 0, 0, 0.5);
             --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.6);
-            --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.7);
             --glow-sm: 0 0 20px rgba(139, 92, 246, 0.3);
-            --glow-md: 0 0 30px rgba(139, 92, 246, 0.5);
-            
             --radius-sm: 8px;
             --radius-md: 12px;
             --radius-lg: 16px;
@@ -167,13 +144,8 @@
             border: 1px solid var(--border-color);
             border-radius: var(--radius-xl);
             padding: 40px;
-            box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            box-shadow: var(--shadow-sm), 0 0 0 1px rgba(255, 255, 255, 0.02);
             margin-bottom: 30px;
-        }
-
-        .card:hover {
-            border-color: var(--border-hover);
-            box-shadow: var(--glow-md), var(--shadow-lg);
         }
 
         /* Login Required State */
@@ -222,7 +194,7 @@
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: var(--glow-md);
+            box-shadow: var(--glow-sm);
         }
 
         .btn-secondary {
@@ -236,18 +208,7 @@
             color: var(--primary);
         }
 
-        .btn-danger {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid var(--danger);
-            color: var(--danger);
-        }
-
-        .btn-danger:hover {
-            background: var(--danger);
-            color: white;
-        }
-
-        /* API Keys Section (Logged In) */
+        /* API Keys Section */
         .api-header {
             display: flex;
             justify-content: space-between;
@@ -315,9 +276,9 @@
         }
 
         .key-value {
-            font-family: 'Monaco', 'Menlo', monospace;
+            font-family: monospace;
             color: var(--text-muted);
-            font-size: 14px;
+            font-size: 13px;
             background: rgba(0, 0, 0, 0.3);
             padding: 4px 8px;
             border-radius: var(--radius-sm);
@@ -409,21 +370,6 @@
             box-shadow: var(--glow-sm);
         }
 
-        .checkbox {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .checkbox input {
-            width: auto;
-        }
-
-        .checkbox label {
-            margin-bottom: 0;
-            color: var(--text-muted);
-        }
-
         /* New Key Modal */
         .modal-overlay {
             display: none;
@@ -432,8 +378,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
             align-items: center;
             justify-content: center;
             z-index: 1000;
@@ -453,7 +399,7 @@
             text-align: center;
         }
 
-        .modal .warning {
+        .warning {
             color: var(--warning);
             margin-bottom: 20px;
             font-size: 16px;
@@ -527,7 +473,7 @@
             padding: 12px 24px;
             color: white;
             font-size: 14px;
-            box-shadow: var(--glow-md);
+            box-shadow: var(--glow-sm);
             backdrop-filter: blur(10px);
             z-index: 1001;
             transition: transform 0.3s ease;
@@ -562,47 +508,29 @@
             text-decoration: underline;
         }
 
-        /* Loading States */
         .loading {
             text-align: center;
             padding: 40px;
             color: var(--text-muted);
         }
 
-        .loading::after {
-            content: '...';
-            animation: dots 1.5s steps(4, end) infinite;
-        }
-
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60%, 100% { content: '...'; }
-        }
-
-        /* Responsive */
         @media (max-width: 768px) {
             .container {
                 padding: 0 15px;
             }
-
             h1 {
                 font-size: 36px;
             }
-
             .card {
                 padding: 25px;
             }
-
             .key-item {
                 flex-direction: column;
                 align-items: flex-start;
             }
-
             .key-actions {
                 align-self: flex-end;
             }
-
             .api-header {
                 flex-direction: column;
                 align-items: flex-start;
@@ -615,7 +543,6 @@
     <div class="twinkling"></div>
 
     <div class="container">
-        <!-- Header -->
         <div class="header">
             <a href="/" class="back-link">← Back to Wizard.AI</a>
             <div class="wizard-icon">🧙</div>
@@ -623,24 +550,20 @@
             <p class="subtitle">Manage your API keys for programmatic access</p>
         </div>
 
-        <!-- Main Card -->
         <div class="card" id="main-card">
-            <!-- Login Required State (shown when not logged in) -->
             <div id="login-required" class="login-required">
                 <div class="lock-icon">🔒</div>
                 <h2>Login Required</h2>
                 <p>Please log in to view and manage your API keys</p>
-                <a href="https://wizardai.dpdns.org" class="btn btn-primary">Go to Login</a>
+                <button class="btn btn-primary" id="open-login-modal">Login / Sign Up</button>
             </div>
 
-            <!-- API Keys Section (shown when logged in - hidden by default) -->
             <div id="api-keys-section" style="display: none;">
                 <div class="api-header">
                     <h2>🔑 Your API Keys</h2>
                     <button class="btn btn-primary" id="create-key-btn">+ Generate New Key</button>
                 </div>
 
-                <!-- API Endpoint Info -->
                 <div class="endpoint-info">
                     <p><strong>📡 API Endpoint:</strong> <code>https://api.wizardai.dpdns.org/v1</code></p>
                     <p style="color: var(--text-muted); font-size: 14px; margin-top: 8px;">
@@ -648,21 +571,15 @@
                     </p>
                 </div>
 
-                <!-- Keys List -->
                 <div id="keys-list" class="keys-list">
                     <div class="loading">Loading your keys</div>
                 </div>
 
-                <!-- Create Key Form (hidden by default) -->
                 <div id="create-key-form" class="create-key" style="display: none;">
                     <h3>✨ Generate New API Key</h3>
                     <div class="form-group">
                         <label for="key-name">Key Name (e.g., "My App", "Development")</label>
                         <input type="text" id="key-name" placeholder="Enter a name for this key">
-                    </div>
-                    <div class="form-group checkbox">
-                        <input type="checkbox" id="key-public" checked>
-                        <label for="key-public">Allow this key to access public personalities</label>
                     </div>
                     <div style="display: flex; gap: 10px;">
                         <button class="btn btn-primary" id="save-key-btn">Generate Key</button>
@@ -672,7 +589,6 @@
             </div>
         </div>
 
-        <!-- Features Grid -->
         <div class="features-grid">
             <div class="feature-item">
                 <div class="feature-icon">🚀</div>
@@ -696,14 +612,12 @@
             </div>
         </div>
 
-        <!-- Footer -->
         <div class="footer">
             <p>Created by <a href="https://github.com/ag-ultima" target="_blank">Arnav Gupta</a> ✨</p>
             <p style="font-size: 12px; margin-top: 10px;">v9.0 - Pro Edition</p>
         </div>
     </div>
 
-    <!-- New Key Modal -->
     <div class="modal-overlay" id="new-key-modal">
         <div class="modal">
             <h2 style="color: var(--text-accent); margin-bottom: 20px;">🔑 Key Generated</h2>
@@ -716,63 +630,54 @@
         </div>
     </div>
 
-    <!-- Notification Toast -->
     <div class="notification" id="notification"></div>
 
     <script>
-        // Configuration
         const API_BASE_URL = 'https://arnav0928.pythonanywhere.com';
+        const SITE_URL = 'https://www.wizardai.dpdns.org';
         let currentUser = null;
         let apiKeys = [];
 
-        // Check authentication on load
         document.addEventListener('DOMContentLoaded', async () => {
             await checkAuth();
         });
 
-        // Check if user is logged in
         async function checkAuth() {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/check-auth`, {
                     credentials: 'include'
                 });
-                
                 if (response.ok) {
                     const data = await response.json();
                     currentUser = data.user;
-                    showLoggedInView();
+                    document.getElementById('login-required').style.display = 'none';
+                    document.getElementById('api-keys-section').style.display = 'block';
                     await loadApiKeys();
                 } else {
-                    showLoggedOutView();
+                    showLoggedOut();
                 }
             } catch (error) {
                 console.error('Auth check failed:', error);
-                showLoggedOutView();
+                showLoggedOut();
             }
         }
 
-        // Show logged in view
-        function showLoggedInView() {
-            document.getElementById('login-required').style.display = 'none';
-            document.getElementById('api-keys-section').style.display = 'block';
-        }
-
-        // Show logged out view
-        function showLoggedOutView() {
+        function showLoggedOut() {
             document.getElementById('login-required').style.display = 'block';
             document.getElementById('api-keys-section').style.display = 'none';
         }
 
-        // Load API keys from server
+        document.getElementById('open-login-modal').addEventListener('click', () => {
+            window.location.href = '/?auth=login';
+        });
+
         async function loadApiKeys() {
             const keysList = document.getElementById('keys-list');
             keysList.innerHTML = '<div class="loading">Loading your keys</div>';
-            
             try {
                 const response = await fetch(`${API_BASE_URL}/api/keys`, {
                     credentials: 'include'
                 });
-                
                 if (response.ok) {
                     apiKeys = await response.json();
                     renderKeys();
@@ -785,26 +690,20 @@
             }
         }
 
-        // Render API keys
         function renderKeys() {
             const keysList = document.getElementById('keys-list');
-            
             if (apiKeys.length === 0) {
-                keysList.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: var(--text-muted);">
-                        <p style="font-size: 48px; margin-bottom: 20px;">🔑</p>
-                        <p>You haven't generated any API keys yet.</p>
-                        <p style="font-size: 14px; margin-top: 10px;">Click "Generate New Key" to create one.</p>
-                    </div>
-                `;
+                keysList.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                    <p style="font-size: 48px; margin-bottom: 20px;">🔑</p>
+                    <p>You haven't generated any API keys yet.</p>
+                    <p style="font-size: 14px; margin-top: 10px;">Click "Generate New Key" to create one.</p>
+                </div>`;
                 return;
             }
-            
             let html = '';
             apiKeys.forEach(key => {
                 const maskedKey = key.key.substring(0, 15) + '...' + key.key.substring(key.key.length - 10);
                 const createdDate = new Date(key.created_at).toLocaleDateString();
-                
                 html += `
                     <div class="key-item" data-key-id="${key.id}">
                         <div class="key-info">
@@ -823,29 +722,24 @@
                     </div>
                 `;
             });
-            
             keysList.innerHTML = html;
         }
 
-        // Show create key form
         document.getElementById('create-key-btn').addEventListener('click', () => {
             document.getElementById('create-key-form').style.display = 'block';
         });
 
-        // Cancel create key
         document.getElementById('cancel-key-btn').addEventListener('click', () => {
             document.getElementById('create-key-form').style.display = 'none';
             document.getElementById('key-name').value = '';
         });
 
-        // Save new key
         document.getElementById('save-key-btn').addEventListener('click', async () => {
             const name = document.getElementById('key-name').value.trim();
             if (!name) {
                 showNotification('Please enter a name for your key', 'error');
                 return;
             }
-            
             try {
                 const response = await fetch(`${API_BASE_URL}/api/keys/create`, {
                     method: 'POST',
@@ -853,18 +747,11 @@
                     credentials: 'include',
                     body: JSON.stringify({ name })
                 });
-                
                 if (response.ok) {
                     const newKey = await response.json();
-                    
-                    // Show the new key in modal
                     document.getElementById('new-key-value').textContent = newKey.key;
                     document.getElementById('new-key-modal').classList.add('active');
-                    
-                    // Refresh the list
                     await loadApiKeys();
-                    
-                    // Hide form
                     document.getElementById('create-key-form').style.display = 'none';
                     document.getElementById('key-name').value = '';
                 } else {
@@ -877,7 +764,6 @@
             }
         });
 
-        // Copy key to clipboard
         window.copyKey = (key) => {
             navigator.clipboard.writeText(key).then(() => {
                 showNotification('✅ Key copied to clipboard!', 'success');
@@ -886,30 +772,23 @@
             });
         };
 
-        // Copy from modal
         document.getElementById('copy-key-btn').addEventListener('click', () => {
             const key = document.getElementById('new-key-value').textContent;
             copyKey(key);
             document.getElementById('new-key-modal').classList.remove('active');
         });
 
-        // Close modal
         document.getElementById('close-modal-btn').addEventListener('click', () => {
             document.getElementById('new-key-modal').classList.remove('active');
         });
 
-        // Revoke key
         window.revokeKey = async (keyId) => {
-            if (!confirm('Are you sure you want to revoke this key? This action cannot be undone.')) {
-                return;
-            }
-            
+            if (!confirm('Are you sure you want to revoke this key? This action cannot be undone.')) return;
             try {
                 const response = await fetch(`${API_BASE_URL}/api/keys/${keyId}/revoke`, {
                     method: 'POST',
                     credentials: 'include'
                 });
-                
                 if (response.ok) {
                     showNotification('✅ Key revoked successfully', 'success');
                     await loadApiKeys();
@@ -922,34 +801,21 @@
             }
         };
 
-        // Show notification
         function showNotification(message, type = 'info') {
             const notification = document.getElementById('notification');
             notification.textContent = message;
             notification.className = 'notification show';
             notification.classList.add(type);
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+            setTimeout(() => notification.classList.remove('show'), 3000);
         }
 
-        // Escape HTML for security
         function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+            return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // Close modal when clicking outside
         window.addEventListener('click', (e) => {
             const modal = document.getElementById('new-key-modal');
-            if (e.target === modal) {
-                modal.classList.remove('active');
-            }
+            if (e.target === modal) modal.classList.remove('active');
         });
     </script>
 </body>
