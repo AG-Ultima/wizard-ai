@@ -1,7 +1,7 @@
 // ============================================
 // WIZARD.AI PRO v9.0 - COMPLETE FRONTEND CONTROLLER
-// Created by Arnav Gupta
 // SECTION 1/2
+// Created by Arnav Gupta
 // ============================================
 
 const API_BASE_URL = 'https://arnav0928.pythonanywhere.com';
@@ -635,11 +635,12 @@ function addMessage(sender, text, mode = null) {
     chatHistory.appendChild(msg);
     chatHistory.scrollTop = chatHistory.scrollHeight;
 }
-// ============================================
-// SECTION 2/2 - CONTINUED
-// ============================================
 
 function escapeHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;'); }
+// ============================================
+// WIZARD.AI PRO v9.0 - COMPLETE FRONTEND CONTROLLER
+// SECTION 2/2
+// ============================================
 
 // ============================================
 // CHAT MANAGEMENT
@@ -757,7 +758,7 @@ function saveChats() {
 }
 
 // ============================================
-// AUTH FUNCTIONS
+// AUTH FUNCTIONS - WITH PENDING_ID FIX
 // ============================================
 async function checkAuth() {
     try {
@@ -874,15 +875,30 @@ async function handleSignup() {
         if (response.ok) {
             const data = await response.json();
             signupEmail = email;
+            
+            // ✅ Store pending_id for later verification
+            if (data.pending_id) {
+                sessionStorage.setItem('pending_id', data.pending_id);
+                console.log('✅ Stored pending_id:', data.pending_id);
+            }
+            
             firstNameGroup.style.display = 'none';
             lastNameGroup.style.display = 'none';
             confirmPasswordGroup.style.display = 'none';
             verificationGroup.style.display = 'block';
             authSubmit.textContent = 'Verify Code';
             authModalTitle.textContent = 'Verify Your Email';
-            if (data.dev_code) authError.textContent = `🔐 Development code: ${data.dev_code}`;
-            else authError.textContent = `📧 Verification code sent to ${email}`;
-            authError.style.color = '#10b981';
+            
+            if (authError) {
+                if (data.dev_code) {
+                    authError.textContent = `🔐 Development code: ${data.dev_code}`;
+                    authError.style.color = '#10b981';
+                } else {
+                    authError.textContent = `📧 Verification code sent to ${email}`;
+                    authError.style.color = '#10b981';
+                }
+            }
+            
             showNotification('📧 Verification code sent!', 'success');
         } else {
             const error = await response.json();
@@ -894,14 +910,28 @@ async function handleSignup() {
 async function handleVerify() {
     const code = verificationInput.value.trim();
     if (!code || code.length !== 6) { authError.textContent = 'Enter 6-digit code'; return; }
+    
+    // ✅ Get stored pending_id from sessionStorage
+    const pendingId = sessionStorage.getItem('pending_id');
+    
     try {
         const response = await fetch(`${API_BASE_URL}/api/register/verify`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-            body: JSON.stringify({ email: signupEmail, code })
+            body: JSON.stringify({ 
+                email: signupEmail, 
+                code: code,
+                pending_id: pendingId
+            })
         });
+        
+        const data = await response.json();
+        
         if (response.ok) {
-            const data = await response.json();
+            // ✅ Clear stored pending_id
+            sessionStorage.removeItem('pending_id');
+            
             currentUser = data.user;
+            
             if (data.chats) {
                 chats = {};
                 data.chats.forEach(c => chats[c.chat_id] = c);
@@ -909,32 +939,53 @@ async function handleVerify() {
                 activeChatId = chatIds[0];
                 messages = chats[activeChatId]?.messages || [];
             }
+            
             updateUIForAuth();
             renderChatsList();
             renderMessages();
             closeModal(authModal);
             showNotification('Account verified! Welcome!', 'success');
         } else {
-            const error = await response.json();
-            authError.textContent = error.error || 'Verification failed';
+            if (authError) authError.textContent = data.error || 'Verification failed';
         }
-    } catch (error) { authError.textContent = 'Connection error'; }
+    } catch (error) {
+        console.error('Verify error:', error);
+        if (authError) authError.textContent = 'Connection error';
+    }
 }
 
 async function resendVerificationCode() {
+    // ✅ Get stored pending_id
+    const pendingId = sessionStorage.getItem('pending_id');
+    
     try {
-        const response = await fetch(`${API_BASE_URL}/api/resend-code`, { method: 'POST', credentials: 'include' });
+        const response = await fetch(`${API_BASE_URL}/api/resend-code`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pending_id: pendingId })
+        });
+        
+        const data = await response.json();
+        
         if (response.ok) {
-            const data = await response.json();
-            if (data.dev_code) authError.textContent = `🔐 New code: ${data.dev_code}`;
-            else authError.textContent = 'Verification code resent! Check your email.';
-            authError.style.color = '#10b981';
+            if (authError) {
+                if (data.dev_code) {
+                    authError.textContent = `🔐 New code: ${data.dev_code}`;
+                } else {
+                    authError.textContent = 'Verification code resent! Check your email.';
+                }
+                authError.style.color = '#10b981';
+            }
             showNotification('📧 Code resent!', 'success');
         } else {
             const error = await response.json();
-            authError.textContent = error.error || 'Failed to resend code';
+            if (authError) authError.textContent = error.error || 'Failed to resend code';
         }
-    } catch (error) { authError.textContent = 'Connection error'; }
+    } catch (error) {
+        console.error('Resend error:', error);
+        if (authError) authError.textContent = 'Connection error';
+    }
 }
 
 async function handleLogout() {
