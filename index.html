@@ -215,7 +215,11 @@
                 <span class="button-icon">🧹</span>
                 <span class="button-text">Clear Current Chat</span>
             </button>
-            
+            <!-- Update History Button -->
+<button id="update-history-btn" class="version-badge-btn">
+    <span class="button-icon">📜</span>
+    <span class="button-text">v9.5.0 • What's New?</span>
+</button>
             <!-- Footer -->
             <div class="footer-note">
                 <p>Created by Arnav ✨</p>
@@ -655,6 +659,181 @@
     <!-- Notification Toast -->
     <div id="notification-toast" class="notification-toast"></div>
 
+    <!-- Update History Modal -->
+<div class="modal-overlay" id="update-modal-overlay">
+    <div class="modal glass-panel large-modal" id="update-modal">
+        <div class="modal-header">
+            <h3>📜 Wizard.AI Update History</h3>
+            <button class="close-modal" id="close-update-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="update-timeline">
+                <div class="update-item">
+                    <div class="update-version">v9.5.0 (Current)</div>
+                    <div class="update-date">March 2026</div>
+                    <div class="update-content">
+                        <ul>
+                            <li>🔧 Fixed login session persistence across page reloads</li>
+                            <li>🐛 Fixed message overwriting bug in chat history</li>
+                            <li>🔑 Improved API key authentication with Bearer token support</li>
+                            <li>📄 Enhanced document processing (PDF, DOCX, Excel support)</li>
+                            <li>⚡ Optimized memory usage with lighter dependencies</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="update-item">
+                    <div class="update-version">v9.0.0 - PRO Update</div>
+                    <div class="update-date">February 2026</div>
+                    <div class="update-content">
+                        <ul>
+                            <li>🌐 Web search integration with auto-detection</li>
+                            <li>📎 File upload with RAG document Q&A</li>
+                            <li>💻 Python code execution sandbox</li>
+                            <li>🎨 AI image generation with multiple sizes</li>
+                            <li>🎭 Community personalities browser</li>
+                            <li>🔑 API key management for programmatic access</li>
+                            <li>📊 Detailed stats dashboard</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="update-item">
+                    <div class="update-version">v8.0.0 - Stats Update</div>
+                    <div class="update-date">January 2026</div>
+                    <div class="update-content">
+                        <ul>
+                            <li>📈 User statistics tracking (messages, files, images)</li>
+                            <li>🧠 Persistent memory system for user preferences</li>
+                            <li>⚡ Average response time tracking</li>
+                            <li>📊 Quick stats mini-dashboard</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="update-item">
+                    <div class="update-version">v7.5.0 - Chats Update</div>
+                    <div class="update-date">December 2025</div>
+                    <div class="update-content">
+                        <ul>
+                            <li>💬 Create, rename, and delete multiple chats</li>
+                            <li>💾 Real database storage with SQLite</li>
+                            <li>🔄 Chat switching without losing context</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="update-item">
+                    <div class="update-version">v7.0.0 - User Update</div>
+                    <div class="update-date">November 2025</div>
+                    <div class="update-content">
+                        <ul>
+                            <li>🔐 User signup and login system</li>
+                            <li>📧 Email verification with Resend API</li>
+                            <li>💾 Database storage for conversations</li>
+                            <li>👤 User profiles and stats</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="update-item">
+                    <div class="update-version">v6.5.0 - Web Update</div>
+                    <div class="update-date">October 2025</div>
+                    <div class="update-content">
+                        <ul>
+                            <li>🌐 Migrated frontend to GitHub Pages</li>
+                            <li>🐛 Bug fixes and performance improvements</li>
+                            <li>📱 Mobile-responsive design</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="update-item">
+                    <div class="update-version">v6.0.0 - Web Update</div>
+                    <div class="update-date">September 2025</div>
+                    <div class="update-content">
+                        <ul>
+                            <li>🔄 Complete overhaul to web-based application</li>
+                            <li>🔗 PythonAnywhere backend integration</li>
+                            <li>🎨 Beautiful UI with dark theme</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="update-item">
+                    <div class="update-version">v5.0.0 - Personality Update</div>
+                    <div class="update-date">August 2025</div>
+                    <div class="update-content">
+                        <ul>
+                            <li>🎭 7 personality modes (JARVIS, ORACLE, Nerd, Fun, Sarcastic, Fast, Normal)</li>
+                            <li>📋 Dropdown menu for personality selection</li>
+                            <li>✨ Custom personality creator</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="update-item">
+                    <div class="update-version">v4.5.0 - UI Update</div>
+                    <div class="update-date">July 2025</div>
+                    <div class="update-content">
+                        <ul>
+                            <li>🎨 Enhanced beautiful UI design</li>
+                            <li>⚡ Turbo mode for faster responses</li>
+                            <li>🧹 Chat clear functionality</li>
+                            <li>📦 Model list display</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="update-item">
+                    <div class="update-version">v4.0.0 - UI Update</div>
+                    <div class="update-date">June 2025</div>
+                    <div class="update-content">
+                        <ul>
+                            <li>🖥️ Basic UI added through Flask and HTML</li>
+                            <li>💬 Chat interface with message bubbles</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="update-item">
+                    <div class="update-version">v3.0.0 - Ollama Integration</div>
+                    <div class="update-date">May 2025</div>
+                    <div class="update-content">
+                        <ul>
+                            <li>🤖 Integrated Ollama for better AI inference</li>
+                            <li>🧠 Smart logic and improved responses</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="update-item">
+                    <div class="update-version">v2.0.0 - Enhanced Logic</div>
+                    <div class="update-date">April 2025</div>
+                    <div class="update-content">
+                        <ul>
+                            <li>🧩 Enhanced logic for better phrase recognition</li>
+                            <li>🔤 Spelling error correction</li>
+                            <li>📚 Training system improvements</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="update-item">
+                    <div class="update-version">v1.0.0 - Release</div>
+                    <div class="update-date">March 2025</div>
+                    <div class="update-content">
+                        <ul>
+                            <li>🚀 Initial release</li>
+                            <li>💻 Operated entirely on Python logic</li>
+                            <li>🖥️ Local terminal bot</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
     <!-- Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
