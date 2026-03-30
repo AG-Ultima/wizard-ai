@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧙 Wizard.AI Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="twinkling"></div>
+    
+    <!-- Login Modal (shown initially) -->
+    <div class="modal-overlay active" id="login-modal">
+        <div class="modal glass-panel">
+            <div class="modal-header">
+                <h3>🔐 Admin Access Required</h3>
+            </div>
+            <div class="modal-body">
+                <div class="admin-icon">🧙</div>
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="admin-username" placeholder="Enter username">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="admin-password" placeholder="Enter password">
+                </div>
+                <div class="error-message" id="login-error"></div>
+                <button class="login-btn" id="admin-login-btn">Access Dashboard</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Dashboard (hidden until login) -->
+    <div class="dashboard-container" id="dashboard-container" style="display: none;">
+        <div class="dashboard-header">
+            <div class="header-left">
+                <div class="logo">
+                    <span class="logo-icon">🧙</span>
+                    <span class="logo-text">Wizard.AI Admin</span>
+                </div>
+                <div class="version-badge">v11.0.0</div>
+            </div>
+            <div class="header-right">
+                <span class="admin-user">👑 Arnav</span>
+                <button class="logout-btn" id="admin-logout-btn">Logout</button>
+            </div>
+        </div>
+        
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value" id="stat-total-users">0</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💬</div>
+                <div class="stat-value" id="stat-total-messages">0</div>
+                <div class="stat-label">Total Messages</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value" id="stat-today-active">0</div>
+                <div class="stat-label">Active Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🔑</div>
+                <div class="stat-value" id="stat-api-keys">0</div>
+                <div class="stat-label">API Keys</div>
+            </div>
+        </div>
+        
+        <div class="dashboard-grid">
+            <!-- Logs Panel -->
+            <div class="panel glass-panel">
+                <div class="panel-header">
+                    <h3>📋 System Logs</h3>
+                    <div class="panel-actions">
+                        <button class="refresh-btn" id="refresh-logs">🔄</button>
+                        <button class="clear-btn" id="clear-logs">🗑️</button>
+                    </div>
+                </div>
+                <div class="logs-container" id="logs-container">
+                    <div class="loading">Loading logs...</div>
+                </div>
+            </div>
+            
+            <!-- Users Panel -->
+            <div class="panel glass-panel">
+                <div class="panel-header">
+                    <h3>👥 User Management</h3>
+                    <button class="refresh-btn" id="refresh-users">🔄</button>
+                </div>
+                <div class="users-container" id="users-container">
+                    <div class="loading">Loading users...</div>
+                </div>
+            </div>
+            
+            <!-- API Usage Panel -->
+            <div class="panel glass-panel">
+                <div class="panel-header">
+                    <h3>📈 API Usage</h3>
+                    <button class="refresh-btn" id="refresh-api">🔄</button>
+                </div>
+                <div class="api-stats-container" id="api-stats-container">
+                    <div class="loading">Loading stats...</div>
+                </div>
+            </div>
+            
+            <!-- Server Status Panel -->
+            <div class="panel glass-panel">
+                <div class="panel-header">
+                    <h3>🖥️ Server Status</h3>
+                    <span class="status-badge" id="server-status">● Online</span>
+                </div>
+                <div class="server-info">
+                    <div class="info-row">
+                        <span>Uptime:</span>
+                        <span id="server-uptime">--</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Database Size:</span>
+                        <span id="db-size">--</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Memory Usage:</span>
+                        <span id="memory-usage">--</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Last Backup:</span>
+                        <span id="last-backup">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- System Actions -->
+        <div class="actions-panel glass-panel">
+            <div class="panel-header">
+                <h3>⚡ System Actions</h3>
+            </div>
+            <div class="action-buttons">
+                <button class="action-btn" id="backup-db">💾 Backup Database</button>
+                <button class="action-btn" id="clear-cache">🧹 Clear Cache</button>
+                <button class="action-btn" id="restart-server">🔄 Restart Server</button>
+                <button class="action-btn warning" id="maintenance-mode">⚠️ Maintenance Mode</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notification Toast -->
+    <div id="notification-toast" class="notification-toast"></div>
+    
+    <script src="admin.js"></script>
+</body>
+</html>
