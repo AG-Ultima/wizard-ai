@@ -1,4 +1,4 @@
-// admin.js - Wizard.AI Admin Dashboard
+// admin.js - Wizard.AI Admin Dashboard with fixed CORS
 const API_BASE_URL = 'https://arnav0928.pythonanywhere.com';
 let adminToken = null;
 let refreshInterval = null;
@@ -26,14 +26,18 @@ document.getElementById('admin-login-btn').addEventListener('click', async () =>
     try {
         const response = await fetch(`${API_BASE_URL}/admin/login`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
             credentials: 'include',
+            mode: 'cors',
             body: JSON.stringify({ username, password })
         });
         
         const data = await response.json();
         
-        if (response.ok) {
+        if (response.ok && data.success) {
             adminToken = data.token;
             localStorage.setItem('admin_token', adminToken);
             document.getElementById('login-modal').style.display = 'none';
@@ -44,12 +48,21 @@ document.getElementById('admin-login-btn').addEventListener('click', async () =>
             errorEl.textContent = data.error || 'Invalid credentials';
         }
     } catch (error) {
-        errorEl.textContent = 'Connection error';
+        console.error('Login error:', error);
+        errorEl.textContent = 'Connection error. Please try again.';
     }
 });
 
 // Logout handler
 document.getElementById('admin-logout-btn').addEventListener('click', async () => {
+    try {
+        await fetch(`${API_BASE_URL}/admin/logout`, {
+            method: 'POST',
+            credentials: 'include',
+            mode: 'cors'
+        });
+    } catch (error) {}
+    
     localStorage.removeItem('admin_token');
     adminToken = null;
     if (refreshInterval) clearInterval(refreshInterval);
@@ -61,8 +74,12 @@ document.getElementById('admin-logout-btn').addEventListener('click', async () =
 async function verifyAdminSession() {
     try {
         const response = await fetch(`${API_BASE_URL}/admin/verify`, {
-            headers: { 'X-Admin-Token': adminToken },
-            credentials: 'include'
+            headers: { 
+                'X-Admin-Token': adminToken,
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            mode: 'cors'
         });
         
         if (response.ok) {
@@ -71,15 +88,18 @@ async function verifyAdminSession() {
             startDashboard();
         } else {
             localStorage.removeItem('admin_token');
+            adminToken = null;
         }
     } catch (error) {
+        console.error('Session verification error:', error);
         localStorage.removeItem('admin_token');
+        adminToken = null;
     }
 }
 
 function startDashboard() {
     loadDashboardData();
-    refreshInterval = setInterval(loadDashboardData, 30000); // Refresh every 30 seconds
+    refreshInterval = setInterval(loadDashboardData, 30000);
     
     // Setup refresh buttons
     document.getElementById('refresh-logs').addEventListener('click', loadLogs);
@@ -90,6 +110,29 @@ function startDashboard() {
     document.getElementById('clear-cache').addEventListener('click', clearCache);
     document.getElementById('restart-server').addEventListener('click', restartServer);
     document.getElementById('maintenance-mode').addEventListener('click', toggleMaintenance);
+}
+
+async function fetchWithAuth(endpoint, options = {}) {
+    const defaultOptions = {
+        headers: {
+            'X-Admin-Token': adminToken,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        },
+        credentials: 'include',
+        mode: 'cors'
+    };
+    
+    const mergedOptions = { ...defaultOptions, ...options };
+    mergedOptions.headers = { ...defaultOptions.headers, ...(options.headers || {}) };
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, mergedOptions);
+        return response;
+    } catch (error) {
+        console.error(`Fetch error for ${endpoint}:`, error);
+        throw error;
+    }
 }
 
 async function loadDashboardData() {
@@ -103,18 +146,24 @@ async function loadDashboardData() {
 }
 
 async function loadStats() {
+    const statsElements = {
+        'stat-total-users': 'total_users',
+        'stat-total-messages': 'total_messages',
+        'stat-today-active': 'active_today',
+        'stat-api-keys': 'total_api_keys'
+    };
+    
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/stats`, {
-            headers: { 'X-Admin-Token': adminToken },
-            credentials: 'include'
-        });
+        const response = await fetchWithAuth('/admin/stats');
         
         if (response.ok) {
             const data = await response.json();
-            document.getElementById('stat-total-users').textContent = data.total_users || 0;
-            document.getElementById('stat-total-messages').textContent = data.total_messages || 0;
-            document.getElementById('stat-today-active').textContent = data.active_today || 0;
-            document.getElementById('stat-api-keys').textContent = data.total_api_keys || 0;
+            for (const [elementId, key] of Object.entries(statsElements)) {
+                const el = document.getElementById(elementId);
+                if (el) el.textContent = data[key] || 0;
+            }
+        } else {
+            console.error('Failed to load stats:', response.status);
         }
     } catch (error) {
         console.error('Failed to load stats:', error);
@@ -123,13 +172,12 @@ async function loadStats() {
 
 async function loadLogs() {
     const container = document.getElementById('logs-container');
+    if (!container) return;
+    
     container.innerHTML = '<div class="loading">Loading logs...</div>';
     
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/logs`, {
-            headers: { 'X-Admin-Token': adminToken },
-            credentials: 'include'
-        });
+        const response = await fetchWithAuth('/admin/logs');
         
         if (response.ok) {
             const data = await response.json();
@@ -143,7 +191,7 @@ async function loadLogs() {
                     const levelClass = log.level || 'info';
                     html += `
                         <div class="log-entry">
-                            <span class="log-time">${log.timestamp || '--:--'}</span>
+                            <span class="log-time">${escapeHtml(log.timestamp || '--:--')}</span>
                             <span class="log-level ${levelClass}">${levelClass.toUpperCase()}</span>
                             <span class="log-message">${escapeHtml(log.message)}</span>
                         </div>
@@ -155,19 +203,19 @@ async function loadLogs() {
             container.innerHTML = '<div class="loading">Failed to load logs</div>';
         }
     } catch (error) {
+        console.error('Failed to load logs:', error);
         container.innerHTML = '<div class="loading">Error loading logs</div>';
     }
 }
 
 async function loadUsers() {
     const container = document.getElementById('users-container');
+    if (!container) return;
+    
     container.innerHTML = '<div class="loading">Loading users...</div>';
     
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/users`, {
-            headers: { 'X-Admin-Token': adminToken },
-            credentials: 'include'
-        });
+        const response = await fetchWithAuth('/admin/users');
         
         if (response.ok) {
             const data = await response.json();
@@ -197,19 +245,19 @@ async function loadUsers() {
             container.innerHTML = '<div class="loading">Failed to load users</div>';
         }
     } catch (error) {
+        console.error('Failed to load users:', error);
         container.innerHTML = '<div class="loading">Error loading users</div>';
     }
 }
 
 async function loadApiStats() {
     const container = document.getElementById('api-stats-container');
+    if (!container) return;
+    
     container.innerHTML = '<div class="loading">Loading API stats...</div>';
     
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/api-stats`, {
-            headers: { 'X-Admin-Token': adminToken },
-            credentials: 'include'
-        });
+        const response = await fetchWithAuth('/admin/api-stats');
         
         if (response.ok) {
             const data = await response.json();
@@ -224,6 +272,7 @@ async function loadApiStats() {
                         <div class="api-stat-item">
                             <div class="api-key-name">🔑 ${escapeHtml(key.name)}</div>
                             <div class="api-requests">📊 ${key.requests || 0} requests | Created: ${new Date(key.created_at).toLocaleDateString()}</div>
+                            <div class="api-user">👤 ${escapeHtml(key.user_email)}</div>
                         </div>
                     `;
                 });
@@ -233,16 +282,14 @@ async function loadApiStats() {
             container.innerHTML = '<div class="loading">Failed to load API stats</div>';
         }
     } catch (error) {
+        console.error('Failed to load API stats:', error);
         container.innerHTML = '<div class="loading">Error loading API stats</div>';
     }
 }
 
 async function loadServerStatus() {
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/server-status`, {
-            headers: { 'X-Admin-Token': adminToken },
-            credentials: 'include'
-        });
+        const response = await fetchWithAuth('/admin/server-status');
         
         if (response.ok) {
             const data = await response.json();
@@ -260,10 +307,8 @@ async function clearLogs() {
     if (!confirm('Are you sure you want to clear all logs? This cannot be undone.')) return;
     
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/clear-logs`, {
-            method: 'POST',
-            headers: { 'X-Admin-Token': adminToken },
-            credentials: 'include'
+        const response = await fetchWithAuth('/admin/clear-logs', {
+            method: 'POST'
         });
         
         if (response.ok) {
@@ -281,10 +326,8 @@ async function backupDatabase() {
     showNotification('📀 Starting database backup...', 'info');
     
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/backup`, {
-            method: 'POST',
-            headers: { 'X-Admin-Token': adminToken },
-            credentials: 'include'
+        const response = await fetchWithAuth('/admin/backup', {
+            method: 'POST'
         });
         
         if (response.ok) {
@@ -302,10 +345,8 @@ async function clearCache() {
     if (!confirm('Clear system cache? This may temporarily slow down responses.')) return;
     
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/clear-cache`, {
-            method: 'POST',
-            headers: { 'X-Admin-Token': adminToken },
-            credentials: 'include'
+        const response = await fetchWithAuth('/admin/clear-cache', {
+            method: 'POST'
         });
         
         if (response.ok) {
@@ -324,17 +365,13 @@ async function restartServer() {
     showNotification('🔄 Restarting server...', 'warning');
     
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/restart`, {
-            method: 'POST',
-            headers: { 'X-Admin-Token': adminToken },
-            credentials: 'include'
+        const response = await fetchWithAuth('/admin/restart', {
+            method: 'POST'
         });
         
         if (response.ok) {
-            showNotification('✅ Server restart initiated', 'success');
-            setTimeout(() => {
-                window.location.reload();
-            }, 3000);
+            const data = await response.json();
+            showNotification(data.message || '✅ Server restart initiated', 'success');
         } else {
             showNotification('❌ Restart failed', 'error');
         }
@@ -347,15 +384,18 @@ async function toggleMaintenance() {
     if (!confirm('⚠️ Toggle maintenance mode? Users will see a maintenance page.')) return;
     
     try {
-        const response = await fetch(`${API_BASE_URL}/admin/maintenance`, {
-            method: 'POST',
-            headers: { 'X-Admin-Token': adminToken },
-            credentials: 'include'
+        const response = await fetchWithAuth('/admin/maintenance', {
+            method: 'POST'
         });
         
         if (response.ok) {
             const data = await response.json();
-            showNotification(data.message, 'info');
+            showNotification(data.message, data.maintenance_mode ? 'warning' : 'success');
+            if (data.maintenance_mode) {
+                document.getElementById('maintenance-mode').style.background = '#ef4444';
+            } else {
+                document.getElementById('maintenance-mode').style.background = '';
+            }
         } else {
             showNotification('❌ Failed to toggle maintenance mode', 'error');
         }
@@ -366,14 +406,20 @@ async function toggleMaintenance() {
 
 function showNotification(message, type = 'info') {
     const toast = document.getElementById('notification-toast');
+    if (!toast) return;
+    
     toast.textContent = message;
     toast.className = 'notification-toast show';
+    
     if (type === 'success') toast.style.borderColor = '#10b981';
     if (type === 'error') toast.style.borderColor = '#ef4444';
+    if (type === 'warning') toast.style.borderColor = '#f59e0b';
+    
     setTimeout(() => toast.classList.remove('show'), 3000);
 }
 
 function escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
