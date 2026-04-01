@@ -2020,3 +2020,111 @@ body {
         padding: 20px;
     }
 }
+/* API Key Items in Sidebar */
+.api-key-item {
+    background: rgba(139, 92, 246, 0.08);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    margin-bottom: 8px;
+    border-left: 3px solid var(--primary);
+    transition: all var(--transition-fast);
+}
+
+.api-key-item:hover {
+    background: rgba(139, 92, 246, 0.15);
+    transform: translateX(3px);
+}
+
+.api-key-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-accent);
+    margin-bottom: 4px;
+}
+
+.api-key-value {
+    font-size: 10px;
+    font-family: monospace;
+    color: var(--text-muted);
+    background: rgba(0, 0, 0, 0.3);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    margin: 4px 0;
+}
+
+.api-key-stats {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+
+.no-keys-message {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 11px;
+    padding: 12px;
+    font-style: italic;
+}
+
+/* Update section spacing */
+.api-keys-section {
+    padding: 20px;
+}
+
+.api-keys-list {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 12px;
+}
+
+/* Image generation result styles */
+.image-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+.error-output {
+    color: var(--danger);
+    padding: 15px;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: var(--radius-lg);
+    border-left: 3px solid var(--danger);
+    font-size: 13px;
+}
+
+.stdout {
+    color: var(--success);
+    background: rgba(16, 185, 129, 0.1);
+    padding: 12px;
+    border-radius: var(--radius-lg);
+    font-family: monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+}
+
+.stderr {
+    color: var(--danger);
+    background: rgba(239, 68, 68, 0.1);
+    padding: 12px;
+    border-radius: var(--radius-lg);
+    font-family: monospace;
+    font-size: 12px;
+    white-space: pre-wrap;
+    margin-top: 10px;
+}
+
+.no-output {
+    color: var(--text-muted);
+    padding: 20px;
+    text-align: center;
+    font-style: italic;
+}
+
+.memory-meta {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 8px;
+}
