@@ -2128,3 +2128,99 @@ body {
     color: var(--text-muted);
     margin-top: 8px;
 }
+/* Update Timeline Styles */
+.update-timeline {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.update-item {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(0, 0, 0, 0.2));
+    border-left: 4px solid var(--primary);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all var(--transition-normal);
+}
+
+.update-item.current {
+    border-left-color: var(--warning);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(0, 0, 0, 0.25));
+}
+
+.update-item.current .update-version {
+    color: var(--warning);
+    text-shadow: 0 0 10px var(--warning-glow);
+}
+
+.update-item:hover {
+    transform: translateX(5px);
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(0, 0, 0, 0.25));
+    box-shadow: var(--glow-sm);
+}
+
+.update-version {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 5px;
+}
+
+.update-date {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    font-family: monospace;
+}
+
+.update-content ul {
+    margin: 0;
+    padding-left: 20px;
+    list-style: none;
+}
+
+.update-content li {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin-bottom: 8px;
+    position: relative;
+    padding-left: 20px;
+}
+
+.update-content li::before {
+    content: "✨";
+    position: absolute;
+    left: 0;
+    color: var(--primary);
+}
+
+.update-item.current .update-content li::before {
+    content: "⭐";
+    color: var(--warning);
+}
+
+/* Version Badge Button */
+.version-badge-btn {
+    width: 100%;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1));
+    border: 1px solid var(--primary);
+    border-radius: var(--radius-full);
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.version-badge-btn:hover {
+    background: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--glow-md);
+}
