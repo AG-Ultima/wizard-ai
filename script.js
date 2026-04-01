@@ -1,6 +1,6 @@
 // ============================================
-// WIZARD.AI PRO v9.5.0 - COMPLETE FRONTEND CONTROLLER
-// FULLY REWRITTEN - FIXED MESSAGE OVERWRITING & AUTH
+// WIZARD.AI PRO v11.0.0 - COMPLETE FRONTEND CONTROLLER
+// Admin Update + Bug Fixes
 // Created by Arnav Gupta
 // ============================================
 
@@ -180,7 +180,7 @@ const modeData = {
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🚀 Initializing Wizard.AI v9.5.0...');
+    console.log('🚀 Initializing Wizard.AI v11.0.0...');
     showNotification('🧙 Summoning the Wizard...', 'info', 2000);
     registerServiceWorker();
     setupEventListeners();
@@ -193,10 +193,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadCustomPersonalities();
     loadChats();
     await loadStats();
+    await loadUserApiKeys();
     loadPublicPersonalities();
+    setupApiKeysButton();
     setInterval(updateStatsDisplay, 30000);
     checkBackendStatus();
-    console.log('✅ Wizard.AI v9.5.0 ready!');
+    console.log('✅ Wizard.AI v11.0.0 ready!');
 });
 
 function registerServiceWorker() {
@@ -211,6 +213,7 @@ function registerServiceWorker() {
 // UTILITY FUNCTIONS
 // ============================================
 function escapeHtml(s) {
+    if (!s) return '';
     return String(s)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
@@ -525,7 +528,151 @@ function shouldAutoSearch(text) {
 }
 
 // ============================================
-// CHAT MANAGEMENT - FIXED MESSAGE HANDLING
+// API KEYS MANAGEMENT
+// ============================================
+
+async function loadUserApiKeys() {
+    const apiKeysList = document.getElementById('api-keys-list');
+    if (!apiKeysList) return;
+    
+    if (!currentUser) {
+        apiKeysList.innerHTML = '<div class="no-keys-message">🔐 Login to view your API keys</div>';
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/keys`, {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const keys = await response.json();
+            
+            if (!keys || keys.length === 0) {
+                apiKeysList.innerHTML = '<div class="no-keys-message">✨ No API keys yet. Click below to generate one!</div>';
+            } else {
+                let html = '';
+                keys.forEach(key => {
+                    const maskedKey = key.key.substring(0, 15) + '...' + key.key.substring(key.key.length - 8);
+                    html += `
+                        <div class="api-key-item">
+                            <div class="api-key-name">${escapeHtml(key.name)}</div>
+                            <div class="api-key-value">${maskedKey}</div>
+                            <div class="api-key-stats">
+                                📊 ${key.requests || 0} requests
+                                ${key.is_active ? '✅ Active' : '❌ Revoked'}
+                            </div>
+                        </div>
+                    `;
+                });
+                apiKeysList.innerHTML = html;
+            }
+        } else if (response.status === 401) {
+            apiKeysList.innerHTML = '<div class="no-keys-message">🔐 Please login to view your API keys</div>';
+        } else {
+            apiKeysList.innerHTML = '<div class="no-keys-message">⚠️ Failed to load API keys</div>';
+        }
+    } catch (error) {
+        console.error('Error loading API keys:', error);
+        apiKeysList.innerHTML = '<div class="no-keys-message">⚠️ Error loading keys</div>';
+    }
+}
+
+function setupApiKeysButton() {
+    const sidebarKeyBtn = document.getElementById('create-api-key-sidebar');
+    const toolbarKeyBtn = document.getElementById('api-keys-btn');
+    
+    if (sidebarKeyBtn) {
+        sidebarKeyBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                showNotification('Please login to manage API keys', 'error');
+                showAuthModal(true);
+                return;
+            }
+            window.open('https://www.wizardai.dpdns.org/api-keys/', '_blank');
+        });
+    }
+    
+    if (toolbarKeyBtn) {
+        toolbarKeyBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                showNotification('Please login to manage API keys', 'error');
+                showAuthModal(true);
+                return;
+            }
+            window.open('https://www.wizardai.dpdns.org/api-keys/', '_blank');
+        });
+    }
+}
+
+// ============================================
+// MEMORY FUNCTIONS
+// ============================================
+
+function extractUserInfo(message) {
+    const facts = [];
+    
+    const namePatterns = [
+        /(?:my name is|i'm|i am) ([A-Z][a-z]+)(?:\s+[A-Z][a-z]+)?/i,
+        /call me ([A-Z][a-z]+)/i,
+        /i (?:go by|am called) ([A-Z][a-z]+)/i
+    ];
+    
+    for (const pattern of namePatterns) {
+        const match = message.match(pattern);
+        if (match) {
+            facts.push({ key: 'name', value: match[1], category: 'personal' });
+            break;
+        }
+    }
+    
+    const ageMatch = message.match(/(?:i am|i'm) (\d+)(?:\s+years?)?\s+old/i);
+    if (ageMatch) {
+        facts.push({ key: 'age', value: ageMatch[1], category: 'personal' });
+    }
+    
+    const locationMatch = message.match(/i (?:live in|am from|stay in) ([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i);
+    if (locationMatch) {
+        facts.push({ key: 'location', value: locationMatch[1], category: 'personal' });
+    }
+    
+    return facts;
+}
+
+async function saveMemoryToServer(key, value, category = 'personal') {
+    if (!currentUser) return false;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/memory/save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ key, value, category })
+        });
+        
+        if (response.ok) {
+            console.log(`✅ Memory saved: ${key} = ${value}`);
+            return true;
+        }
+    } catch (error) {
+        console.error('Failed to save memory:', error);
+    }
+    return false;
+}
+
+async function processUserMemories(userMessage) {
+    const facts = extractUserInfo(userMessage);
+    
+    for (const fact of facts) {
+        await saveMemoryToServer(fact.key, fact.value, fact.category);
+        showNotification(`🧠 I'll remember that ${fact.key} is ${fact.value}!`, 'info', 2000);
+    }
+    
+    return facts;
+}
+
+// ============================================
+// CHAT MANAGEMENT
 // ============================================
 function createMessageElement(sender, text, mode = null) {
     const msg = document.createElement('div');
@@ -663,6 +810,8 @@ async function sendMessage() {
         
         trackMessage(elapsed);
         if (shouldSearch) trackSearch();
+        
+        await processUserMemories(text);
         
     } catch (error) {
         console.error('Stream error:', error);
@@ -1103,6 +1252,7 @@ async function handleLogin() {
             renderMessages();
             updateStatsDisplay();
             loadUserPersonalitiesFromServer();
+            await loadUserApiKeys();
             closeModal(authModal);
             showNotification(`Welcome back, ${currentUser.first_name || ''}!`, 'success');
         } else {
@@ -1286,17 +1436,8 @@ function stopSessionCheck() {
     }
 }
 
-function handleApiKeysClick() {
-    if (!currentUser) {
-        showNotification('Please log in to manage API keys', 'error');
-        showAuthModal(true);
-        return;
-    }
-    window.location.href = `${SITE_URL}/api-keys/`;
-}
-
 // ============================================
-// MEMORY FUNCTIONS
+// MEMORY MODAL
 // ============================================
 async function loadMemories() {
     if (!currentUser) {
@@ -1312,12 +1453,18 @@ async function loadMemories() {
             const memoriesData = data.memories || [];
             userStats.memories = memoriesData.length;
             updateStatsDisplay();
+            
             if (memoriesData.length === 0) {
-                memoryList.innerHTML = '<div class="empty-state">No memories yet. Tell me about yourself!</div>';
+                memoryList.innerHTML = '<div class="empty-state">📭 No memories yet.<br>Tell me things like "My name is Arnav" or "I live in New York" and I\'ll remember!</div>';
             } else {
                 let html = '';
                 memoriesData.forEach(m => {
-                    html += `<div class="memory-item"><div class="memory-key">${escapeHtml(m.key)}</div><div class="memory-value">${escapeHtml(m.value)}</div><span class="memory-category">${escapeHtml(m.category)}</span></div>`;
+                    html += `<div class="memory-item">
+                        <div class="memory-key">🧠 ${escapeHtml(m.key)}</div>
+                        <div class="memory-value">${escapeHtml(m.value)}</div>
+                        <span class="memory-category">${escapeHtml(m.category)}</span>
+                        <div class="memory-meta">🕐 Last accessed: ${new Date(m.last_accessed).toLocaleDateString()}</div>
+                    </div>`;
                 });
                 memoryList.innerHTML = html;
             }
@@ -1500,7 +1647,7 @@ async function handleFileUpload(e) {
 }
 
 // ============================================
-// CODE EXECUTION
+// CODE EXECUTION (FIXED)
 // ============================================
 async function executeCode() {
     const code = codeInput.value.trim();
@@ -1509,7 +1656,7 @@ async function executeCode() {
         showNotification('Please login to execute code', 'error');
         return;
     }
-    codeOutput.innerHTML = 'Running...';
+    codeOutput.innerHTML = '<div class="loading">Running code...</div>';
     try {
         const response = await fetch(`${API_BASE_URL}/api/execute`, {
             method: 'POST',
@@ -1519,47 +1666,116 @@ async function executeCode() {
         });
         const data = await response.json();
         if (data.error) {
-            codeOutput.innerHTML = `<span class="error">❌ ${escapeHtml(data.error)}</span>`;
+            codeOutput.innerHTML = `<div class="error-output">❌ Error: ${escapeHtml(data.error)}</div>`;
         } else {
             let html = '';
             if (data.stdout) html += `<pre class="stdout">${escapeHtml(data.stdout)}</pre>`;
             if (data.stderr) html += `<pre class="stderr">${escapeHtml(data.stderr)}</pre>`;
-            if (!data.stdout && !data.stderr) html = 'No output';
+            if (!data.stdout && !data.stderr) html = '<div class="no-output">✓ No output (code ran successfully)</div>';
             codeOutput.innerHTML = html;
             trackCode();
         }
     } catch (error) {
-        codeOutput.innerHTML = '<span class="error">❌ Execution failed</span>';
+        console.error('Code execution error:', error);
+        codeOutput.innerHTML = '<div class="error-output">❌ Execution failed: Connection error</div>';
     }
 }
 
 // ============================================
-// IMAGE GENERATION
+// IMAGE GENERATION (FIXED)
 // ============================================
 async function generateImage() {
     const prompt = imagePrompt.value.trim();
-    if (!prompt) return;
+    if (!prompt) {
+        showNotification('Please enter a prompt', 'error');
+        return;
+    }
     if (!currentUser) {
         showNotification('Please login to generate images', 'error');
         return;
     }
-    imageResult.innerHTML = '<div class="loading">Generating image...</div>';
+    
+    imageResult.innerHTML = '<div class="loading">🎨 Generating image... This may take a moment</div>';
+    generateImageBtn.disabled = true;
+    generateImageBtn.textContent = 'Generating...';
+    
     try {
         const response = await fetch(`${API_BASE_URL}/api/generate-image`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ prompt, size: imageSize?.value || '512x512' })
+            body: JSON.stringify({ 
+                prompt: prompt, 
+                size: imageSize?.value || '512x512' 
+            })
         });
+        
         const data = await response.json();
-        if (data.url) {
-            imageResult.innerHTML = `<img src="${data.url}" alt="${escapeHtml(prompt)}">`;
+        
+        if (response.ok && data.url) {
+            imageResult.innerHTML = `
+                <img src="${data.url}" alt="${escapeHtml(prompt)}" style="max-width:100%; border-radius:12px; box-shadow:0 0 30px rgba(139,92,246,0.5);">
+                <div class="image-actions">
+                    <button onclick="window.open('${data.url}', '_blank')" class="glass-button">🔍 View Full Size</button>
+                    <button onclick="downloadImage('${data.url}')" class="glass-button">💾 Download</button>
+                </div>
+            `;
             trackImage();
+            showNotification('✅ Image generated successfully!', 'success');
         } else {
-            imageResult.innerHTML = '<div class="error">Generation failed</div>';
+            const errorMsg = data.error || 'Generation failed';
+            imageResult.innerHTML = `<div class="error-output">❌ ${escapeHtml(errorMsg)}<br><small>Please try again with a different prompt</small></div>`;
+            showNotification(`Image generation failed: ${errorMsg}`, 'error');
         }
     } catch (error) {
-        imageResult.innerHTML = '<div class="error">Generation failed</div>';
+        console.error('Image generation error:', error);
+        imageResult.innerHTML = '<div class="error-output">❌ Connection error. Please check your internet and try again.</div>';
+        showNotification('Failed to generate image: Connection error', 'error');
+    } finally {
+        generateImageBtn.disabled = false;
+        generateImageBtn.textContent = 'Generate';
+    }
+}
+
+function downloadImage(url) {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'wizard-ai-image.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+// ============================================
+// WEB SEARCH (FIXED)
+// ============================================
+async function performWebSearch(query) {
+    if (!currentUser) {
+        showNotification('Please login to use web search', 'error');
+        return null;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/search`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ query: query })
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            trackSearch();
+            return data.results;
+        } else {
+            const error = await response.json();
+            showNotification(`Search failed: ${error.error || 'Unknown error'}`, 'error');
+            return null;
+        }
+    } catch (error) {
+        console.error('Search error:', error);
+        showNotification('Search failed: Connection error', 'error');
+        return null;
     }
 }
 
@@ -1596,6 +1812,13 @@ async function loadDetailedStats() {
 }
 
 // ============================================
+// UPDATE HISTORY MODAL
+// ============================================
+function showUpdateHistory() {
+    openModal(updateModal);
+}
+
+// ============================================
 // EVENT LISTENERS SETUP
 // ============================================
 function setupEventListeners() {
@@ -1615,8 +1838,7 @@ function setupEventListeners() {
     if (memoryBtn) memoryBtn.addEventListener('click', loadMemories);
     if (statsBtn) statsBtn.addEventListener('click', loadDetailedStats);
     if (personalitiesBtn) personalitiesBtn.addEventListener('click', openPersonalitiesBrowser);
-    if (apiKeysBtn) apiKeysBtn.addEventListener('click', handleApiKeysClick);
-    if (updateHistoryBtn) updateHistoryBtn.addEventListener('click', () => openModal(updateModal));
+    if (updateHistoryBtn) updateHistoryBtn.addEventListener('click', showUpdateHistory);
     if (closeUpdate) closeUpdate.addEventListener('click', () => closeModal(updateModal));
     if (fileUpload) fileUpload.addEventListener('change', handleFileUpload);
     if (newChatBtn) newChatBtn.addEventListener('click', createNewChat);
