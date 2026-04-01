@@ -1,6 +1,6 @@
 // ============================================
 // WIZARD.AI PRO v11.0.0 - COMPLETE FRONTEND CONTROLLER
-// Admin Update + Bug Fixes
+// Admin Update + Bug Fixes + Maintenance Mode Status
 // Created by Arnav Gupta
 // ============================================
 
@@ -197,7 +197,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadPublicPersonalities();
     setupApiKeysButton();
     setInterval(updateStatsDisplay, 30000);
-    checkBackendStatus();
+    checkBackendStatus(); // This now handles maintenance mode
+    setInterval(checkBackendStatus, 30000); // Check every 30 seconds
     console.log('✅ Wizard.AI v11.0.0 ready!');
 });
 
@@ -206,6 +207,51 @@ function registerServiceWorker() {
         navigator.serviceWorker.register('/service-worker.js')
             .then(reg => console.log('✅ Service Worker registered'))
             .catch(err => console.log('❌ Service Worker error:', err));
+    }
+}
+
+// ============================================
+// BACKEND STATUS - WITH MAINTENANCE MODE
+// ============================================
+async function checkBackendStatus() {
+    const statusTextEl = document.getElementById('status-text');
+    const statusDotEl = document.querySelector('.status-dot');
+    
+    if (!statusTextEl || !statusDotEl) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/status`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Check if maintenance mode is active
+            if (data.maintenance === true) {
+                statusTextEl.textContent = 'Maintenance Mode';
+                statusDotEl.style.background = '#f59e0b'; // Yellow/Orange
+                statusDotEl.style.boxShadow = '0 0 15px #f59e0b';
+                statusDotEl.classList.remove('offline');
+                showNotification('🔧 System is in maintenance mode. Some features may be limited.', 'warning', 5000);
+            } else {
+                statusTextEl.textContent = 'Connected';
+                statusDotEl.style.background = '#10b981'; // Green
+                statusDotEl.style.boxShadow = '0 0 15px #10b981';
+                statusDotEl.classList.remove('offline');
+            }
+        } else {
+            // Server responded but with error
+            statusTextEl.textContent = 'Limited Connection';
+            statusDotEl.style.background = '#f59e0b'; // Yellow
+            statusDotEl.style.boxShadow = '0 0 15px #f59e0b';
+            statusDotEl.classList.remove('offline');
+        }
+    } catch (error) {
+        // Cannot reach server - offline
+        statusTextEl.textContent = 'Offline Mode';
+        statusDotEl.style.background = '#ef4444'; // Red
+        statusDotEl.style.boxShadow = '0 0 15px #ef4444';
+        statusDotEl.classList.add('offline');
+        console.log('Backend unreachable:', error);
     }
 }
 
@@ -236,6 +282,7 @@ function showNotification(message, type = 'info', duration = 3000) {
     notificationToast.className = 'notification-toast show';
     if (type === 'success') notificationToast.classList.add('success');
     if (type === 'error') notificationToast.classList.add('error');
+    if (type === 'warning') notificationToast.style.borderColor = '#f59e0b';
     setTimeout(() => notificationToast.classList.remove('show'), duration);
 }
 
@@ -260,25 +307,6 @@ function setupModals() {
             });
         }
     });
-}
-
-// ============================================
-// BACKEND STATUS
-// ============================================
-async function checkBackendStatus() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/status`);
-        if (response.ok) {
-            statusText.textContent = 'Connected';
-            statusDot.classList.remove('offline');
-        } else {
-            statusText.textContent = 'Offline';
-            statusDot.classList.add('offline');
-        }
-    } catch (error) {
-        statusText.textContent = 'Offline Mode';
-        statusDot.classList.add('offline');
-    }
 }
 
 // ============================================
@@ -1647,7 +1675,7 @@ async function handleFileUpload(e) {
 }
 
 // ============================================
-// CODE EXECUTION (FIXED)
+// CODE EXECUTION
 // ============================================
 async function executeCode() {
     const code = codeInput.value.trim();
@@ -1682,7 +1710,7 @@ async function executeCode() {
 }
 
 // ============================================
-// IMAGE GENERATION (FIXED)
+// IMAGE GENERATION
 // ============================================
 async function generateImage() {
     const prompt = imagePrompt.value.trim();
@@ -1747,7 +1775,7 @@ function downloadImage(url) {
 }
 
 // ============================================
-// WEB SEARCH (FIXED)
+// WEB SEARCH
 // ============================================
 async function performWebSearch(query) {
     if (!currentUser) {
