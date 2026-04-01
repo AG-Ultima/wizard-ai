@@ -3,26 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧙 Wizard.AI Pro v9.0 - Your Magical AI Assistant</title>
+    <title>🧙 Wizard.AI Pro v11.0 - Your Magical AI Assistant</title>
     
     <!-- Primary Meta Tags -->
-    <meta name="title" content="Wizard.AI Pro v9.0 - Your Magical AI Assistant">
-    <meta name="description" content="Wizard.AI is a full AI platform with RAG, persistent memory, web search, code execution, image generation, and 7 unique personalities.">
-    <meta name="keywords" content="AI, chatbot, RAG, machine learning, Flask, Groq, Llama">
+    <meta name="title" content="Wizard.AI Pro v11.0 - Your Magical AI Assistant">
+    <meta name="description" content="Wizard.AI is a full AI platform with RAG, persistent memory, web search, code execution, image generation, admin dashboard, and 7+ personalities.">
+    <meta name="keywords" content="AI, chatbot, RAG, machine learning, Flask, Groq, Llama, admin dashboard">
     <meta name="author" content="Arnav Gupta">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.wizardai.dpdns.org/">
-    <meta property="og:title" content="Wizard.AI Pro v9.0 - Your Magical AI Assistant">
-    <meta property="og:description" content="Full AI platform with RAG, memory, web search, code execution, image generation, and 7 personalities. Try it free!">
+    <meta property="og:title" content="Wizard.AI Pro v11.0 - Your Magical AI Assistant">
+    <meta property="og:description" content="Full AI platform with RAG, memory, web search, code execution, image generation, admin dashboard, and 7 personalities.">
     <meta property="og:image" content="https://www.wizardai.dpdns.org/og-image.png">
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://www.wizardai.dpdns.org/">
-    <meta property="twitter:title" content="Wizard.AI Pro v9.0 - Your Magical AI Assistant">
-    <meta property="twitter:description" content="Full AI platform with RAG, memory, web search, code execution, image generation, and 7 personalities. Try it free!">
+    <meta property="twitter:title" content="Wizard.AI Pro v11.0 - Your Magical AI Assistant">
+    <meta property="twitter:description" content="Full AI platform with RAG, memory, web search, code execution, image generation, admin dashboard, and 7 personalities.">
     <meta property="twitter:image" content="https://www.wizardai.dpdns.org/og-image.png">
     
     <!-- Favicon -->
@@ -77,7 +77,7 @@
                 </div>
             </div>
             
-            <!-- ===== FIXED: MODE SECTION (NOW ABOVE STATS) ===== -->
+            <!-- Personality Mode Section -->
             <div class="mode-section glass-panel">
                 <div class="section-header">
                     <span class="section-icon">🧠</span>
@@ -90,18 +90,16 @@
                         <span id="selected-mode-display">🎩 JARVIS</span>
                         <span class="dropdown-arrow">▼</span>
                     </div>
-                    <div class="custom-dropdown-content" id="dropdown-content">
-                        <!-- Options loaded by JavaScript -->
-                    </div>
+                    <div class="custom-dropdown-content" id="dropdown-content"></div>
                 </div>
                 
-                <!-- ===== NEW: CREATE PERSONALITY BUTTON ===== -->
+                <!-- Create Personality Button -->
                 <button class="create-personality-btn" id="toggle-creator-btn">
                     <span class="btn-icon">➕</span>
                     <span class="btn-text">Create New Personality</span>
                 </button>
                 
-                <!-- Personality Creator Panel (Hidden by Default) -->
+                <!-- Personality Creator Panel -->
                 <div class="creator-panel" id="creator-panel" style="display: none;">
                     <div class="creator-header">
                         <h3>Create Custom Personality</h3>
@@ -115,7 +113,7 @@
                             <input type="text" id="custom-emoji" placeholder="Emoji (e.g., '🏴‍☠️')" maxlength="2">
                         </div>
                         <div class="form-row">
-                            <textarea id="custom-prompt" placeholder="System prompt... (e.g., 'You are a pirate who talks like Captain Jack Sparrow')" rows="3"></textarea>
+                            <textarea id="custom-prompt" placeholder="System prompt..." rows="3"></textarea>
                         </div>
                         <div class="form-row">
                             <input type="text" id="custom-greeting" placeholder="Greeting message (optional)">
@@ -133,7 +131,7 @@
                 </div>
             </div>
             
-            <!-- Stats Dashboard - NOW BELOW Mode Section -->
+            <!-- Stats Dashboard -->
             <div class="stats-dashboard glass-panel">
                 <div class="section-header">
                     <span class="section-icon">📊</span>
@@ -173,16 +171,16 @@
                 </div>
             </div>
             
-            <!-- API Keys Section (NEW) -->
+            <!-- API Keys Section -->
             <div class="api-keys-section glass-panel">
                 <div class="section-header">
                     <span class="section-icon">🔑</span>
                     <h3>API Keys</h3>
                 </div>
                 <div class="api-keys-list" id="api-keys-list">
-                    <div class="no-keys-message">No API keys yet</div>
+                    <div class="no-keys-message">🔐 Login to view your API keys</div>
                 </div>
-                <button class="create-key-btn" id="create-api-key">
+                <button class="create-key-btn" id="create-api-key-sidebar">
                     <span class="btn-icon">➕</span>
                     <span class="btn-text">Generate New Key</span>
                 </button>
@@ -215,15 +213,17 @@
                 <span class="button-icon">🧹</span>
                 <span class="button-text">Clear Current Chat</span>
             </button>
+            
             <!-- Update History Button -->
-<button id="update-history-btn" class="version-badge-btn">
-    <span class="button-icon">📜</span>
-    <span class="button-text">v9.5.0 • What's New?</span>
-</button>
+            <button id="update-history-btn" class="version-badge-btn">
+                <span class="button-icon">📜</span>
+                <span class="button-text">v11.0.0 • What's New?</span>
+            </button>
+            
             <!-- Footer -->
             <div class="footer-note">
                 <p>Created by Arnav ✨</p>
-                <p class="version">v9.5 - Pro Edition</p>
+                <p class="version">v11.0.0 - Admin Update</p>
                 <p class="domain">wizardai.dpdns.org</p>
             </div>
         </div>
@@ -270,7 +270,7 @@
                     <span class="btn-icon">📊</span>
                     <span class="btn-text">Stats</span>
                 </button>
-                <button class="pro-btn" id="personalities-btn" title="Browse Custom Personalities">
+                <button class="pro-btn" id="personalities-btn" title="Browse Community Personalities">
                     <span class="btn-icon">🎭</span>
                     <span class="btn-text">Personalities</span>
                 </button>
@@ -281,27 +281,17 @@
             </div>
             
             <!-- Chat History -->
-            <div id="chat-history" class="chat-history" role="log" aria-live="polite">
-                <!-- Messages will appear here -->
-            </div>
+            <div id="chat-history" class="chat-history" role="log" aria-live="polite"></div>
             
             <!-- Input Area with Voice -->
             <div class="input-area glass-panel">
                 <div class="input-wrapper">
-                    <input 
-                        type="text" 
-                        id="chat-input" 
-                        placeholder="Type your message here... or click 🎤 to speak"
-                        autocomplete="off"
-                        aria-label="Your message"
-                    >
+                    <input type="text" id="chat-input" placeholder="Type your message here... or click 🎤 to speak" autocomplete="off" aria-label="Your message">
                     <div class="input-indicators">
                         <span class="search-indicator-pulse" id="input-search-indicator" style="display: none;">🌐</span>
                     </div>
                 </div>
-                <button id="voice-input-btn" class="voice-btn" title="Voice input (works in all modes!)">
-                    🎤
-                </button>
+                <button id="voice-input-btn" class="voice-btn" title="Voice input">🎤</button>
                 <button id="send-btn" class="send-button" aria-label="Send message">
                     <span class="send-text">Send</span>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -339,11 +329,9 @@
                 <button id="new-chat-btn" class="new-chat-btn" title="New Chat">➕</button>
             </div>
             
-            <div class="chats-list" id="chats-list">
-                <!-- Chat items will be loaded here -->
-            </div>
+            <div class="chats-list" id="chats-list"></div>
             
-            <!-- Public Personalities Section -->
+            <!-- Community Personalities Section -->
             <div class="public-personalities glass-panel">
                 <div class="section-header">
                     <span class="section-icon">🎭</span>
@@ -383,42 +371,32 @@
             </div>
             <div class="modal-body">
                 <div class="auth-form">
-                    <!-- First Name (for signup) -->
                     <div class="form-group" id="first-name-group" style="display: none;">
                         <label for="first-name">First Name</label>
                         <input type="text" id="first-name" placeholder="Enter your first name">
                     </div>
-
-                    <!-- Last Name (for signup) -->
                     <div class="form-group" id="last-name-group" style="display: none;">
                         <label for="last-name">Last Name</label>
                         <input type="text" id="last-name" placeholder="Enter your last name">
                     </div>
-                    
                     <div class="form-group">
                         <label for="auth-email">Email</label>
                         <input type="email" id="auth-email" placeholder="Enter your email">
                     </div>
-                    
                     <div class="form-group">
                         <label for="auth-password">Password</label>
                         <input type="password" id="auth-password" placeholder="Enter your password">
                     </div>
-                    
                     <div class="form-group" id="confirm-password-group" style="display: none;">
                         <label for="auth-confirm">Confirm Password</label>
                         <input type="password" id="auth-confirm" placeholder="Confirm your password">
                     </div>
-
-                    <!-- Verification Code -->
                     <div class="form-group" id="verification-group" style="display: none;">
                         <label for="verification-code">Verification Code</label>
                         <input type="text" id="verification-code" placeholder="Enter 6-digit code" maxlength="6">
                         <button id="resend-code-btn" class="resend-btn">📧 Resend Code</button>
                     </div>
-                    
                     <div class="auth-error" id="auth-error"></div>
-                    
                     <button class="auth-submit glass-button" id="auth-submit">Login</button>
                 </div>
                 <div class="auth-switch">
@@ -492,9 +470,7 @@
                 <button class="close-modal" id="close-memory-modal">&times;</button>
             </div>
             <div class="modal-body">
-                <div id="memory-list" class="memory-list">
-                    Loading memories...
-                </div>
+                <div id="memory-list" class="memory-list">Loading memories...</div>
             </div>
         </div>
     </div>
@@ -510,78 +486,31 @@
                 <div class="stats-detailed">
                     <div class="stats-section">
                         <h4>📈 Usage Overview</h4>
-                        <div class="stats-row">
-                            <span>Account Created:</span>
-                            <span id="stats-created">-</span>
-                        </div>
-                        <div class="stats-row">
-                            <span>Last Active:</span>
-                            <span id="stats-last">-</span>
-                        </div>
-                        <div class="stats-row">
-                            <span>Total Messages:</span>
-                            <span id="stats-total-msgs">0</span>
-                        </div>
-                        <div class="stats-row">
-                            <span>Total Chats:</span>
-                            <span id="stats-total-chats">0</span>
-                        </div>
+                        <div class="stats-row"><span>Account Created:</span><span id="stats-created">-</span></div>
+                        <div class="stats-row"><span>Last Active:</span><span id="stats-last">-</span></div>
+                        <div class="stats-row"><span>Total Messages:</span><span id="stats-total-msgs">0</span></div>
+                        <div class="stats-row"><span>Total Chats:</span><span id="stats-total-chats">0</span></div>
                     </div>
-                    
                     <div class="stats-section">
                         <h4>📁 Content Stats</h4>
-                        <div class="stats-row">
-                            <span>Files Uploaded:</span>
-                            <span id="stats-files">0</span>
-                        </div>
-                        <div class="stats-row">
-                            <span>Images Generated:</span>
-                            <span id="stats-images">0</span>
-                        </div>
-                        <div class="stats-row">
-                            <span>Code Executions:</span>
-                            <span id="stats-code">0</span>
-                        </div>
-                        <div class="stats-row">
-                            <span>Web Searches:</span>
-                            <span id="stats-searches">0</span>
-                        </div>
+                        <div class="stats-row"><span>Files Uploaded:</span><span id="stats-files">0</span></div>
+                        <div class="stats-row"><span>Images Generated:</span><span id="stats-images">0</span></div>
+                        <div class="stats-row"><span>Code Executions:</span><span id="stats-code">0</span></div>
+                        <div class="stats-row"><span>Web Searches:</span><span id="stats-searches">0</span></div>
                     </div>
-                    
                     <div class="stats-section">
                         <h4>🧠 Memory Stats</h4>
-                        <div class="stats-row">
-                            <span>Memories Stored:</span>
-                            <span id="stats-memories">0</span>
-                        </div>
-                        <div class="stats-row">
-                            <span>Documents in RAG:</span>
-                            <span id="stats-docs">0</span>
-                        </div>
+                        <div class="stats-row"><span>Memories Stored:</span><span id="stats-memories">0</span></div>
+                        <div class="stats-row"><span>Documents in RAG:</span><span id="stats-docs">0</span></div>
                     </div>
-                    
                     <div class="stats-section">
                         <h4>⚡ Performance</h4>
-                        <div class="stats-row">
-                            <span>Avg Response Time:</span>
-                            <span id="stats-avg-response">0.4s</span>
-                        </div>
-                        <div class="stats-row">
-                            <span>Fastest Response:</span>
-                            <span id="stats-fastest">0.2s</span>
-                        </div>
+                        <div class="stats-row"><span>Avg Response Time:</span><span id="stats-avg-response">0.4s</span></div>
+                        <div class="stats-row"><span>Fastest Response:</span><span id="stats-fastest">0.2s</span></div>
                     </div>
-                    
                     <div class="stats-section">
                         <h4>🔑 API Usage</h4>
-                        <div class="stats-row">
-                            <span>API Keys:</span>
-                            <span id="stats-api-keys">0</span>
-                        </div>
-                        <div class="stats-row">
-                            <span>API Requests:</span>
-                            <span id="stats-api-requests">0</span>
-                        </div>
+                        <div class="stats-row"><span>API Keys:</span><span id="stats-api-keys">0</span></div>
                     </div>
                 </div>
             </div>
@@ -603,15 +532,13 @@
                         <button class="tab-btn" data-tab="recent">Recent</button>
                         <button class="tab-btn" data-tab="mine">Mine</button>
                     </div>
-                    <div class="personalities-grid" id="personalities-grid">
-                        <!-- Personalities will load here -->
-                    </div>
+                    <div class="personalities-grid" id="personalities-grid"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- API Keys Modal (NEW) -->
+    <!-- API Keys Modal -->
     <div class="modal-overlay" id="api-keys-modal-overlay">
         <div class="modal glass-panel large-modal" id="api-keys-modal">
             <div class="modal-header">
@@ -621,22 +548,15 @@
             <div class="modal-body">
                 <div class="api-keys-manager">
                     <p class="api-info">Use these keys to access Wizard.AI via the OpenAI-compatible API.</p>
-                    <div class="api-endpoint">
-                        <strong>Endpoint:</strong> <code>https://api.wizardai.dpdns.org/v1</code>
-                    </div>
-                    <div class="api-keys-table" id="api-keys-table">
-                        <!-- API keys will load here -->
-                    </div>
-                    <button class="create-key-btn large" id="create-api-key-modal">
-                        <span class="btn-icon">➕</span>
-                        <span class="btn-text">Generate New API Key</span>
-                    </button>
+                    <div class="api-endpoint"><strong>Endpoint:</strong> <code>https://api.wizardai.dpdns.org/v1</code></div>
+                    <div class="api-keys-table" id="api-keys-table"></div>
+                    <button class="create-key-btn large" id="create-api-key-modal">➕ Generate New API Key</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- New API Key Modal (for displaying newly created key) -->
+    <!-- New API Key Modal -->
     <div class="modal-overlay" id="new-key-modal-overlay">
         <div class="modal glass-panel" id="new-key-modal">
             <div class="modal-header">
@@ -653,187 +573,173 @@
         </div>
     </div>
 
+    <!-- Update History Modal -->
+    <div class="modal-overlay" id="update-modal-overlay">
+        <div class="modal glass-panel large-modal" id="update-modal">
+            <div class="modal-header">
+                <h3>📜 Wizard.AI Update History</h3>
+                <button class="close-modal" id="close-update-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="update-timeline">
+                    <div class="update-item current">
+                        <div class="update-version">👑 v11.0.0 - Admin Update (March 2026)</div>
+                        <div class="update-date">March 31, 2026</div>
+                        <div class="update-content">
+                            <ul>
+                                <li>👑 Admin Dashboard with full system control</li>
+                                <li>🔧 Fixed API keys display in sidebar (real-time sync)</li>
+                                <li>🔑 Generate New Key button now opens api-keys page</li>
+                                <li>🎨 Fixed image generation with better error handling</li>
+                                <li>🌐 Fixed web search with Tavily API integration</li>
+                                <li>💻 Fixed code execution with security sandbox</li>
+                                <li>🧠 Fixed memory saving for user information</li>
+                                <li>📊 Admin can view users, logs, API usage, server status</li>
+                                <li>💾 Database backup, cache clearing, maintenance mode</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="update-item">
+                        <div class="update-version">🔧 v10.0.0 - Bug Fix Update (March 2026)</div>
+                        <div class="update-date">March 2026</div>
+                        <div class="update-content">
+                            <ul>
+                                <li>🐛 Fixed message overwriting in chat history</li>
+                                <li>🔐 Fixed login session persistence across reloads</li>
+                                <li>📄 Enhanced document processing (PDF, DOCX, Excel)</li>
+                                <li>⚡ Optimized memory usage with lighter dependencies</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="update-item">
+                        <div class="update-version">🚀 v9.0.0 - PRO Update (March 2026)</div>
+                        <div class="update-date">March 2026</div>
+                        <div class="update-content">
+                            <ul>
+                                <li>🌐 Web search with auto-detection</li>
+                                <li>📎 File upload with RAG document Q&A</li>
+                                <li>💻 Python code execution sandbox</li>
+                                <li>🎨 AI image generation with multiple sizes</li>
+                                <li>🎭 Community personalities browser</li>
+                                <li>🔑 API key management for programmatic access</li>
+                                <li>📊 Detailed stats dashboard</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="update-item">
+                        <div class="update-version">📊 v8.0.0 - Stats Update (March 2026)</div>
+                        <div class="update-date">March 2026</div>
+                        <div class="update-content">
+                            <ul>
+                                <li>📈 User statistics tracking (messages, files, images)</li>
+                                <li>🧠 Persistent memory system for user preferences</li>
+                                <li>⚡ Average response time tracking</li>
+                                <li>📊 Quick stats mini-dashboard</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="update-item">
+                        <div class="update-version">💬 v7.0.0 - Chats & User Update (March 2026)</div>
+                        <div class="update-date">March 2026</div>
+                        <div class="update-content">
+                            <ul>
+                                <li>🔐 User signup and login system with email verification</li>
+                                <li>💾 Real database storage with SQLite</li>
+                                <li>💬 Create, rename, and delete multiple chats</li>
+                                <li>🔄 Chat switching without losing context</li>
+                                <li>👤 User profiles and stats</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="update-item">
+                        <div class="update-version">🌐 v6.0.0 - Web Update (March 2026)</div>
+                        <div class="update-date">March 2026</div>
+                        <div class="update-content">
+                            <ul>
+                                <li>🔄 Complete overhaul to web-based application</li>
+                                <li>🔗 PythonAnywhere backend integration</li>
+                                <li>🎨 Beautiful UI with dark theme and animations</li>
+                                <li>📱 Mobile-responsive design</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="update-item">
+                        <div class="update-version">🎭 v5.0.0 - Personality Update (March 2026)</div>
+                        <div class="update-date">March 2026</div>
+                        <div class="update-content">
+                            <ul>
+                                <li>🎭 7 personality modes (JARVIS, ORACLE, Nerd, Fun, Sarcastic, Fast, Normal)</li>
+                                <li>📋 Dropdown menu for personality selection</li>
+                                <li>✨ Custom personality creator</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="update-item">
+                        <div class="update-version">🎨 v4.0.0 - UI Update (March 2026)</div>
+                        <div class="update-date">March 2026</div>
+                        <div class="update-content">
+                            <ul>
+                                <li>🖥️ Basic UI added through Flask and HTML</li>
+                                <li>💬 Chat interface with message bubbles</li>
+                                <li>⚡ Turbo mode for faster responses</li>
+                                <li>🧹 Chat clear functionality</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="update-item">
+                        <div class="update-version">🤖 v3.0.0 - Ollama Integration (March 2026)</div>
+                        <div class="update-date">March 2026</div>
+                        <div class="update-content">
+                            <ul>
+                                <li>🤖 Integrated Ollama for better AI inference</li>
+                                <li>🧠 Smart logic and improved responses</li>
+                                <li>📚 Training system improvements</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="update-item">
+                        <div class="update-version">🧩 v2.0.0 - Enhanced Logic (March 2026)</div>
+                        <div class="update-date">March 2026</div>
+                        <div class="update-content">
+                            <ul>
+                                <li>🧩 Enhanced logic for better phrase recognition</li>
+                                <li>🔤 Spelling error correction</li>
+                                <li>📚 Training system for improved responses</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="update-item">
+                        <div class="update-version">🚀 v1.0.0 - Release (March 2026)</div>
+                        <div class="update-date">March 2026</div>
+                        <div class="update-content">
+                            <ul>
+                                <li>🚀 Initial release</li>
+                                <li>💻 Operated entirely on Python logic</li>
+                                <li>🖥️ Local terminal bot</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Hidden File Input -->
     <input type="file" id="file-upload" style="display: none;" accept=".txt,.pdf,.doc,.docx,.xls,.xlsx,.csv,.jpg,.png">
 
     <!-- Notification Toast -->
     <div id="notification-toast" class="notification-toast"></div>
 
-    <!-- Update History Modal -->
-<div class="modal-overlay" id="update-modal-overlay">
-    <div class="modal glass-panel large-modal" id="update-modal">
-        <div class="modal-header">
-            <h3>📜 Wizard.AI Update History</h3>
-            <button class="close-modal" id="close-update-modal">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="update-timeline">
-                <div class="update-item">
-                    <div class="update-version">v9.5.0 (Current)</div>
-                    <div class="update-date">March 2026</div>
-                    <div class="update-content">
-                        <ul>
-                            <li>🔧 Fixed login session persistence across page reloads</li>
-                            <li>🐛 Fixed message overwriting bug in chat history</li>
-                            <li>🔑 Improved API key authentication with Bearer token support</li>
-                            <li>📄 Enhanced document processing (PDF, DOCX, Excel support)</li>
-                            <li>⚡ Optimized memory usage with lighter dependencies</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="update-item">
-                    <div class="update-version">v9.0.0 - PRO Update</div>
-                    <div class="update-date">March 2026</div>
-                    <div class="update-content">
-                        <ul>
-                            <li>🌐 Web search integration with auto-detection</li>
-                            <li>📎 File upload with RAG document Q&A</li>
-                            <li>💻 Python code execution sandbox</li>
-                            <li>🎨 AI image generation with multiple sizes</li>
-                            <li>🎭 Community personalities browser</li>
-                            <li>🔑 API key management for programmatic access</li>
-                            <li>📊 Detailed stats dashboard</li>
-                            <li>✨ Custom personality creator</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="update-item">
-                    <div class="update-version">v8.0.0 - Stats Update</div>
-                    <div class="update-date">March 2026</div>
-                    <div class="update-content">
-                        <ul>
-                            <li>📈 User statistics tracking (messages, files, images)</li>
-                            <li>🧠 Persistent memory system for user preferences</li>
-                            <li>⚡ Average response time tracking</li>
-                            <li>📊 Quick stats mini-dashboard</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="update-item">
-                    <div class="update-version">v7.5.0 - Chats Update</div>
-                    <div class="update-date">March</div>
-                    <div class="update-content">
-                        <ul>
-                            <li>💬 Create, rename, and delete multiple chats</li>
-                            <li>💾 Real database storage with SQLite</li>
-                            <li>🔄 Chat switching without losing context</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="update-item">
-                    <div class="update-version">v7.0.0 - User Update</div>
-                    <div class="update-date">March 2026</div>
-                    <div class="update-content">
-                        <ul>
-                            <li>🔐 User signup and login system</li>
-                            <li>📧 Email verification with Resend API</li>
-                            <li>💾 Database storage for conversations</li>
-                            <li>👤 User profiles and stats</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="update-item">
-                    <div class="update-version">v6.5.0 - Web Update</div>
-                    <div class="update-date">March 2026</div>
-                    <div class="update-content">
-                        <ul>
-                            <li>🌐 Migrated frontend to GitHub Pages</li>
-                            <li>🐛 Bug fixes and performance improvements</li>
-                            <li>📱 Mobile-responsive design</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="update-item">
-                    <div class="update-version">v6.0.0 - Web Update</div>
-                    <div class="update-date">March 2026</div>
-                    <div class="update-content">
-                        <ul>
-                            <li>🔄 Complete overhaul to web-based application</li>
-                            <li>🔗 PythonAnywhere backend integration</li>
-                            <li>🎨 Beautiful UI with dark theme</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="update-item">
-                    <div class="update-version">v5.0.0 - Personality Update</div>
-                    <div class="update-date">March 2026</div>
-                    <div class="update-content">
-                        <ul>
-                            <li>🎭 7 personality modes (JARVIS, ORACLE, Nerd, Fun, Sarcastic, Fast, Normal)</li>
-                            <li>📋 Dropdown menu for personality selection</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="update-item">
-                    <div class="update-version">v4.5.0 - UI Update</div>
-                    <div class="update-date">March 2026</div>
-                    <div class="update-content">
-                        <ul>
-                            <li>🎨 Enhanced beautiful UI design</li>
-                            <li>⚡ Turbo mode for faster responses</li>
-                            <li>🧹 Chat clear functionality</li>
-                            <li>📦 Model list display</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="update-item">
-                    <div class="update-version">v4.0.0 - UI Update</div>
-                    <div class="update-date">March 2026</div>
-                    <div class="update-content">
-                        <ul>
-                            <li>🖥️ Basic UI added through Flask and HTML</li>
-                            <li>💬 Chat interface with message bubbles</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="update-item">
-                    <div class="update-version">v3.0.0 - Ollama Integration</div>
-                    <div class="update-date">March 2026</div>
-                    <div class="update-content">
-                        <ul>
-                            <li>🤖 Integrated Ollama for better AI inference</li>
-                            <li>🧠 Smart logic and improved responses</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="update-item">
-                    <div class="update-version">v2.0.0 - Enhanced Logic</div>
-                    <div class="update-date">March 2026</div>
-                    <div class="update-content">
-                        <ul>
-                            <li>🧩 Enhanced logic for better phrase recognition</li>
-                            <li>🔤 Spelling error correction</li>
-                            <li>📚 Training system improvements</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="update-item">
-                    <div class="update-version">v1.0.0 - Release</div>
-                    <div class="update-date">March 2026</div>
-                    <div class="update-content">
-                        <ul>
-                            <li>🚀 Initial release</li>
-                            <li>💻 Operated entirely on Python logic</li>
-                            <li>🖥️ Local terminal bot</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
     <!-- Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
