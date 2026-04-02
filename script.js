@@ -1,5 +1,14 @@
 // ============================================
 // WIZARD.AI PRO v11.0.0 - COMPLETE FRONTEND CONTROLLER
+// ============================================
+
+// Check for duplicate declarations
+if (typeof deferredPrompt !== 'undefined') {
+    console.log("deferredPrompt already exists");
+}
+let deferredPrompt;  // Keep only ONE declaration
+// ============================================
+// WIZARD.AI PRO v11.0.0 - COMPLETE FRONTEND CONTROLLER
 // Admin Update + Bug Fixes + Search Indicator
 // Created by Arnav Gupta
 // ============================================
