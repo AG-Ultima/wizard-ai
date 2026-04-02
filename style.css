@@ -2224,3 +2224,102 @@ body {
     transform: translateY(-2px);
     box-shadow: var(--glow-md);
 }
+/* PWA Install Prompt */
+.install-prompt {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    z-index: 10001;
+    background: linear-gradient(135deg, #1a1035, #0d0a1f);
+    border: 1px solid var(--primary);
+    border-radius: var(--radius-xl);
+    padding: 16px 20px;
+    backdrop-filter: blur(20px);
+    box-shadow: var(--glow-md);
+    animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.install-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.install-icon {
+    font-size: 36px;
+    filter: drop-shadow(0 0 10px var(--primary));
+}
+
+.install-text {
+    flex: 1;
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.install-btn {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border: none;
+    border-radius: var(--radius-full);
+    padding: 10px 24px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.install-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--glow-sm);
+}
+
+.close-install {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s ease;
+}
+
+.close-install:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+    transform: rotate(90deg);
+}
+
+/* iOS PWA Full Screen Mode */
+@media all and (display-mode: standalone) {
+    .app-container {
+        border-radius: 0;
+        margin: 0;
+        min-height: 100vh;
+    }
+    
+    body {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+    
+    .install-prompt {
+        display: none !important;
+    }
+}
