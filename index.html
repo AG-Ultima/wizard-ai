@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>🧙 Wizard.AI Pro v11.0 - Your Magical AI Assistant</title>
     
     <!-- Primary Meta Tags -->
     <meta name="title" content="Wizard.AI Pro v11.0 - Your Magical AI Assistant">
-    <meta name="description" content="Wizard.AI is a full AI platform with RAG, persistent memory, web search, code execution, image generation, admin dashboard, and 7+ personalities.">
+    <meta name="description" content="Wizard.AI is a full AI platform with RAG, persistent memory, web search, code execution, image generation, admin dashboard, and 7 personalities.">
     <meta name="keywords" content="AI, chatbot, RAG, machine learning, Flask, Groq, Llama, admin dashboard">
     <meta name="author" content="Arnav Gupta">
     
@@ -25,23 +25,39 @@
     <meta property="twitter:description" content="Full AI platform with RAG, memory, web search, code execution, image generation, admin dashboard, and 7 personalities.">
     <meta property="twitter:image" content="https://www.wizardai.dpdns.org/og-image.png">
     
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- iOS PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Wizard.AI">
+    
+    <!-- Apple Touch Icons (SVG with emoji) -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%238b5cf6'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white'%3E🧙%3C/text%3E%3C/svg%3E">
+    
     <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧙</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧙</text></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%238b5cf6'/%3E%3Ctext x='50' y='70' font-size='60' text-anchor='middle' fill='white'%3E🧙%3C/text%3E%3C/svg%3E">
     
     <!-- Stylesheets -->
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#8b5cf6">
 </head>
 <body>
     <!-- Animated Background -->
     <div class="stars"></div>
     <div class="twinkling"></div>
     <div class="clouds"></div>
+    
+    <!-- Install Prompt for PWA -->
+    <div id="install-prompt" class="install-prompt" style="display: none;">
+        <div class="install-content">
+            <span class="install-icon">🧙</span>
+            <span class="install-text">Install Wizard.AI on your device</span>
+            <button id="install-btn" class="install-btn">Install</button>
+            <button id="close-install" class="close-install">✕</button>
+        </div>
+    </div>
     
     <!-- Main Container -->
     <div class="app-container">
@@ -749,6 +765,28 @@
                     .catch(err => console.log('❌ Service Worker error:', err));
             });
         }
+        
+        // PWA Install Prompt
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('install-prompt').style.display = 'flex';
+        });
+        
+        document.getElementById('install-btn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
+                document.getElementById('install-prompt').style.display = 'none';
+            }
+        });
+        
+        document.getElementById('close-install').addEventListener('click', () => {
+            document.getElementById('install-prompt').style.display = 'none';
+        });
     </script>
     
     <!-- Main Script -->
