@@ -2323,3 +2323,20 @@ body {
         display: none !important;
     }
 }
+/* When app is installed (PWA mode) */
+.pwa-installed .install-prompt {
+    display: none !important;
+}
+
+.pwa-installed .app-container {
+    padding-top: env(safe-area-inset-top);
+}
+
+/* Custom splash screen animation */
+@keyframes splashFade {
+    0% { opacity: 1; }
+    100% { opacity: 0; visibility: hidden; }
+}
+
+/* For iOS splash screen - purple with emoji */
+/* This will show while the app loads */
