@@ -1,6 +1,6 @@
 // ============================================
 // WIZARD.AI PRO v11.0.0 - COMPLETE FRONTEND CONTROLLER
-// Admin Update + Bug Fixes + Maintenance Mode Status
+// Admin Update + Bug Fixes + Search Indicator
 // Created by Arnav Gupta
 // ============================================
 
@@ -129,7 +129,6 @@ const statsDocs = document.getElementById('stats-docs');
 const statsAvgResponse = document.getElementById('stats-avg-response');
 const statsFastest = document.getElementById('stats-fastest');
 const statsApiKeys = document.getElementById('stats-api-keys');
-const statsApiRequests = document.getElementById('stats-api-requests');
 const renameInput = document.getElementById('rename-input');
 const renameSave = document.getElementById('modal-save');
 const renameCancel = document.getElementById('modal-cancel');
@@ -197,8 +196,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadPublicPersonalities();
     setupApiKeysButton();
     setInterval(updateStatsDisplay, 30000);
-    checkBackendStatus(); // This now handles maintenance mode
-    setInterval(checkBackendStatus, 30000); // Check every 30 seconds
+    checkBackendStatus();
+    setInterval(checkBackendStatus, 30000);
     console.log('✅ Wizard.AI v11.0.0 ready!');
 });
 
@@ -211,7 +210,7 @@ function registerServiceWorker() {
 }
 
 // ============================================
-// BACKEND STATUS - WITH MAINTENANCE MODE
+// BACKEND STATUS
 // ============================================
 async function checkBackendStatus() {
     const statusTextEl = document.getElementById('status-text');
@@ -225,30 +224,27 @@ async function checkBackendStatus() {
         if (response.ok) {
             const data = await response.json();
             
-            // Check if maintenance mode is active
             if (data.maintenance === true) {
                 statusTextEl.textContent = 'Maintenance Mode';
-                statusDotEl.style.background = '#f59e0b'; // Yellow/Orange
+                statusDotEl.style.background = '#f59e0b';
                 statusDotEl.style.boxShadow = '0 0 15px #f59e0b';
                 statusDotEl.classList.remove('offline');
                 showNotification('🔧 System is in maintenance mode. Some features may be limited.', 'warning', 5000);
             } else {
                 statusTextEl.textContent = 'Connected';
-                statusDotEl.style.background = '#10b981'; // Green
+                statusDotEl.style.background = '#10b981';
                 statusDotEl.style.boxShadow = '0 0 15px #10b981';
                 statusDotEl.classList.remove('offline');
             }
         } else {
-            // Server responded but with error
             statusTextEl.textContent = 'Limited Connection';
-            statusDotEl.style.background = '#f59e0b'; // Yellow
+            statusDotEl.style.background = '#f59e0b';
             statusDotEl.style.boxShadow = '0 0 15px #f59e0b';
             statusDotEl.classList.remove('offline');
         }
     } catch (error) {
-        // Cannot reach server - offline
         statusTextEl.textContent = 'Offline Mode';
-        statusDotEl.style.background = '#ef4444'; // Red
+        statusDotEl.style.background = '#ef4444';
         statusDotEl.style.boxShadow = '0 0 15px #ef4444';
         statusDotEl.classList.add('offline');
         console.log('Backend unreachable:', error);
@@ -546,19 +542,32 @@ function toggleTurboMode() {
 
 function toggleSearchMode() {
     searchMode = !searchMode;
-    if (searchBtn) searchBtn.classList.toggle('active', searchMode);
-    showNotification(`Web search ${searchMode ? 'manual mode' : 'auto mode'}`, 'info');
+    if (searchBtn) {
+        searchBtn.classList.toggle('active', searchMode);
+        const btnText = searchBtn.querySelector('.btn-text');
+        if (btnText) {
+            btnText.textContent = searchMode ? 'Search ON' : 'Search';
+        }
+    }
+    showNotification(`Web search ${searchMode ? 'enabled' : 'disabled'}`, 'info');
 }
 
 function shouldAutoSearch(text) {
-    const triggers = ['latest', 'news', 'current', 'today', 'now', '2024', '2025', '2026', 'recent', 'update', 'weather', 'stock', 'price', 'score', 'results', 'who is', 'what is', 'tell me about'];
-    return triggers.some(t => text.toLowerCase().includes(t));
+    const triggers = [
+        'latest', 'news', 'current', 'today', 'now', 
+        '2024', '2025', '2026', 'recent', 'update', 
+        'weather', 'stock', 'price', 'score', 'results', 
+        'who is', 'what is', 'tell me about', 'find', 'search',
+        'ww3', 'war', 'conflict', 'election', 'president',
+        'breaking', 'live', 'trending', 'forecast', 'prediction'
+    ];
+    const lowerText = text.toLowerCase();
+    return triggers.some(t => lowerText.includes(t));
 }
 
 // ============================================
 // API KEYS MANAGEMENT
 // ============================================
-
 async function loadUserApiKeys() {
     const apiKeysList = document.getElementById('api-keys-list');
     if (!apiKeysList) return;
@@ -636,7 +645,6 @@ function setupApiKeysButton() {
 // ============================================
 // MEMORY FUNCTIONS
 // ============================================
-
 function extractUserInfo(message) {
     const facts = [];
     
@@ -750,6 +758,7 @@ async function sendMessage() {
     const text = chatInput.value.trim();
     if (!text) return;
     
+    // Add user message
     addMessage('user', text);
     chatInput.value = '';
     
@@ -758,9 +767,21 @@ async function sendMessage() {
     sendBtn.classList.add('loading');
     if (typingIndicator) typingIndicator.style.display = 'flex';
     
+    // ========== SEARCH LOGIC ==========
+    // Check if search should be triggered (manual button OR auto-detect)
     const shouldSearch = searchMode || shouldAutoSearch(text);
-    if (shouldSearch && inputSearchIndicator) inputSearchIndicator.style.display = 'inline';
     
+    // Show search indicator in input field
+    if (shouldSearch && inputSearchIndicator) {
+        inputSearchIndicator.style.display = 'inline';
+        inputSearchIndicator.title = 'Web search will be performed for this query';
+        console.log("🔍 Search triggered for:", text);
+    } else if (inputSearchIndicator) {
+        inputSearchIndicator.style.display = 'none';
+    }
+    // ==================================
+    
+    // Create streaming message container
     const streamingMsgId = 'streaming-' + Date.now();
     const msgDiv = document.createElement('div');
     msgDiv.id = streamingMsgId;
@@ -779,6 +800,8 @@ async function sendMessage() {
     
     try {
         const start = Date.now();
+        
+        // ========== API CALL WITH SEARCH FLAG ==========
         const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -791,6 +814,7 @@ async function sendMessage() {
                 chat_id: activeChatId
             })
         });
+        // ===============================================
         
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
@@ -824,6 +848,7 @@ async function sendMessage() {
         const elapsed = (Date.now() - start) / 1000;
         msgDiv.classList.remove('streaming');
         
+        // Save to messages array
         messages.push({
             sender: 'assistant',
             text: fullResponse,
@@ -836,9 +861,14 @@ async function sendMessage() {
             saveChats();
         }
         
+        // Track stats
         trackMessage(elapsed);
-        if (shouldSearch) trackSearch();
+        if (shouldSearch) {
+            trackSearch();
+            console.log("✅ Search tracked for user");
+        }
         
+        // Process memory (extract user info like name, age, location)
         await processUserMemories(text);
         
     } catch (error) {
@@ -860,7 +890,10 @@ async function sendMessage() {
         sendBtn.disabled = false;
         sendBtn.classList.remove('loading');
         if (typingIndicator) typingIndicator.style.display = 'none';
-        if (inputSearchIndicator) inputSearchIndicator.style.display = 'none';
+        // Hide search indicator after response
+        if (inputSearchIndicator) {
+            inputSearchIndicator.style.display = 'none';
+        }
     }
 }
 
