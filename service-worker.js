@@ -1,7 +1,7 @@
 // service-worker.js - Enhanced PWA Service Worker
 const CACHE_NAME = 'wizard-ai-v11';
 const API_CACHE_NAME = 'wizard-api-v11';
-
+ 
 // Assets to cache immediately
 const PRECACHE_URLS = [
   '/',
