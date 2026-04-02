@@ -1953,3 +1953,57 @@ function setupEventListeners() {
         }
     });
 }
+// ============================================
+// PWA INSTALL PROMPT - Enhanced
+// ============================================
+
+let deferredPrompt;
+const installPrompt = document.getElementById('install-prompt');
+
+// Check if already installed
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    
+    // Don't show if already installed or dismissed before
+    if (!localStorage.getItem('installDismissed')) {
+        installPrompt.style.display = 'flex';
+    }
+});
+
+// Install button click
+document.getElementById('install-btn').addEventListener('click', async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response: ${outcome}`);
+        deferredPrompt = null;
+        installPrompt.style.display = 'none';
+        
+        if (outcome === 'accepted') {
+            showNotification('✅ Wizard.AI added to your home screen!', 'success');
+        }
+    }
+});
+
+// Close button
+document.getElementById('close-install').addEventListener('click', () => {
+    installPrompt.style.display = 'none';
+    localStorage.setItem('installDismissed', 'true');
+    setTimeout(() => {
+        localStorage.removeItem('installDismissed');
+    }, 86400000); // Reset after 24 hours
+});
+
+// Detect if app is running in standalone mode (installed)
+if (window.matchMedia('(display-mode: standalone)').matches) {
+    console.log('🏠 Running as installed PWA');
+    document.body.classList.add('pwa-installed');
+}
+
+// Add haptic feedback on send (if supported)
+if ('vibrate' in navigator) {
+    sendBtn.addEventListener('click', () => {
+        navigator.vibrate(10);
+    });
+}
