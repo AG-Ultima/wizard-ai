@@ -43,9 +43,14 @@
             color: #9ca3af;
             margin-bottom: 50px;
         }
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            max-width: 800px;
+            margin: 0 auto 60px;
+        }
         .download-card {
-            max-width: 400px;
-            margin: 0 auto;
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(139, 92, 246, 0.3);
@@ -70,6 +75,7 @@
         .os-desc {
             color: #9ca3af;
             margin-bottom: 30px;
+            font-size: 14px;
         }
         .download-btn {
             display: inline-block;
@@ -116,9 +122,18 @@
             color: #8b5cf6;
             text-decoration: none;
         }
+        .note {
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 30px;
+            font-size: 14px;
+            color: #c4b5fd;
+        }
         @media (max-width: 768px) {
             h1 { font-size: 36px; }
             .subtitle { font-size: 16px; }
+            .download-btn { padding: 12px 30px; font-size: 16px; }
         }
     </style>
 </head>
@@ -128,13 +143,33 @@
         <h1>Wizard.AI Pro</h1>
         <div class="subtitle">Your magical AI assistant — now on your desktop!</div>
 
-        <div class="download-card">
-            <div class="os-icon">🪟</div>
-            <div class="os-name">Windows</div>
-            <div class="os-desc">Windows 10 or later • 100 MB</div>
-            <a href="https://github.com/ag-ultima/wizard-ai/releases/download/v1.0.0/Wizard.AI.Setup.1.0.0.exe" class="download-btn">
-                ⬇️ Download Installer
-            </a>
+        <div class="download-grid">
+            <!-- Windows -->
+            <div class="download-card" id="winCard">
+                <div class="os-icon">🪟</div>
+                <div class="os-name">Windows</div>
+                <div class="os-desc">Windows 10 or later • ~100 MB</div>
+                <a href="https://github.com/ag-ultima/wizard-ai/releases/download/v1.0.0/Wizard.AI.Setup.1.0.0.exe" class="download-btn" id="winBtn">
+                    ⬇️ Download .exe
+                </a>
+            </div>
+
+            <!-- macOS -->
+            <div class="download-card" id="macCard">
+                <div class="os-icon">🍎</div>
+                <div class="os-name">macOS</div>
+                <div class="os-desc">macOS 11 or later • ~120 MB</div>
+                <a href="https://github.com/ag-ultima/wizard-ai/releases/download/v1.0.0/Wizard.AI.dmg" class="download-btn" id="macBtn">
+                    ⬇️ Download .dmg
+                </a>
+            </div>
+        </div>
+
+        <div class="note">
+            💡 <strong>Installation Tips:</strong>
+            • <strong>Windows:</strong> Run the .exe file and follow the setup wizard
+            • <strong>macOS:</strong> Open the .dmg file and drag Wizard.AI to your Applications folder
+            • <strong>First time on Mac?</strong> Right-click the app and select "Open" to bypass Gatekeeper
         </div>
 
         <div class="features">
@@ -169,5 +204,22 @@
             <p style="font-size: 12px; margin-top: 10px;">v1.0.0 • Free • No subscription • Open source</p>
         </div>
     </div>
+
+    <script>
+        // Auto-detect OS and highlight the correct download button
+        const userAgent = navigator.userAgent;
+        const winCard = document.getElementById('winCard');
+        const macCard = document.getElementById('macCard');
+        
+        if (userAgent.indexOf('Win') !== -1) {
+            winCard.style.transform = 'scale(1.02)';
+            winCard.style.borderColor = '#8b5cf6';
+            winCard.style.boxShadow = '0 0 30px rgba(139,92,246,0.3)';
+        } else if (userAgent.indexOf('Mac') !== -1) {
+            macCard.style.transform = 'scale(1.02)';
+            macCard.style.borderColor = '#8b5cf6';
+            macCard.style.boxShadow = '0 0 30px rgba(139,92,246,0.3)';
+        }
+    </script>
 </body>
 </html>
