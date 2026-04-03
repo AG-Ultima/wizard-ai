@@ -1,5 +1,7 @@
 // ============================================
-// WIZARD.AI PRO v11.0.0 - COMPLETE FRONTEND CONTROLLER
+// WIZARD.AI PRO v12.0.0 - COMPLETE FRONTEND CONTROLLER
+// Developer Hub Update - Cleaned & Optimized
+// Created by Arnav Gupta
 // ============================================
 
 const API_BASE_URL = 'https://arnav0928.pythonanywhere.com';
@@ -42,7 +44,7 @@ const imageBtn = document.getElementById('image-btn');
 const memoryBtn = document.getElementById('memory-btn');
 const statsBtn = document.getElementById('stats-btn');
 const personalitiesBtn = document.getElementById('personalities-btn');
-const apiKeysBtn = document.getElementById('api-keys-btn');
+const devHubBtn = document.getElementById('devhub-btn');
 const searchIndicator = document.getElementById('search-indicator');
 const inputSearchIndicator = document.getElementById('input-search-indicator');
 const typingIndicator = document.getElementById('typing-indicator');
@@ -56,8 +58,6 @@ const imageModal = document.getElementById('image-modal-overlay');
 const memoryModal = document.getElementById('memory-modal-overlay');
 const statsModal = document.getElementById('stats-modal-overlay');
 const personalitiesModal = document.getElementById('personalities-modal-overlay');
-const apiKeysModal = document.getElementById('api-keys-modal-overlay');
-const newKeyModal = document.getElementById('new-key-modal-overlay');
 const updateModal = document.getElementById('update-modal-overlay');
 const closeAuth = document.getElementById('close-auth-modal');
 const closeRename = document.getElementById('close-rename-modal');
@@ -66,8 +66,6 @@ const closeImage = document.getElementById('close-image-modal');
 const closeMemory = document.getElementById('close-memory-modal');
 const closeStats = document.getElementById('close-stats-modal');
 const closePersonalities = document.getElementById('close-personalities-modal');
-const closeApiKeys = document.getElementById('close-api-keys-modal');
-const closeNewKey = document.getElementById('close-new-key-modal');
 const closeUpdate = document.getElementById('close-update-modal');
 const authEmail = document.getElementById('auth-email');
 const authPassword = document.getElementById('auth-password');
@@ -159,8 +157,7 @@ let userStats = {
     messages: 0, files: 0, memories: 0, images: 0, searches: 0,
     codeExecutions: 0, responseTimes: [], todayMessages: 0
 };
-// PWA install prompt variable - declared ONCE
-let pwaDeferredPrompt = null;
+let pwaDeferredPrompt = null; // SINGLE declaration
 
 // ============================================
 // MODE DATA
@@ -179,7 +176,7 @@ const modeData = {
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🚀 Initializing Wizard.AI v11.0.0...');
+    console.log('🚀 Initializing Wizard.AI v12.0.0...');
     showNotification('🧙 Summoning the Wizard...', 'info', 2000);
     registerServiceWorker();
     setupEventListeners();
@@ -194,12 +191,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadStats();
     await loadUserApiKeys();
     loadPublicPersonalities();
-    setupApiKeysButton();
+    setupDevHubButton();
     setInterval(updateStatsDisplay, 30000);
     checkBackendStatus();
     setInterval(checkBackendStatus, 30000);
     setupPWAInstallPrompt();
-    console.log('✅ Wizard.AI v11.0.0 ready!');
+    console.log('✅ Wizard.AI v12.0.0 ready!');
 });
 
 function registerServiceWorker() {
@@ -211,51 +208,7 @@ function registerServiceWorker() {
 }
 
 // ============================================
-// PWA INSTALL PROMPT
-// ============================================
-function setupPWAInstallPrompt() {
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        pwaDeferredPrompt = e;
-        const installPromptDiv = document.getElementById('install-prompt');
-        if (installPromptDiv && !localStorage.getItem('installDismissed')) {
-            installPromptDiv.style.display = 'flex';
-        }
-    });
-    
-    const installBtn = document.getElementById('install-btn');
-    const closeInstallBtn = document.getElementById('close-install');
-    
-    if (installBtn) {
-        installBtn.addEventListener('click', async () => {
-            if (pwaDeferredPrompt) {
-                pwaDeferredPrompt.prompt();
-                const { outcome } = await pwaDeferredPrompt.userChoice;
-                console.log(`User response: ${outcome}`);
-                pwaDeferredPrompt = null;
-                const installPromptDiv = document.getElementById('install-prompt');
-                if (installPromptDiv) installPromptDiv.style.display = 'none';
-                if (outcome === 'accepted') {
-                    showNotification('✅ Wizard.AI added to your home screen!', 'success');
-                }
-            }
-        });
-    }
-    
-    if (closeInstallBtn) {
-        closeInstallBtn.addEventListener('click', () => {
-            const installPromptDiv = document.getElementById('install-prompt');
-            if (installPromptDiv) installPromptDiv.style.display = 'none';
-            localStorage.setItem('installDismissed', 'true');
-            setTimeout(() => {
-                localStorage.removeItem('installDismissed');
-            }, 86400000);
-        });
-    }
-}
-
-// ============================================
-// BACKEND STATUS
+// BACKEND STATUS - FIXED
 // ============================================
 async function checkBackendStatus() {
     const statusTextEl = document.getElementById('status-text');
@@ -264,7 +217,6 @@ async function checkBackendStatus() {
     if (!statusTextEl || !statusDotEl) return;
     
     try {
-        console.log("🔍 Checking backend status...");
         const response = await fetch(`${API_BASE_URL}/status`, {
             method: 'GET',
             headers: { 'Accept': 'application/json' },
@@ -272,35 +224,39 @@ async function checkBackendStatus() {
             credentials: 'omit'
         });
         
-        console.log("Status response:", response.status);
-        
         if (response.ok) {
             const data = await response.json();
-            console.log("Backend data:", data);
-            
             if (data.maintenance === true) {
                 statusTextEl.textContent = 'Maintenance Mode';
                 statusDotEl.style.background = '#f59e0b';
                 statusDotEl.style.boxShadow = '0 0 15px #f59e0b';
-                statusDotEl.classList.remove('offline');
             } else {
                 statusTextEl.textContent = 'Connected';
                 statusDotEl.style.background = '#10b981';
                 statusDotEl.style.boxShadow = '0 0 15px #10b981';
-                statusDotEl.classList.remove('offline');
             }
+            statusDotEl.classList.remove('offline');
         } else {
-            statusTextEl.textContent = 'Limited Connection';
+            statusTextEl.textContent = 'Limited';
             statusDotEl.style.background = '#f59e0b';
-            statusDotEl.style.boxShadow = '0 0 15px #f59e0b';
             statusDotEl.classList.remove('offline');
         }
     } catch (error) {
-        console.error("Backend unreachable:", error);
-        statusTextEl.textContent = 'Offline Mode';
+        statusTextEl.textContent = 'Offline';
         statusDotEl.style.background = '#ef4444';
-        statusDotEl.style.boxShadow = '0 0 15px #ef4444';
         statusDotEl.classList.add('offline');
+    }
+}
+
+// ============================================
+// DEV HUB BUTTON
+// ============================================
+function setupDevHubButton() {
+    const devHubBtn = document.getElementById('devhub-btn');
+    if (devHubBtn) {
+        devHubBtn.addEventListener('click', () => {
+            window.open('/devhub/', '_blank');
+        });
     }
 }
 
@@ -356,6 +312,50 @@ function setupModals() {
             });
         }
     });
+}
+
+// ============================================
+// PWA INSTALL PROMPT - FIXED
+// ============================================
+function setupPWAInstallPrompt() {
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        pwaDeferredPrompt = e;
+        const installPromptDiv = document.getElementById('install-prompt');
+        if (installPromptDiv && !localStorage.getItem('installDismissed')) {
+            installPromptDiv.style.display = 'flex';
+        }
+    });
+    
+    const installBtn = document.getElementById('install-btn');
+    const closeInstallBtn = document.getElementById('close-install');
+    
+    if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+            if (pwaDeferredPrompt) {
+                pwaDeferredPrompt.prompt();
+                const { outcome } = await pwaDeferredPrompt.userChoice;
+                console.log(`User response: ${outcome}`);
+                pwaDeferredPrompt = null;
+                const installPromptDiv = document.getElementById('install-prompt');
+                if (installPromptDiv) installPromptDiv.style.display = 'none';
+                if (outcome === 'accepted') {
+                    showNotification('✅ Wizard.AI added to your home screen!', 'success');
+                }
+            }
+        });
+    }
+    
+    if (closeInstallBtn) {
+        closeInstallBtn.addEventListener('click', () => {
+            const installPromptDiv = document.getElementById('install-prompt');
+            if (installPromptDiv) installPromptDiv.style.display = 'none';
+            localStorage.setItem('installDismissed', 'true');
+            setTimeout(() => {
+                localStorage.removeItem('installDismissed');
+            }, 86400000);
+        });
+    }
 }
 
 // ============================================
@@ -639,7 +639,7 @@ async function loadUserApiKeys() {
             const keys = await response.json();
             
             if (!keys || keys.length === 0) {
-                apiKeysList.innerHTML = '<div class="no-keys-message">✨ No API keys yet. Click below to generate one!</div>';
+                apiKeysList.innerHTML = '<div class="no-keys-message">✨ No API keys yet. Visit the <a href="/devhub/">Developer Hub</a> to create one!</div>';
             } else {
                 let html = '';
                 keys.forEach(key => {
@@ -665,33 +665,6 @@ async function loadUserApiKeys() {
     } catch (error) {
         console.error('Error loading API keys:', error);
         apiKeysList.innerHTML = '<div class="no-keys-message">⚠️ Error loading keys</div>';
-    }
-}
-
-function setupApiKeysButton() {
-    const sidebarKeyBtn = document.getElementById('create-api-key-sidebar');
-    const toolbarKeyBtn = document.getElementById('api-keys-btn');
-    
-    if (sidebarKeyBtn) {
-        sidebarKeyBtn.addEventListener('click', () => {
-            if (!currentUser) {
-                showNotification('Please login to manage API keys', 'error');
-                showAuthModal(true);
-                return;
-            }
-            window.open('https://www.wizardai.dpdns.org/api-keys/', '_blank');
-        });
-    }
-    
-    if (toolbarKeyBtn) {
-        toolbarKeyBtn.addEventListener('click', () => {
-            if (!currentUser) {
-                showNotification('Please login to manage API keys', 'error');
-                showAuthModal(true);
-                return;
-            }
-            window.open('https://www.wizardai.dpdns.org/api-keys/', '_blank');
-        });
     }
 }
 
@@ -1887,6 +1860,179 @@ function showUpdateHistory() {
 }
 
 // ============================================
+// DESKTOP APP MENU INTEGRATION
+// ============================================
+const isElectron = navigator.userAgent.includes('Electron');
+
+if (isElectron && window.electronAPI) {
+    console.log('🖥️ Desktop app detected - setting up menu handlers');
+
+    function safeClick(elementId) {
+        const el = document.getElementById(elementId);
+        if (el) {
+            el.click();
+            return true;
+        }
+        return false;
+    }
+
+    window.electronAPI.receive('new-chat', () => {
+        console.log('📁 Menu: New Chat');
+        if (!safeClick('new-chat-btn')) {
+            if (typeof createNewChat === 'function') createNewChat();
+        }
+    });
+
+    window.electronAPI.receive('clear-chat', () => {
+        console.log('🗑️ Menu: Clear Chat');
+        if (!safeClick('reset-current-btn')) {
+            if (typeof resetCurrentChat === 'function') resetCurrentChat();
+        }
+    });
+
+    window.electronAPI.receive('open-image-gen', () => {
+        console.log('🎨 Menu: Generate Image');
+        if (!safeClick('image-btn')) {
+            const modal = document.getElementById('image-modal-overlay');
+            if (modal && typeof openModal === 'function') openModal(modal);
+        }
+    });
+
+    window.electronAPI.receive('open-code', () => {
+        console.log('💻 Menu: Run Code');
+        if (!safeClick('code-btn')) {
+            const modal = document.getElementById('code-modal-overlay');
+            if (modal && typeof openModal === 'function') openModal(modal);
+        }
+    });
+
+    window.electronAPI.receive('upload-file', () => {
+        console.log('📎 Menu: Upload File');
+        if (!safeClick('upload-btn')) {
+            const fileInput = document.getElementById('file-upload');
+            if (fileInput) fileInput.click();
+        }
+    });
+
+    window.electronAPI.receive('view-memories', () => {
+        console.log('🧠 Menu: View Memories');
+        if (!safeClick('memory-btn')) {
+            if (typeof loadMemories === 'function') loadMemories();
+        }
+    });
+
+    window.electronAPI.receive('view-stats', () => {
+        console.log('📊 Menu: View Stats');
+        if (!safeClick('stats-btn')) {
+            if (typeof loadDetailedStats === 'function') loadDetailedStats();
+        }
+    });
+
+    window.electronAPI.receive('change-mode', (mode) => {
+        console.log('🎭 Menu: Change Mode to', mode);
+        const items = document.querySelectorAll('.dropdown-item');
+        let found = false;
+        items.forEach(item => {
+            const itemMode = item.getAttribute('data-mode') || item.innerText.trim();
+            if (itemMode === mode) {
+                item.click();
+                found = true;
+            }
+        });
+        if (!found && typeof selectMode === 'function') {
+            selectMode(mode);
+        }
+    });
+
+    window.electronAPI.receive('toggle-turbo', (enabled) => {
+        console.log('⚡ Menu: Turbo Mode', enabled ? 'ON' : 'OFF');
+        const turboBtn = document.getElementById('turbo-btn');
+        if (turboBtn) {
+            const isActive = turboBtn.classList.contains('active');
+            if (isActive !== enabled) turboBtn.click();
+        } else if (typeof toggleTurboMode === 'function') {
+            if (turboMode !== enabled) toggleTurboMode();
+        }
+    });
+
+    window.electronAPI.receive('toggle-search', (enabled) => {
+        console.log('🌐 Menu: Web Search', enabled ? 'ON' : 'OFF');
+        const searchBtn = document.getElementById('search-btn');
+        if (searchBtn) {
+            const isActive = searchBtn.classList.contains('active');
+            if (isActive !== enabled) searchBtn.click();
+        } else if (typeof toggleSearchMode === 'function') {
+            if (searchMode !== enabled) toggleSearchMode();
+        }
+    });
+
+    window.electronAPI.receive('open-settings', () => {
+        console.log('⚙️ Menu: Settings');
+        if (typeof showNotification === 'function') {
+            showNotification('⚙️ Settings panel coming soon!', 'info', 2000);
+        }
+    });
+
+    window.electronAPI.receive('export-chat', () => {
+        console.log('💾 Menu: Export Chat');
+        exportChatToFile();
+    });
+
+    window.electronAPI.receive('browse-personalities', () => {
+        console.log('🎭 Menu: Browse Personalities');
+        if (!safeClick('personalities-btn')) {
+            if (typeof openPersonalitiesBrowser === 'function') openPersonalitiesBrowser();
+        }
+    });
+
+    window.electronAPI.receive('manage-api-keys', () => {
+        console.log('🔑 Menu: Manage API Keys');
+        window.open('/devhub/', '_blank');
+    });
+}
+
+function exportChatToFile() {
+    const chatContainer = document.getElementById('chat-history');
+    if (!chatContainer || !chatContainer.children.length) {
+        if (typeof showNotification === 'function') {
+            showNotification('No messages to export', 'error');
+        }
+        return;
+    }
+    
+    const messages = document.querySelectorAll('.message');
+    let exportText = '🧙 Wizard.AI Chat Export\n';
+    exportText += '='.repeat(50) + '\n';
+    exportText += `Date: ${new Date().toLocaleString()}\n`;
+    exportText += '='.repeat(50) + '\n\n';
+    
+    messages.forEach(msg => {
+        const isUser = msg.classList.contains('user');
+        const sender = isUser ? '👤 You' : '🧙 Wizard.AI';
+        const textEl = msg.querySelector('.message-text');
+        const text = textEl ? textEl.innerText : '';
+        const timeEl = msg.querySelector('.message-time');
+        const time = timeEl ? timeEl.innerText : '';
+        exportText += `[${time}] ${sender}:\n${text}\n\n`;
+        exportText += '-'.repeat(40) + '\n\n';
+    });
+    
+    const blob = new Blob([exportText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `wizard-chat-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    if (typeof showNotification === 'function') {
+        showNotification('✅ Chat exported!', 'success');
+    }
+}
+
+// ============================================
 // EVENT LISTENERS SETUP
 // ============================================
 function setupEventListeners() {
@@ -1929,8 +2075,6 @@ function setupEventListeners() {
     if (closeMemory) closeMemory.addEventListener('click', () => closeModal(memoryModal));
     if (closeStats) closeStats.addEventListener('click', () => closeModal(statsModal));
     if (closePersonalities) closePersonalities.addEventListener('click', () => closeModal(personalitiesModal));
-    if (closeApiKeys) closeApiKeys.addEventListener('click', () => closeModal(apiKeysModal));
-    if (closeNewKey) closeNewKey.addEventListener('click', () => closeModal(newKeyModal));
     if (renameSave) renameSave.addEventListener('click', saveRename);
     if (renameCancel) renameCancel.addEventListener('click', () => closeModal(renameModal));
     if (renameInput) renameInput.addEventListener('keypress', e => {
@@ -1973,358 +2117,5 @@ if (sendBtn && 'vibrate' in navigator) {
         navigator.vibrate(10);
     });
 }
-// ============================================
-// DESKTOP APP MENU INTEGRATION (SIMPLIFIED)
-// ============================================
 
-// Check if running in Electron desktop app
-const isElectron = navigator.userAgent.includes('Electron');
-
-if (isElectron && window.electronAPI) {
-    console.log('🖥️ Desktop app detected - setting up menu handlers');
-
-    // Helper function to safely click elements
-    function safeClick(elementId) {
-        const el = document.getElementById(elementId);
-        if (el) {
-            el.click();
-            return true;
-        }
-        return false;
-    }
-
-    // New Chat
-    window.electronAPI.receive('new-chat', () => {
-        console.log('📁 Menu: New Chat');
-        if (!safeClick('new-chat-btn')) {
-            // Fallback - call the function directly
-            if (typeof createNewChat === 'function') createNewChat();
-        }
-    });
-
-    // Clear Current Chat
-    window.electronAPI.receive('clear-chat', () => {
-        console.log('🗑️ Menu: Clear Chat');
-        if (!safeClick('reset-current-btn')) {
-            if (typeof resetCurrentChat === 'function') resetCurrentChat();
-        }
-    });
-
-    // Generate Image
-    window.electronAPI.receive('open-image-gen', () => {
-        console.log('🎨 Menu: Generate Image');
-        if (!safeClick('image-btn')) {
-            const modal = document.getElementById('image-modal-overlay');
-            if (modal && typeof openModal === 'function') openModal(modal);
-        }
-    });
-
-    // Run Code
-    window.electronAPI.receive('open-code', () => {
-        console.log('💻 Menu: Run Code');
-        if (!safeClick('code-btn')) {
-            const modal = document.getElementById('code-modal-overlay');
-            if (modal && typeof openModal === 'function') openModal(modal);
-        }
-    });
-
-    // Upload File
-    window.electronAPI.receive('upload-file', () => {
-        console.log('📎 Menu: Upload File');
-        if (!safeClick('upload-btn')) {
-            const fileInput = document.getElementById('file-upload');
-            if (fileInput) fileInput.click();
-        }
-    });
-
-    // View Memories
-    window.electronAPI.receive('view-memories', () => {
-        console.log('🧠 Menu: View Memories');
-        if (!safeClick('memory-btn')) {
-            if (typeof loadMemories === 'function') loadMemories();
-        }
-    });
-
-    // View Stats
-    window.electronAPI.receive('view-stats', () => {
-        console.log('📊 Menu: View Stats');
-        if (!safeClick('stats-btn')) {
-            if (typeof loadDetailedStats === 'function') loadDetailedStats();
-        }
-    });
-
-    // Change Mode
-    window.electronAPI.receive('change-mode', (mode) => {
-        console.log('🎭 Menu: Change Mode to', mode);
-        // Find and click dropdown item
-        const items = document.querySelectorAll('.dropdown-item');
-        let found = false;
-        items.forEach(item => {
-            const itemMode = item.getAttribute('data-mode') || item.innerText.trim();
-            if (itemMode === mode) {
-                item.click();
-                found = true;
-            }
-        });
-        if (!found && typeof selectMode === 'function') {
-            selectMode(mode);
-        }
-    });
-
-    // Toggle Turbo Mode
-    let turboState = false;
-    window.electronAPI.receive('toggle-turbo', (enabled) => {
-        console.log('⚡ Menu: Turbo Mode', enabled ? 'ON' : 'OFF');
-        const turboBtn = document.getElementById('turbo-btn');
-        if (turboBtn) {
-            const isActive = turboBtn.classList.contains('active');
-            if (isActive !== enabled) turboBtn.click();
-        } else if (typeof toggleTurboMode === 'function') {
-            if (turboMode !== enabled) toggleTurboMode();
-        }
-    });
-
-    // Toggle Search Mode
-    let searchState = false;
-    window.electronAPI.receive('toggle-search', (enabled) => {
-        console.log('🌐 Menu: Web Search', enabled ? 'ON' : 'OFF');
-        const searchBtn = document.getElementById('search-btn');
-        if (searchBtn) {
-            const isActive = searchBtn.classList.contains('active');
-            if (isActive !== enabled) searchBtn.click();
-        } else if (typeof toggleSearchMode === 'function') {
-            if (searchMode !== enabled) toggleSearchMode();
-        }
-    });
-
-    // Settings
-    window.electronAPI.receive('open-settings', () => {
-        console.log('⚙️ Menu: Settings');
-        if (typeof showNotification === 'function') {
-            showNotification('⚙️ Settings panel coming soon!', 'info', 2000);
-        }
-    });
-
-    // Export Chat
-    window.electronAPI.receive('export-chat', () => {
-        console.log('💾 Menu: Export Chat');
-        exportChatToFile();
-    });
-
-    // Browse Personalities
-    window.electronAPI.receive('browse-personalities', () => {
-        console.log('🎭 Menu: Browse Personalities');
-        if (!safeClick('personalities-btn')) {
-            if (typeof openPersonalitiesBrowser === 'function') openPersonalitiesBrowser();
-        }
-    });
-
-    // Manage API Keys
-    window.electronAPI.receive('manage-api-keys', () => {
-        console.log('🔑 Menu: Manage API Keys');
-        if (!safeClick('api-keys-btn')) {
-            if (typeof handleApiKeysClick === 'function') handleApiKeysClick();
-        }
-    });
-
-    console.log('✅ All menu handlers registered');
-}
-
-// Export chat function
-function exportChatToFile() {
-    const chatContainer = document.getElementById('chat-history');
-    if (!chatContainer || !chatContainer.children.length) {
-        if (typeof showNotification === 'function') {
-            showNotification('No messages to export', 'error');
-        }
-        return;
-    }
-    
-    const messages = document.querySelectorAll('.message');
-    let exportText = '🧙 Wizard.AI Chat Export\n';
-    exportText += '='.repeat(50) + '\n';
-    exportText += `Date: ${new Date().toLocaleString()}\n`;
-    exportText += '='.repeat(50) + '\n\n';
-    
-    messages.forEach(msg => {
-        const isUser = msg.classList.contains('user');
-        const sender = isUser ? '👤 You' : '🧙 Wizard.AI';
-        const textEl = msg.querySelector('.message-text');
-        const text = textEl ? textEl.innerText : '';
-        const timeEl = msg.querySelector('.message-time');
-        const time = timeEl ? timeEl.innerText : '';
-        exportText += `[${time}] ${sender}:\n${text}\n\n`;
-        exportText += '-'.repeat(40) + '\n\n';
-    });
-    
-    // Download file
-    const blob = new Blob([exportText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `wizard-chat-${Date.now()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    if (typeof showNotification === 'function') {
-        showNotification('✅ Chat exported!', 'success');
-    }
-}
-
-console.log('✅ Desktop menu integration loaded');
-// ============================================
-// SMART INSTALL - Desktop App + PWA
-// ============================================
-
-// Detect platform
-const isWindows = navigator.userAgent.indexOf('Win') !== -1;
-const isMac = navigator.userAgent.indexOf('Mac') !== -1;
-const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
-
-// Direct download URL for Windows installer
-const DOWNLOAD_URL = 'https://github.com/ag-ultima/wizard-ai/releases/download/v1.0.0/Wizard.AI.Setup.1.0.0.exe';
-
-// Option 2: Floating Desktop Download Button (Windows only)
-if (isWindows && !isMobile) {
-    const desktopBtn = document.getElementById('desktop-download-btn');
-    if (desktopBtn) {
-        desktopBtn.style.display = 'block';
-        const btn = desktopBtn.querySelector('button');
-        btn.addEventListener('click', () => {
-            window.location.href = DOWNLOAD_URL;
-            showNotification('⬇️ Downloading Wizard.AI installer...', 'success', 3000);
-        });
-        
-        // Add hover animation
-        btn.addEventListener('mouseenter', () => {
-            btn.style.transform = 'scale(1.05)';
-            btn.style.boxShadow = '0 0 35px rgba(16,185,129,0.8)';
-        });
-        btn.addEventListener('mouseleave', () => {
-            btn.style.transform = 'scale(1)';
-            btn.style.boxShadow = '0 0 25px rgba(16,185,129,0.6)';
-        });
-    }
-}
-
-// Option 1: Modified PWA Install Prompt
-let pwaDeferredPrompt = null;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    
-    // On Windows desktop, offer desktop app instead of PWA
-    if (isWindows && !isMobile) {
-        // Show desktop app install prompt instead
-        showDesktopInstallPrompt();
-    } else {
-        // Normal PWA install for mobile
-        pwaDeferredPrompt = e;
-        showPWAInstallPrompt();
-    }
-});
-
-function showDesktopInstallPrompt() {
-    // Check if user dismissed it before
-    if (localStorage.getItem('desktopPromptDismissed') === 'true') return;
-    
-    const promptDiv = document.createElement('div');
-    promptDiv.className = 'install-prompt';
-    promptDiv.style.cssText = 'position: fixed; bottom: 20px; left: 20px; right: 20px; background: linear-gradient(135deg, #1a1035, #0d0a1f); border: 1px solid #10b981; border-radius: 16px; padding: 16px 20px; backdrop-filter: blur(20px); z-index: 10001; animation: slideUp 0.5s ease; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;';
-    
-    promptDiv.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <span style="font-size: 32px;">💻</span>
-            <div>
-                <div style="font-weight: bold; color: white;">Get Wizard.AI Desktop App!</div>
-                <div style="font-size: 12px; color: #9ca3af;">Native Windows app • Better performance</div>
-            </div>
-        </div>
-        <div style="display: flex; gap: 10px;">
-            <button id="desktop-install-btn" style="background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 50px; padding: 10px 24px; color: white; cursor: pointer; font-weight: bold;">Download Now</button>
-            <button id="close-desktop-install" style="background: rgba(255,255,255,0.1); border: none; border-radius: 50px; padding: 10px 20px; color: #9ca3af; cursor: pointer;">Remind Later</button>
-        </div>
-    `;
-    
-    document.body.appendChild(promptDiv);
-    
-    document.getElementById('desktop-install-btn').onclick = () => {
-        window.location.href = DOWNLOAD_URL;
-        showNotification('⬇️ Downloading Wizard.AI installer...', 'success', 3000);
-        promptDiv.remove();
-    };
-    
-    document.getElementById('close-desktop-install').onclick = () => {
-        promptDiv.remove();
-        localStorage.setItem('desktopPromptDismissed', 'true');
-        // Reset after 7 days
-        setTimeout(() => {
-            localStorage.removeItem('desktopPromptDismissed');
-        }, 604800000);
-    };
-}
-
-function showPWAInstallPrompt() {
-    // Check if user dismissed it before
-    if (localStorage.getItem('pwaPromptDismissed') === 'true') return;
-    
-    const promptDiv = document.getElementById('install-prompt');
-    if (!promptDiv) return;
-    
-    promptDiv.style.display = 'flex';
-    
-    const installBtn = document.getElementById('install-btn');
-    const closeBtn = document.getElementById('close-install');
-    
-    if (installBtn) {
-        const newInstallBtn = installBtn.cloneNode(true);
-        installBtn.parentNode.replaceChild(newInstallBtn, installBtn);
-        newInstallBtn.addEventListener('click', async () => {
-            if (pwaDeferredPrompt) {
-                pwaDeferredPrompt.prompt();
-                const { outcome } = await pwaDeferredPrompt.userChoice;
-                console.log(`PWA install: ${outcome}`);
-                pwaDeferredPrompt = null;
-                promptDiv.style.display = 'none';
-                if (outcome === 'accepted') {
-                    showNotification('✅ Wizard.AI added to your home screen!', 'success');
-                }
-            }
-        });
-    }
-    
-    if (closeBtn) {
-        const newCloseBtn = closeBtn.cloneNode(true);
-        closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-        newCloseBtn.addEventListener('click', () => {
-            promptDiv.style.display = 'none';
-            localStorage.setItem('pwaPromptDismissed', 'true');
-            setTimeout(() => {
-                localStorage.removeItem('pwaPromptDismissed');
-            }, 604800000);
-        });
-    }
-}
-
-// Also add a menu item for desktop app download (optional)
-function addDesktopDownloadMenuItem() {
-    if (isWindows && !isMobile) {
-        const footer = document.querySelector('.footer-note');
-        if (footer) {
-            const downloadLink = document.createElement('p');
-            downloadLink.innerHTML = '<a href="#" id="desktop-menu-download" style="color: #10b981; text-decoration: none;">💻 Download Desktop App</a>';
-            footer.appendChild(downloadLink);
-            
-            document.getElementById('desktop-menu-download').addEventListener('click', (e) => {
-                e.preventDefault();
-                window.location.href = DOWNLOAD_URL;
-                showNotification('⬇️ Downloading Wizard.AI installer...', 'success', 3000);
-            });
-        }
-    }
-}
-
-// Call this after DOM loads
-setTimeout(addDesktopDownloadMenuItem, 1000);
+console.log('✅ Wizard.AI v12.0.0 fully loaded!');
