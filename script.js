@@ -2174,3 +2174,157 @@ function exportChatToFile() {
 }
 
 console.log('✅ Desktop menu integration loaded');
+// ============================================
+// SMART INSTALL - Desktop App + PWA
+// ============================================
+
+// Detect platform
+const isWindows = navigator.userAgent.indexOf('Win') !== -1;
+const isMac = navigator.userAgent.indexOf('Mac') !== -1;
+const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
+
+// Direct download URL for Windows installer
+const DOWNLOAD_URL = 'https://github.com/ag-ultima/wizard-ai/releases/download/v1.0.0/Wizard.AI.Setup.1.0.0.exe';
+
+// Option 2: Floating Desktop Download Button (Windows only)
+if (isWindows && !isMobile) {
+    const desktopBtn = document.getElementById('desktop-download-btn');
+    if (desktopBtn) {
+        desktopBtn.style.display = 'block';
+        const btn = desktopBtn.querySelector('button');
+        btn.addEventListener('click', () => {
+            window.location.href = DOWNLOAD_URL;
+            showNotification('⬇️ Downloading Wizard.AI installer...', 'success', 3000);
+        });
+        
+        // Add hover animation
+        btn.addEventListener('mouseenter', () => {
+            btn.style.transform = 'scale(1.05)';
+            btn.style.boxShadow = '0 0 35px rgba(16,185,129,0.8)';
+        });
+        btn.addEventListener('mouseleave', () => {
+            btn.style.transform = 'scale(1)';
+            btn.style.boxShadow = '0 0 25px rgba(16,185,129,0.6)';
+        });
+    }
+}
+
+// Option 1: Modified PWA Install Prompt
+let pwaDeferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    
+    // On Windows desktop, offer desktop app instead of PWA
+    if (isWindows && !isMobile) {
+        // Show desktop app install prompt instead
+        showDesktopInstallPrompt();
+    } else {
+        // Normal PWA install for mobile
+        pwaDeferredPrompt = e;
+        showPWAInstallPrompt();
+    }
+});
+
+function showDesktopInstallPrompt() {
+    // Check if user dismissed it before
+    if (localStorage.getItem('desktopPromptDismissed') === 'true') return;
+    
+    const promptDiv = document.createElement('div');
+    promptDiv.className = 'install-prompt';
+    promptDiv.style.cssText = 'position: fixed; bottom: 20px; left: 20px; right: 20px; background: linear-gradient(135deg, #1a1035, #0d0a1f); border: 1px solid #10b981; border-radius: 16px; padding: 16px 20px; backdrop-filter: blur(20px); z-index: 10001; animation: slideUp 0.5s ease; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;';
+    
+    promptDiv.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <span style="font-size: 32px;">💻</span>
+            <div>
+                <div style="font-weight: bold; color: white;">Get Wizard.AI Desktop App!</div>
+                <div style="font-size: 12px; color: #9ca3af;">Native Windows app • Better performance</div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button id="desktop-install-btn" style="background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 50px; padding: 10px 24px; color: white; cursor: pointer; font-weight: bold;">Download Now</button>
+            <button id="close-desktop-install" style="background: rgba(255,255,255,0.1); border: none; border-radius: 50px; padding: 10px 20px; color: #9ca3af; cursor: pointer;">Remind Later</button>
+        </div>
+    `;
+    
+    document.body.appendChild(promptDiv);
+    
+    document.getElementById('desktop-install-btn').onclick = () => {
+        window.location.href = DOWNLOAD_URL;
+        showNotification('⬇️ Downloading Wizard.AI installer...', 'success', 3000);
+        promptDiv.remove();
+    };
+    
+    document.getElementById('close-desktop-install').onclick = () => {
+        promptDiv.remove();
+        localStorage.setItem('desktopPromptDismissed', 'true');
+        // Reset after 7 days
+        setTimeout(() => {
+            localStorage.removeItem('desktopPromptDismissed');
+        }, 604800000);
+    };
+}
+
+function showPWAInstallPrompt() {
+    // Check if user dismissed it before
+    if (localStorage.getItem('pwaPromptDismissed') === 'true') return;
+    
+    const promptDiv = document.getElementById('install-prompt');
+    if (!promptDiv) return;
+    
+    promptDiv.style.display = 'flex';
+    
+    const installBtn = document.getElementById('install-btn');
+    const closeBtn = document.getElementById('close-install');
+    
+    if (installBtn) {
+        const newInstallBtn = installBtn.cloneNode(true);
+        installBtn.parentNode.replaceChild(newInstallBtn, installBtn);
+        newInstallBtn.addEventListener('click', async () => {
+            if (pwaDeferredPrompt) {
+                pwaDeferredPrompt.prompt();
+                const { outcome } = await pwaDeferredPrompt.userChoice;
+                console.log(`PWA install: ${outcome}`);
+                pwaDeferredPrompt = null;
+                promptDiv.style.display = 'none';
+                if (outcome === 'accepted') {
+                    showNotification('✅ Wizard.AI added to your home screen!', 'success');
+                }
+            }
+        });
+    }
+    
+    if (closeBtn) {
+        const newCloseBtn = closeBtn.cloneNode(true);
+        closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+        newCloseBtn.addEventListener('click', () => {
+            promptDiv.style.display = 'none';
+            localStorage.setItem('pwaPromptDismissed', 'true');
+            setTimeout(() => {
+                localStorage.removeItem('pwaPromptDismissed');
+            }, 604800000);
+        });
+    }
+}
+
+// Also add a menu item for desktop app download (optional)
+function addDesktopDownloadMenuItem() {
+    if (isWindows && !isMobile) {
+        const footer = document.querySelector('.footer-note');
+        if (footer) {
+            const downloadLink = document.createElement('p');
+            downloadLink.innerHTML = '<a href="#" id="desktop-menu-download" style="color: #10b981; text-decoration: none;">💻 Download Desktop App</a>';
+            footer.appendChild(downloadLink);
+            
+            document.getElementById('desktop-menu-download').addEventListener('click', (e) => {
+                e.preventDefault();
+                window.location.href = DOWNLOAD_URL;
+                showNotification('⬇️ Downloading Wizard.AI installer...', 'success', 3000);
+            });
+        }
+    }
+}
+
+// Call this after DOM loads
+setTimeout(addDesktopDownloadMenuItem, 1000);
