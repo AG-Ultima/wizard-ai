@@ -1974,156 +1974,203 @@ if (sendBtn && 'vibrate' in navigator) {
     });
 }
 // ============================================
-// DESKTOP APP MENU INTEGRATION
-// Add this to your existing script.js
+// DESKTOP APP MENU INTEGRATION (SIMPLIFIED)
 // ============================================
 
 // Check if running in Electron desktop app
 const isElectron = navigator.userAgent.includes('Electron');
 
 if (isElectron && window.electronAPI) {
-    console.log('🖥️ Running in Electron desktop app - menu integration enabled');
+    console.log('🖥️ Desktop app detected - setting up menu handlers');
+
+    // Helper function to safely click elements
+    function safeClick(elementId) {
+        const el = document.getElementById(elementId);
+        if (el) {
+            el.click();
+            return true;
+        }
+        return false;
+    }
 
     // New Chat
-    window.electronAPI.onNewChat(() => {
-        console.log('Menu: New Chat clicked');
-        // Trigger new chat button
-        const newChatBtn = document.getElementById('new-chat-btn');
-        if (newChatBtn) newChatBtn.click();
+    window.electronAPI.receive('new-chat', () => {
+        console.log('📁 Menu: New Chat');
+        if (!safeClick('new-chat-btn')) {
+            // Fallback - call the function directly
+            if (typeof createNewChat === 'function') createNewChat();
+        }
     });
 
     // Clear Current Chat
-    window.electronAPI.onClearChat(() => {
-        console.log('Menu: Clear Chat clicked');
-        // Trigger reset button
-        const resetBtn = document.getElementById('reset-current-btn');
-        if (resetBtn) resetBtn.click();
+    window.electronAPI.receive('clear-chat', () => {
+        console.log('🗑️ Menu: Clear Chat');
+        if (!safeClick('reset-current-btn')) {
+            if (typeof resetCurrentChat === 'function') resetCurrentChat();
+        }
     });
 
-    // Open Image Generator
-    window.electronAPI.onOpenImageGen(() => {
-        console.log('Menu: Generate Image clicked');
-        const imageBtn = document.getElementById('image-btn');
-        if (imageBtn) imageBtn.click();
+    // Generate Image
+    window.electronAPI.receive('open-image-gen', () => {
+        console.log('🎨 Menu: Generate Image');
+        if (!safeClick('image-btn')) {
+            const modal = document.getElementById('image-modal-overlay');
+            if (modal && typeof openModal === 'function') openModal(modal);
+        }
     });
 
-    // Open Code Executor
-    window.electronAPI.onOpenCode(() => {
-        console.log('Menu: Run Code clicked');
-        const codeBtn = document.getElementById('code-btn');
-        if (codeBtn) codeBtn.click();
+    // Run Code
+    window.electronAPI.receive('open-code', () => {
+        console.log('💻 Menu: Run Code');
+        if (!safeClick('code-btn')) {
+            const modal = document.getElementById('code-modal-overlay');
+            if (modal && typeof openModal === 'function') openModal(modal);
+        }
     });
 
     // Upload File
-    window.electronAPI.onUploadFile(() => {
-        console.log('Menu: Upload File clicked');
-        const uploadBtn = document.getElementById('upload-btn');
-        if (uploadBtn) uploadBtn.click();
+    window.electronAPI.receive('upload-file', () => {
+        console.log('📎 Menu: Upload File');
+        if (!safeClick('upload-btn')) {
+            const fileInput = document.getElementById('file-upload');
+            if (fileInput) fileInput.click();
+        }
     });
 
     // View Memories
-    window.electronAPI.onViewMemories(() => {
-        console.log('Menu: View Memories clicked');
-        const memoryBtn = document.getElementById('memory-btn');
-        if (memoryBtn) memoryBtn.click();
+    window.electronAPI.receive('view-memories', () => {
+        console.log('🧠 Menu: View Memories');
+        if (!safeClick('memory-btn')) {
+            if (typeof loadMemories === 'function') loadMemories();
+        }
     });
 
     // View Stats
-    window.electronAPI.onViewStats(() => {
-        console.log('Menu: View Stats clicked');
-        const statsBtn = document.getElementById('stats-btn');
-        if (statsBtn) statsBtn.click();
+    window.electronAPI.receive('view-stats', () => {
+        console.log('📊 Menu: View Stats');
+        if (!safeClick('stats-btn')) {
+            if (typeof loadDetailedStats === 'function') loadDetailedStats();
+        }
     });
 
     // Change Mode
-    window.electronAPI.onChangeMode((event, mode) => {
-        console.log('Menu: Change Mode to', mode);
-        // Find and click the mode in dropdown
-        const modeItems = document.querySelectorAll('.dropdown-item');
-        modeItems.forEach(item => {
-            if (item.getAttribute('data-mode') === mode) {
+    window.electronAPI.receive('change-mode', (mode) => {
+        console.log('🎭 Menu: Change Mode to', mode);
+        // Find and click dropdown item
+        const items = document.querySelectorAll('.dropdown-item');
+        let found = false;
+        items.forEach(item => {
+            const itemMode = item.getAttribute('data-mode') || item.innerText.trim();
+            if (itemMode === mode) {
                 item.click();
+                found = true;
             }
         });
+        if (!found && typeof selectMode === 'function') {
+            selectMode(mode);
+        }
     });
 
     // Toggle Turbo Mode
-    window.electronAPI.onToggleTurbo((event, enabled) => {
-        console.log('Menu: Turbo Mode', enabled ? 'ON' : 'OFF');
+    let turboState = false;
+    window.electronAPI.receive('toggle-turbo', (enabled) => {
+        console.log('⚡ Menu: Turbo Mode', enabled ? 'ON' : 'OFF');
         const turboBtn = document.getElementById('turbo-btn');
-        if (turboBtn && turboBtn.classList.contains('active') !== enabled) {
-            turboBtn.click();
+        if (turboBtn) {
+            const isActive = turboBtn.classList.contains('active');
+            if (isActive !== enabled) turboBtn.click();
+        } else if (typeof toggleTurboMode === 'function') {
+            if (turboMode !== enabled) toggleTurboMode();
         }
     });
 
     // Toggle Search Mode
-    window.electronAPI.onToggleSearch((event, enabled) => {
-        console.log('Menu: Web Search', enabled ? 'ON' : 'OFF');
+    let searchState = false;
+    window.electronAPI.receive('toggle-search', (enabled) => {
+        console.log('🌐 Menu: Web Search', enabled ? 'ON' : 'OFF');
         const searchBtn = document.getElementById('search-btn');
-        if (searchBtn && searchBtn.classList.contains('active') !== enabled) {
-            searchBtn.click();
+        if (searchBtn) {
+            const isActive = searchBtn.classList.contains('active');
+            if (isActive !== enabled) searchBtn.click();
+        } else if (typeof toggleSearchMode === 'function') {
+            if (searchMode !== enabled) toggleSearchMode();
         }
     });
 
-    // Open Settings (show notification for now)
-    window.electronAPI.onOpenSettings(() => {
-        console.log('Menu: Settings clicked');
-        showNotification('⚙️ Settings panel coming soon!', 'info', 2000);
+    // Settings
+    window.electronAPI.receive('open-settings', () => {
+        console.log('⚙️ Menu: Settings');
+        if (typeof showNotification === 'function') {
+            showNotification('⚙️ Settings panel coming soon!', 'info', 2000);
+        }
     });
 
     // Export Chat
-    window.electronAPI.onExportChat(() => {
-        console.log('Menu: Export Chat clicked');
+    window.electronAPI.receive('export-chat', () => {
+        console.log('💾 Menu: Export Chat');
         exportChatToFile();
     });
 
     // Browse Personalities
-    window.electronAPI.onBrowsePersonalities(() => {
-        console.log('Menu: Browse Personalities clicked');
-        const personalitiesBtn = document.getElementById('personalities-btn');
-        if (personalitiesBtn) personalitiesBtn.click();
+    window.electronAPI.receive('browse-personalities', () => {
+        console.log('🎭 Menu: Browse Personalities');
+        if (!safeClick('personalities-btn')) {
+            if (typeof openPersonalitiesBrowser === 'function') openPersonalitiesBrowser();
+        }
     });
 
     // Manage API Keys
-    window.electronAPI.onManageApiKeys(() => {
-        console.log('Menu: Manage API Keys clicked');
-        const apiKeysBtn = document.getElementById('api-keys-btn');
-        if (apiKeysBtn) apiKeysBtn.click();
+    window.electronAPI.receive('manage-api-keys', () => {
+        console.log('🔑 Menu: Manage API Keys');
+        if (!safeClick('api-keys-btn')) {
+            if (typeof handleApiKeysClick === 'function') handleApiKeysClick();
+        }
     });
+
+    console.log('✅ All menu handlers registered');
 }
 
-// Helper function to export chat
-async function exportChatToFile() {
-    if (!chatHistory) {
-        showNotification('No chat to export', 'error');
+// Export chat function
+function exportChatToFile() {
+    const chatContainer = document.getElementById('chat-history');
+    if (!chatContainer || !chatContainer.children.length) {
+        if (typeof showNotification === 'function') {
+            showNotification('No messages to export', 'error');
+        }
         return;
     }
     
-    // Get all messages
     const messages = document.querySelectorAll('.message');
-    let exportText = 'Wizard.AI Chat Export\n';
-    exportText += '=' .repeat(50) + '\n';
+    let exportText = '🧙 Wizard.AI Chat Export\n';
+    exportText += '='.repeat(50) + '\n';
     exportText += `Date: ${new Date().toLocaleString()}\n`;
-    exportText += '=' .repeat(50) + '\n\n';
+    exportText += '='.repeat(50) + '\n\n';
     
     messages.forEach(msg => {
-        const sender = msg.classList.contains('user') ? '👤 You' : '🧙 Wizard.AI';
-        const text = msg.querySelector('.message-text')?.innerText || '';
-        const time = msg.querySelector('.message-time')?.innerText || '';
+        const isUser = msg.classList.contains('user');
+        const sender = isUser ? '👤 You' : '🧙 Wizard.AI';
+        const textEl = msg.querySelector('.message-text');
+        const text = textEl ? textEl.innerText : '';
+        const timeEl = msg.querySelector('.message-time');
+        const time = timeEl ? timeEl.innerText : '';
         exportText += `[${time}] ${sender}:\n${text}\n\n`;
         exportText += '-'.repeat(40) + '\n\n';
     });
     
-    // Create download
+    // Download file
     const blob = new Blob([exportText], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `wizard-chat-${new Date().toISOString().slice(0,19)}.txt`;
+    a.download = `wizard-chat-${Date.now()}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    showNotification('✅ Chat exported successfully!', 'success');
+    if (typeof showNotification === 'function') {
+        showNotification('✅ Chat exported!', 'success');
+    }
 }
+
+console.log('✅ Desktop menu integration loaded');
