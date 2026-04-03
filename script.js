@@ -1,15 +1,6 @@
 // ============================================
 // WIZARD.AI PRO v11.0.0 - COMPLETE FRONTEND CONTROLLER
-// ============================================
-
-// Check for duplicate declarations
-if (typeof deferredPrompt !== 'undefined') {
-    console.log("deferredPrompt already exists");
-}
-let deferredPrompt;  // Keep only ONE declaration
-// ============================================
-// WIZARD.AI PRO v11.0.0 - COMPLETE FRONTEND CONTROLLER
-// Admin Update + Bug Fixes + Search Indicator
+// Admin Update + Bug Fixes + Search Indicator + PWA
 // Created by Arnav Gupta
 // ============================================
 
@@ -170,6 +161,7 @@ let userStats = {
     messages: 0, files: 0, memories: 0, images: 0, searches: 0,
     codeExecutions: 0, responseTimes: [], todayMessages: 0
 };
+let deferredPrompt = null;  // SINGLE declaration for PWA install prompt
 
 // ============================================
 // MODE DATA
@@ -207,6 +199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setInterval(updateStatsDisplay, 30000);
     checkBackendStatus();
     setInterval(checkBackendStatus, 30000);
+    setupPWAInstallPrompt();
     console.log('✅ Wizard.AI v11.0.0 ready!');
 });
 
@@ -215,6 +208,50 @@ function registerServiceWorker() {
         navigator.serviceWorker.register('/service-worker.js')
             .then(reg => console.log('✅ Service Worker registered'))
             .catch(err => console.log('❌ Service Worker error:', err));
+    }
+}
+
+// ============================================
+// PWA INSTALL PROMPT
+// ============================================
+function setupPWAInstallPrompt() {
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const installPrompt = document.getElementById('install-prompt');
+        if (installPrompt && !localStorage.getItem('installDismissed')) {
+            installPrompt.style.display = 'flex';
+        }
+    });
+    
+    const installBtn = document.getElementById('install-btn');
+    const closeInstall = document.getElementById('close-install');
+    
+    if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response: ${outcome}`);
+                deferredPrompt = null;
+                const installPrompt = document.getElementById('install-prompt');
+                if (installPrompt) installPrompt.style.display = 'none';
+                if (outcome === 'accepted') {
+                    showNotification('✅ Wizard.AI added to your home screen!', 'success');
+                }
+            }
+        });
+    }
+    
+    if (closeInstall) {
+        closeInstall.addEventListener('click', () => {
+            const installPrompt = document.getElementById('install-prompt');
+            if (installPrompt) installPrompt.style.display = 'none';
+            localStorage.setItem('installDismissed', 'true');
+            setTimeout(() => {
+                localStorage.removeItem('installDismissed');
+            }, 86400000);
+        });
     }
 }
 
@@ -228,10 +265,19 @@ async function checkBackendStatus() {
     if (!statusTextEl || !statusDotEl) return;
     
     try {
-        const response = await fetch(`${API_BASE_URL}/status`);
+        console.log("🔍 Checking backend status...");
+        const response = await fetch(`${API_BASE_URL}/status`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+            mode: 'cors',
+            credentials: 'omit'
+        });
+        
+        console.log("Status response:", response.status);
         
         if (response.ok) {
             const data = await response.json();
+            console.log("Backend data:", data);
             
             if (data.maintenance === true) {
                 statusTextEl.textContent = 'Maintenance Mode';
@@ -252,11 +298,11 @@ async function checkBackendStatus() {
             statusDotEl.classList.remove('offline');
         }
     } catch (error) {
+        console.error("Backend unreachable:", error);
         statusTextEl.textContent = 'Offline Mode';
         statusDotEl.style.background = '#ef4444';
         statusDotEl.style.boxShadow = '0 0 15px #ef4444';
         statusDotEl.classList.add('offline');
-        console.log('Backend unreachable:', error);
     }
 }
 
@@ -767,7 +813,6 @@ async function sendMessage() {
     const text = chatInput.value.trim();
     if (!text) return;
     
-    // Add user message
     addMessage('user', text);
     chatInput.value = '';
     
@@ -776,11 +821,8 @@ async function sendMessage() {
     sendBtn.classList.add('loading');
     if (typingIndicator) typingIndicator.style.display = 'flex';
     
-    // ========== SEARCH LOGIC ==========
-    // Check if search should be triggered (manual button OR auto-detect)
     const shouldSearch = searchMode || shouldAutoSearch(text);
     
-    // Show search indicator in input field
     if (shouldSearch && inputSearchIndicator) {
         inputSearchIndicator.style.display = 'inline';
         inputSearchIndicator.title = 'Web search will be performed for this query';
@@ -788,9 +830,7 @@ async function sendMessage() {
     } else if (inputSearchIndicator) {
         inputSearchIndicator.style.display = 'none';
     }
-    // ==================================
     
-    // Create streaming message container
     const streamingMsgId = 'streaming-' + Date.now();
     const msgDiv = document.createElement('div');
     msgDiv.id = streamingMsgId;
@@ -809,8 +849,6 @@ async function sendMessage() {
     
     try {
         const start = Date.now();
-        
-        // ========== API CALL WITH SEARCH FLAG ==========
         const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -823,7 +861,6 @@ async function sendMessage() {
                 chat_id: activeChatId
             })
         });
-        // ===============================================
         
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         
@@ -857,7 +894,6 @@ async function sendMessage() {
         const elapsed = (Date.now() - start) / 1000;
         msgDiv.classList.remove('streaming');
         
-        // Save to messages array
         messages.push({
             sender: 'assistant',
             text: fullResponse,
@@ -870,14 +906,12 @@ async function sendMessage() {
             saveChats();
         }
         
-        // Track stats
         trackMessage(elapsed);
         if (shouldSearch) {
             trackSearch();
             console.log("✅ Search tracked for user");
         }
         
-        // Process memory (extract user info like name, age, location)
         await processUserMemories(text);
         
     } catch (error) {
@@ -899,7 +933,6 @@ async function sendMessage() {
         sendBtn.disabled = false;
         sendBtn.classList.remove('loading');
         if (typingIndicator) typingIndicator.style.display = 'none';
-        // Hide search indicator after response
         if (inputSearchIndicator) {
             inputSearchIndicator.style.display = 'none';
         }
@@ -1962,56 +1995,15 @@ function setupEventListeners() {
         }
     });
 }
-// ============================================
-// PWA INSTALL PROMPT - Enhanced
-// ============================================
 
-let deferredPrompt;
-const installPrompt = document.getElementById('install-prompt');
-
-// Check if already installed
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    
-    // Don't show if already installed or dismissed before
-    if (!localStorage.getItem('installDismissed')) {
-        installPrompt.style.display = 'flex';
-    }
-});
-
-// Install button click
-document.getElementById('install-btn').addEventListener('click', async () => {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response: ${outcome}`);
-        deferredPrompt = null;
-        installPrompt.style.display = 'none';
-        
-        if (outcome === 'accepted') {
-            showNotification('✅ Wizard.AI added to your home screen!', 'success');
-        }
-    }
-});
-
-// Close button
-document.getElementById('close-install').addEventListener('click', () => {
-    installPrompt.style.display = 'none';
-    localStorage.setItem('installDismissed', 'true');
-    setTimeout(() => {
-        localStorage.removeItem('installDismissed');
-    }, 86400000); // Reset after 24 hours
-});
-
-// Detect if app is running in standalone mode (installed)
+// Detect if running as PWA
 if (window.matchMedia('(display-mode: standalone)').matches) {
     console.log('🏠 Running as installed PWA');
     document.body.classList.add('pwa-installed');
 }
 
 // Add haptic feedback on send (if supported)
-if ('vibrate' in navigator) {
+if (sendBtn && 'vibrate' in navigator) {
     sendBtn.addEventListener('click', () => {
         navigator.vibrate(10);
     });
