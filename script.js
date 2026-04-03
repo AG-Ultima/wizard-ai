@@ -1,6 +1,6 @@
 // ============================================
 // WIZARD.AI PRO v12.0.0 - COMPLETE FRONTEND CONTROLLER
-// Developer Hub Update - Cleaned & Optimized
+// Fixed: Mobile sidebar, Auth persistence, All features
 // Created by Arnav Gupta
 // ============================================
 
@@ -157,7 +157,11 @@ let userStats = {
     messages: 0, files: 0, memories: 0, images: 0, searches: 0,
     codeExecutions: 0, responseTimes: [], todayMessages: 0
 };
-let pwaDeferredPrompt = null; // SINGLE declaration
+let pwaDeferredPrompt = null;
+
+// Mobile detection
+const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
+let sidebarOpen = false;
 
 // ============================================
 // MODE DATA
@@ -177,12 +181,19 @@ const modeData = {
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🚀 Initializing Wizard.AI v12.0.0...');
+    console.log('📱 Mobile device:', isMobile);
+    
     showNotification('🧙 Summoning the Wizard...', 'info', 2000);
     registerServiceWorker();
     setupEventListeners();
     setupDropdown();
     setupModals();
     initVoiceRecognition();
+    
+    if (isMobile) {
+        initMobileLayout();
+    }
+    
     loadGuestData();
     await checkAuth();
     if (currentUser) startSessionCheck();
@@ -192,10 +203,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadUserApiKeys();
     loadPublicPersonalities();
     setupDevHubButton();
+    setupApiKeysButton();
     setInterval(updateStatsDisplay, 30000);
     checkBackendStatus();
     setInterval(checkBackendStatus, 30000);
     setupPWAInstallPrompt();
+    
     console.log('✅ Wizard.AI v12.0.0 ready!');
 });
 
@@ -208,7 +221,151 @@ function registerServiceWorker() {
 }
 
 // ============================================
-// BACKEND STATUS - FIXED
+// MOBILE LAYOUT - ChatGPT STYLE
+// ============================================
+function initMobileLayout() {
+    const leftSidebar = document.querySelector('.sidebar');
+    const rightSidebar = document.querySelector('.chats-sidebar');
+    const appContainer = document.querySelector('.app-container');
+    
+    // Hide sidebars initially
+    if (leftSidebar) leftSidebar.style.display = 'none';
+    if (rightSidebar) rightSidebar.style.display = 'none';
+    if (appContainer) appContainer.style.flexDirection = 'column';
+    
+    // Create hamburger menu button
+    const hamburgerBtn = document.createElement('button');
+    hamburgerBtn.innerHTML = '☰';
+    hamburgerBtn.className = 'hamburger-menu';
+    hamburgerBtn.style.cssText = `
+        position: fixed;
+        top: 15px;
+        left: 15px;
+        z-index: 10000;
+        background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+        border: none;
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        font-size: 24px;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+    `;
+    document.body.appendChild(hamburgerBtn);
+    
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'mobile-sidebar-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 10001;
+        display: none;
+        backdrop-filter: blur(5px);
+    `;
+    document.body.appendChild(overlay);
+    
+    // Create sidebar panel
+    const mobilePanel = document.createElement('div');
+    mobilePanel.className = 'mobile-sidebar-panel';
+    mobilePanel.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: -280px;
+        width: 280px;
+        height: 100%;
+        background: linear-gradient(135deg, #0a0f1a, #030614);
+        z-index: 10002;
+        transition: left 0.3s ease;
+        overflow-y: auto;
+        padding: 20px;
+        box-shadow: 2px 0 20px rgba(0,0,0,0.5);
+    `;
+    
+    // Clone sidebar content
+    if (leftSidebar) {
+        const leftSidebarClone = leftSidebar.cloneNode(true);
+        leftSidebarClone.style.display = 'block';
+        leftSidebarClone.style.width = '100%';
+        leftSidebarClone.style.background = 'transparent';
+        leftSidebarClone.style.border = 'none';
+        mobilePanel.appendChild(leftSidebarClone);
+    }
+    
+    // Add close button
+    const closeBtn = document.createElement('button');
+    closeBtn.innerHTML = '✕';
+    closeBtn.style.cssText = `
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(255,255,255,0.1);
+        border: none;
+        border-radius: 50%;
+        width: 35px;
+        height: 35px;
+        font-size: 18px;
+        color: white;
+        cursor: pointer;
+    `;
+    mobilePanel.appendChild(closeBtn);
+    document.body.appendChild(mobilePanel);
+    
+    // Toggle function
+    function toggleSidebar() {
+        sidebarOpen = !sidebarOpen;
+        if (sidebarOpen) {
+            mobilePanel.style.left = '0';
+            overlay.style.display = 'block';
+            hamburgerBtn.innerHTML = '✕';
+        } else {
+            mobilePanel.style.left = '-280px';
+            overlay.style.display = 'none';
+            hamburgerBtn.innerHTML = '☰';
+        }
+    }
+    
+    hamburgerBtn.addEventListener('click', toggleSidebar);
+    overlay.addEventListener('click', toggleSidebar);
+    closeBtn.addEventListener('click', toggleSidebar);
+    
+    // Adjust chat area
+    const chatArea = document.querySelector('.chat-area');
+    if (chatArea) {
+        chatArea.style.margin = '0';
+        chatArea.style.borderRadius = '0';
+    }
+    
+    const chatHistoryEl = document.querySelector('.chat-history');
+    if (chatHistoryEl) {
+        chatHistoryEl.style.maxHeight = 'calc(100vh - 160px)';
+        chatHistoryEl.style.padding = '15px';
+    }
+    
+    // Mobile styles
+    const style = document.createElement('style');
+    style.textContent = `
+        @media (max-width: 768px) {
+            .message { max-width: 95% !important; }
+            .pro-toolbar { overflow-x: auto; justify-content: flex-start; gap: 8px; padding: 10px; }
+            .pro-btn { flex-shrink: 0; }
+            .input-area { margin: 10px; padding: 10px; }
+            .chat-header { margin: 10px; padding: 12px; }
+            #chat-input { font-size: 16px; }
+            .hamburger-menu { display: flex; align-items: center; justify-content: center; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// ============================================
+// BACKEND STATUS
 // ============================================
 async function checkBackendStatus() {
     const statusTextEl = document.getElementById('status-text');
@@ -252,7 +409,6 @@ async function checkBackendStatus() {
 // DEV HUB BUTTON
 // ============================================
 function setupDevHubButton() {
-    const devHubBtn = document.getElementById('devhub-btn');
     if (devHubBtn) {
         devHubBtn.addEventListener('click', () => {
             window.open('/devhub/', '_blank');
@@ -315,7 +471,7 @@ function setupModals() {
 }
 
 // ============================================
-// PWA INSTALL PROMPT - FIXED
+// PWA INSTALL PROMPT
 // ============================================
 function setupPWAInstallPrompt() {
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -665,6 +821,21 @@ async function loadUserApiKeys() {
     } catch (error) {
         console.error('Error loading API keys:', error);
         apiKeysList.innerHTML = '<div class="no-keys-message">⚠️ Error loading keys</div>';
+    }
+}
+
+function setupApiKeysButton() {
+    const sidebarKeyBtn = document.getElementById('create-api-key-sidebar');
+    
+    if (sidebarKeyBtn) {
+        sidebarKeyBtn.addEventListener('click', () => {
+            if (!currentUser) {
+                showNotification('Please login to manage API keys', 'error');
+                showAuthModal(true);
+                return;
+            }
+            window.open('/devhub/', '_blank');
+        });
     }
 }
 
@@ -1211,21 +1382,37 @@ function saveStatsToStorage() {
 }
 
 // ============================================
-// AUTHENTICATION FUNCTIONS
+// AUTHENTICATION FUNCTIONS - FIXED FOR MOBILE
 // ============================================
 async function checkAuth() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/check-auth`, { credentials: 'include' });
+        // Add cache busting for mobile Safari
+        const url = `${API_BASE_URL}/api/check-auth?_=${Date.now()}`;
+        const response = await fetch(url, { 
+            credentials: 'include',
+            headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache'
+            }
+        });
+        
         if (response.ok) {
             const data = await response.json();
             currentUser = data.user;
             updateUIForAuth();
             if (data.memories) userStats.memories = data.memories.length;
             loadUserPersonalitiesFromServer();
+            localStorage.setItem('auth_time', Date.now().toString());
         } else {
             updateUIForAuth();
+            const authTime = localStorage.getItem('auth_time');
+            if (authTime && (Date.now() - parseInt(authTime)) > 3600000) {
+                showNotification('Session expired. Please log in again.', 'warning');
+                showAuthModal(true);
+            }
         }
     } catch (error) {
+        console.error('Auth check error:', error);
         updateUIForAuth();
     }
 }
@@ -1310,9 +1497,12 @@ async function handleLogin() {
             credentials: 'include',
             body: JSON.stringify({ email, password })
         });
+        
         if (response.ok) {
             const data = await response.json();
             currentUser = data.user;
+            localStorage.setItem('auth_time', Date.now().toString());
+            
             if (data.chats) {
                 chats = {};
                 data.chats.forEach(c => chats[c.chat_id] = c);
@@ -1469,6 +1659,7 @@ async function handleLogout() {
         await fetch(`${API_BASE_URL}/api/logout`, { method: 'POST', credentials: 'include' });
     } catch (error) {}
     localStorage.removeItem('wizard_pending_id');
+    localStorage.removeItem('auth_time');
     currentUser = null;
     updateUIForAuth();
     loadGuestData();
@@ -2052,6 +2243,7 @@ function setupEventListeners() {
     if (memoryBtn) memoryBtn.addEventListener('click', loadMemories);
     if (statsBtn) statsBtn.addEventListener('click', loadDetailedStats);
     if (personalitiesBtn) personalitiesBtn.addEventListener('click', openPersonalitiesBrowser);
+    if (devHubBtn) devHubBtn.addEventListener('click', () => window.open('/devhub/', '_blank'));
     if (updateHistoryBtn) updateHistoryBtn.addEventListener('click', showUpdateHistory);
     if (closeUpdate) closeUpdate.addEventListener('click', () => closeModal(updateModal));
     if (fileUpload) fileUpload.addEventListener('change', handleFileUpload);
