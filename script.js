@@ -1,7 +1,5 @@
 // ============================================
 // WIZARD.AI PRO v11.0.0 - COMPLETE FRONTEND CONTROLLER
-// Admin Update + Bug Fixes + Search Indicator + PWA
-// Created by Arnav Gupta
 // ============================================
 
 const API_BASE_URL = 'https://arnav0928.pythonanywhere.com';
@@ -161,7 +159,8 @@ let userStats = {
     messages: 0, files: 0, memories: 0, images: 0, searches: 0,
     codeExecutions: 0, responseTimes: [], todayMessages: 0
 };
-let deferredPrompt = null;  // SINGLE declaration for PWA install prompt
+// PWA install prompt variable - declared ONCE
+let pwaDeferredPrompt = null;
 
 // ============================================
 // MODE DATA
@@ -217,25 +216,25 @@ function registerServiceWorker() {
 function setupPWAInstallPrompt() {
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
-        deferredPrompt = e;
-        const installPrompt = document.getElementById('install-prompt');
-        if (installPrompt && !localStorage.getItem('installDismissed')) {
-            installPrompt.style.display = 'flex';
+        pwaDeferredPrompt = e;
+        const installPromptDiv = document.getElementById('install-prompt');
+        if (installPromptDiv && !localStorage.getItem('installDismissed')) {
+            installPromptDiv.style.display = 'flex';
         }
     });
     
     const installBtn = document.getElementById('install-btn');
-    const closeInstall = document.getElementById('close-install');
+    const closeInstallBtn = document.getElementById('close-install');
     
     if (installBtn) {
         installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
+            if (pwaDeferredPrompt) {
+                pwaDeferredPrompt.prompt();
+                const { outcome } = await pwaDeferredPrompt.userChoice;
                 console.log(`User response: ${outcome}`);
-                deferredPrompt = null;
-                const installPrompt = document.getElementById('install-prompt');
-                if (installPrompt) installPrompt.style.display = 'none';
+                pwaDeferredPrompt = null;
+                const installPromptDiv = document.getElementById('install-prompt');
+                if (installPromptDiv) installPromptDiv.style.display = 'none';
                 if (outcome === 'accepted') {
                     showNotification('✅ Wizard.AI added to your home screen!', 'success');
                 }
@@ -243,10 +242,10 @@ function setupPWAInstallPrompt() {
         });
     }
     
-    if (closeInstall) {
-        closeInstall.addEventListener('click', () => {
-            const installPrompt = document.getElementById('install-prompt');
-            if (installPrompt) installPrompt.style.display = 'none';
+    if (closeInstallBtn) {
+        closeInstallBtn.addEventListener('click', () => {
+            const installPromptDiv = document.getElementById('install-prompt');
+            if (installPromptDiv) installPromptDiv.style.display = 'none';
             localStorage.setItem('installDismissed', 'true');
             setTimeout(() => {
                 localStorage.removeItem('installDismissed');
@@ -284,7 +283,6 @@ async function checkBackendStatus() {
                 statusDotEl.style.background = '#f59e0b';
                 statusDotEl.style.boxShadow = '0 0 15px #f59e0b';
                 statusDotEl.classList.remove('offline');
-                showNotification('🔧 System is in maintenance mode. Some features may be limited.', 'warning', 5000);
             } else {
                 statusTextEl.textContent = 'Connected';
                 statusDotEl.style.background = '#10b981';
@@ -1847,39 +1845,6 @@ function downloadImage(url) {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-}
-
-// ============================================
-// WEB SEARCH
-// ============================================
-async function performWebSearch(query) {
-    if (!currentUser) {
-        showNotification('Please login to use web search', 'error');
-        return null;
-    }
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/search`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ query: query })
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            trackSearch();
-            return data.results;
-        } else {
-            const error = await response.json();
-            showNotification(`Search failed: ${error.error || 'Unknown error'}`, 'error');
-            return null;
-        }
-    } catch (error) {
-        console.error('Search error:', error);
-        showNotification('Search failed: Connection error', 'error');
-        return null;
-    }
 }
 
 // ============================================
