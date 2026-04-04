@@ -2193,22 +2193,23 @@ if (isElectron && window.electronAPI) {
         }
     });
 
-    // Developer Hub
-    window.electronAPI.onOpenDevHub(() => {
-        console.log('🔑 Menu: Developer Hub');
-        window.open('/devhub/', '_blank');
-    });
-
     // Agent Studio
-    window.electronAPI.onOpenAgentStudio(() => {
-        console.log('🤖 Menu: Agent Studio');
-        window.open('/agent-studio/', '_blank');
-    });
-    // Admin Dashboard
-    window.electronAPI.onOpenAdmin(() => {
-        console.log('👑 Menu: Admin Dashboard');
-        window.open('/admin/', '_blank');
-    });
+window.electronAPI.onOpenAgentStudio(() => {
+    console.log('🤖 Agent Studio clicked - opening...');
+    window.open('/agent-studio/', '_blank');
+});
+
+// Developer Hub
+window.electronAPI.onOpenDevHub(() => {
+    console.log('🔑 Developer Hub clicked - opening...');
+    window.open('/devhub/', '_blank');
+});
+
+// Admin Dashboard
+window.electronAPI.onOpenAdmin(() => {
+    console.log('👑 Admin Dashboard clicked - opening...');
+    window.open('/admin/', '_blank');
+});
     // Update status listeners
     window.electronAPI.onUpdateStatus((event, data) => {
         console.log('Update status:', data.status);
