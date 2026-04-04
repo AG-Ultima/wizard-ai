@@ -1,6 +1,6 @@
 // ============================================
-// WIZARD.AI PRO v12.0.0 - COMPLETE FRONTEND CONTROLLER
-// Fixed: Mobile sidebar, Auth persistence, All features
+// WIZARD.AI PRO v13.0.0 - COMPLETE FRONTEND CONTROLLER
+// Multi-Agent Update - Full Rewrite
 // Created by Arnav Gupta
 // ============================================
 
@@ -45,6 +45,7 @@ const memoryBtn = document.getElementById('memory-btn');
 const statsBtn = document.getElementById('stats-btn');
 const personalitiesBtn = document.getElementById('personalities-btn');
 const devHubBtn = document.getElementById('devhub-btn');
+const agentStudioBtn = document.getElementById('agent-studio-btn');
 const searchIndicator = document.getElementById('search-indicator');
 const inputSearchIndicator = document.getElementById('input-search-indicator');
 const typingIndicator = document.getElementById('typing-indicator');
@@ -180,7 +181,7 @@ const modeData = {
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🚀 Initializing Wizard.AI v12.0.0...');
+    console.log('🚀 Initializing Wizard.AI v13.0.0...');
     console.log('📱 Mobile device:', isMobile);
     
     showNotification('🧙 Summoning the Wizard...', 'info', 2000);
@@ -203,13 +204,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadUserApiKeys();
     loadPublicPersonalities();
     setupDevHubButton();
+    setupAgentStudioButton();
     setupApiKeysButton();
     setInterval(updateStatsDisplay, 30000);
     checkBackendStatus();
     setInterval(checkBackendStatus, 30000);
     setupPWAInstallPrompt();
     
-    console.log('✅ Wizard.AI v12.0.0 ready!');
+    console.log('✅ Wizard.AI v13.0.0 ready!');
 });
 
 function registerServiceWorker() {
@@ -221,19 +223,28 @@ function registerServiceWorker() {
 }
 
 // ============================================
-// MOBILE LAYOUT - ChatGPT STYLE
+// AGENT STUDIO BUTTON
+// ============================================
+function setupAgentStudioButton() {
+    if (agentStudioBtn) {
+        agentStudioBtn.addEventListener('click', () => {
+            window.open('/agents/', '_blank');
+        });
+    }
+}
+
+// ============================================
+// MOBILE LAYOUT - CHATGPT STYLE
 // ============================================
 function initMobileLayout() {
     const leftSidebar = document.querySelector('.sidebar');
     const rightSidebar = document.querySelector('.chats-sidebar');
     const appContainer = document.querySelector('.app-container');
     
-    // Hide sidebars initially
     if (leftSidebar) leftSidebar.style.display = 'none';
     if (rightSidebar) rightSidebar.style.display = 'none';
     if (appContainer) appContainer.style.flexDirection = 'column';
     
-    // Create hamburger menu button
     const hamburgerBtn = document.createElement('button');
     hamburgerBtn.innerHTML = '☰';
     hamburgerBtn.className = 'hamburger-menu';
@@ -255,7 +266,6 @@ function initMobileLayout() {
     `;
     document.body.appendChild(hamburgerBtn);
     
-    // Create overlay
     const overlay = document.createElement('div');
     overlay.className = 'mobile-sidebar-overlay';
     overlay.style.cssText = `
@@ -271,7 +281,6 @@ function initMobileLayout() {
     `;
     document.body.appendChild(overlay);
     
-    // Create sidebar panel
     const mobilePanel = document.createElement('div');
     mobilePanel.className = 'mobile-sidebar-panel';
     mobilePanel.style.cssText = `
@@ -288,7 +297,6 @@ function initMobileLayout() {
         box-shadow: 2px 0 20px rgba(0,0,0,0.5);
     `;
     
-    // Clone sidebar content
     if (leftSidebar) {
         const leftSidebarClone = leftSidebar.cloneNode(true);
         leftSidebarClone.style.display = 'block';
@@ -298,7 +306,6 @@ function initMobileLayout() {
         mobilePanel.appendChild(leftSidebarClone);
     }
     
-    // Add close button
     const closeBtn = document.createElement('button');
     closeBtn.innerHTML = '✕';
     closeBtn.style.cssText = `
@@ -317,7 +324,6 @@ function initMobileLayout() {
     mobilePanel.appendChild(closeBtn);
     document.body.appendChild(mobilePanel);
     
-    // Toggle function
     function toggleSidebar() {
         sidebarOpen = !sidebarOpen;
         if (sidebarOpen) {
@@ -335,7 +341,6 @@ function initMobileLayout() {
     overlay.addEventListener('click', toggleSidebar);
     closeBtn.addEventListener('click', toggleSidebar);
     
-    // Adjust chat area
     const chatArea = document.querySelector('.chat-area');
     if (chatArea) {
         chatArea.style.margin = '0';
@@ -348,7 +353,6 @@ function initMobileLayout() {
         chatHistoryEl.style.padding = '15px';
     }
     
-    // Mobile styles
     const style = document.createElement('style');
     style.textContent = `
         @media (max-width: 768px) {
@@ -1386,7 +1390,6 @@ function saveStatsToStorage() {
 // ============================================
 async function checkAuth() {
     try {
-        // Add cache busting for mobile Safari
         const url = `${API_BASE_URL}/api/check-auth?_=${Date.now()}`;
         const response = await fetch(url, { 
             credentials: 'include',
@@ -2244,6 +2247,7 @@ function setupEventListeners() {
     if (statsBtn) statsBtn.addEventListener('click', loadDetailedStats);
     if (personalitiesBtn) personalitiesBtn.addEventListener('click', openPersonalitiesBrowser);
     if (devHubBtn) devHubBtn.addEventListener('click', () => window.open('/devhub/', '_blank'));
+    if (agentStudioBtn) agentStudioBtn.addEventListener('click', () => window.open('/agents/', '_blank'));
     if (updateHistoryBtn) updateHistoryBtn.addEventListener('click', showUpdateHistory);
     if (closeUpdate) closeUpdate.addEventListener('click', () => closeModal(updateModal));
     if (fileUpload) fileUpload.addEventListener('change', handleFileUpload);
@@ -2310,4 +2314,4 @@ if (sendBtn && 'vibrate' in navigator) {
     });
 }
 
-console.log('✅ Wizard.AI v12.0.0 fully loaded!');
+console.log('✅ Wizard.AI v13.0.0 fully loaded!');
