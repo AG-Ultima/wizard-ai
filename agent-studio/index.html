@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 40px 20px;
         }
@@ -102,7 +102,88 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Cards Grid */
+        /* Run Chain Layout - Two Columns */
+        .chain-runner {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chain-input-panel, .chain-output-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .chain-input-panel h3, .chain-output-panel h3 {
+            color: #c4b5fd;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .chain-select, .chain-input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: white;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .chain-input {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border-radius: 50px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e7ff;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .result-area {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .agent-conversation {
+            border-left: 3px solid #8b5cf6;
+        }
+
+        .final-work {
+            border-left: 3px solid #10b981;
+        }
+
+        /* Chains Grid */
         .chains-grid, .agents-grid, .marketplace-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -163,93 +244,40 @@
             color: #6b7280;
         }
 
-        /* Executor Panel */
-        .executor-panel {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 25px;
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            margin-top: 30px;
-        }
-
-        .executor-panel h4 {
-            color: #c4b5fd;
-            margin-bottom: 20px;
-            font-size: 18px;
-        }
-
-        .executor-row {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        .chain-select, .chain-input {
-            flex: 1;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(139, 92, 246, 0.3);
-            border-radius: 12px;
-            padding: 12px 16px;
-            color: white;
-            font-size: 14px;
-        }
-
-        .chain-input {
-            width: 100%;
-            resize: vertical;
-        }
-
-        .btn {
-            padding: 12px 28px;
-            border-radius: 50px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: #e0e7ff;
-            border: 1px solid rgba(139, 92, 246, 0.3);
-        }
-
-        .result-area {
-            margin-top: 20px;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 16px;
-            max-height: 300px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-            font-family: monospace;
-            font-size: 13px;
-            display: none;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #6b7280;
-        }
-
-        /* Create Agent Form */
-        .create-agent-form {
+        /* Custom Chain Builder */
+        .chain-builder {
             background: rgba(0, 0, 0, 0.2);
             border-radius: 16px;
             padding: 20px;
             margin-top: 20px;
+        }
+
+        .builder-step {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+        }
+
+        .builder-step select {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+        }
+
+        .builder-step button {
+            background: rgba(239, 68, 68, 0.2);
+            border: none;
+            color: #ef4444;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
         }
 
         .form-group {
@@ -272,21 +300,21 @@
             color: white;
         }
 
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
         }
 
-        .install-btn {
-            background: linear-gradient(135deg, #10b981, #059669);
-            width: 100%;
-            margin-top: 10px;
+        @media (max-width: 1024px) {
+            .chain-runner {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
             .header h1 { font-size: 32px; }
             .chains-grid, .agents-grid, .marketplace-grid { grid-template-columns: 1fr; }
-            .executor-row { flex-direction: column; }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -300,27 +328,43 @@
         </div>
 
         <div class="studio-tabs">
-            <button class="tab-btn active" data-tab="chains">🔗 Chains</button>
+            <button class="tab-btn active" data-tab="run">⚡ Run Chain</button>
+            <button class="tab-btn" data-tab="chains">🔗 My Chains</button>
             <button class="tab-btn" data-tab="agents">🤖 Agents</button>
-            <button class="tab-btn" data-tab="marketplace">🛒 Marketplace</button>
+            <button class="tab-btn" data-tab="builder">🛠️ Build Chain</button>
         </div>
 
-        <!-- Chains Tab -->
-        <div id="chains-tab" class="tab-content active">
-            <div class="chains-grid" id="chains-grid">
-                <div class="loading">Loading chains...</div>
-            </div>
-
-            <div class="executor-panel">
-                <h4>⚡ Run a Chain</h4>
-                <div class="executor-row">
+        <!-- Run Chain Tab -->
+        <div id="run-tab" class="tab-content active">
+            <div class="chain-runner">
+                <!-- Left Panel: Input -->
+                <div class="chain-input-panel">
+                    <h3>📝 Input</h3>
                     <select id="chain-select" class="chain-select">
                         <option value="">Select a chain...</option>
                     </select>
+                    <textarea id="chain-input" class="chain-input" placeholder="Enter your request..."></textarea>
+                    <button id="run-chain-btn" class="btn btn-primary">▶ Run Chain</button>
                 </div>
-                <textarea id="chain-input" class="chain-input" rows="3" placeholder="Enter your request..."></textarea>
-                <button id="run-chain-btn" class="btn btn-primary" style="margin-top: 15px;">▶ Run Chain</button>
-                <div id="chain-result" class="result-area"></div>
+
+                <!-- Right Panel: Output Split -->
+                <div class="chain-output-panel">
+                    <h3>📊 Agent Conversation & Findings</h3>
+                    <div id="agent-conversation" class="result-area agent-conversation" style="height: 200px; overflow-y: auto;">
+                        <div class="loading">Run a chain to see agent conversation...</div>
+                    </div>
+                    <h3 style="margin-top: 20px;">✨ Final Work</h3>
+                    <div id="final-work" class="result-area final-work" style="height: 250px; overflow-y: auto;">
+                        <div class="loading">Run a chain to see final output...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Chains Tab -->
+        <div id="chains-tab" class="tab-content">
+            <div class="chains-grid" id="chains-grid">
+                <div class="loading">Loading chains...</div>
             </div>
         </div>
 
@@ -329,66 +373,85 @@
             <div class="agents-grid" id="agents-grid">
                 <div class="loading">Loading agents...</div>
             </div>
-
-            <div class="create-agent-form">
-                <h4 style="color: #c4b5fd; margin-bottom: 15px;">✨ Create Custom Agent</h4>
-                <div class="form-group">
-                    <label>Agent Name</label>
-                    <input type="text" id="agent-name" placeholder="e.g., Marketing Expert">
-                </div>
-                <div class="form-group">
-                    <label>Specialty</label>
-                    <input type="text" id="agent-specialty" placeholder="e.g., Creating marketing copy">
-                </div>
-                <div class="form-group">
-                    <label>System Prompt</label>
-                    <textarea id="agent-prompt" placeholder="You are a marketing specialist..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Icon (emoji)</label>
-                    <input type="text" id="agent-icon" placeholder="📢" maxlength="2">
-                </div>
-                <button id="create-agent-btn" class="btn btn-primary">➕ Create Agent</button>
-            </div>
         </div>
 
-        <!-- Marketplace Tab -->
-        <div id="marketplace-tab" class="tab-content">
-            <div class="marketplace-grid" id="marketplace-grid">
-                <div class="loading">Loading marketplace...</div>
+        <!-- Build Chain Tab -->
+        <div id="builder-tab" class="tab-content">
+            <div class="chain-builder">
+                <h3 style="color: #c4b5fd; margin-bottom: 15px;">🔧 Create Custom Chain</h3>
+                <div class="form-group">
+                    <label>Chain Name</label>
+                    <input type="text" id="chain-name" placeholder="e.g., My Research Chain">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="chain-desc" placeholder="What this chain does">
+                </div>
+                <div class="form-group">
+                    <label>Steps</label>
+                    <div id="builder-steps">
+                        <div class="builder-step">
+                            <select class="agent-select">
+                                <option value="">Select agent...</option>
+                            </select>
+                            <button class="remove-step" style="display: none;">🗑️</button>
+                        </div>
+                    </div>
+                    <button id="add-step-btn" class="btn btn-secondary" style="margin-top: 10px;">+ Add Step</button>
+                </div>
+                <button id="save-chain-btn" class="btn btn-primary">💾 Save Chain</button>
             </div>
         </div>
     </div>
 
     <script>
         const API_BASE_URL = 'https://arnav0928.pythonanywhere.com';
-        let currentUser = null;
+        let availableAgents = [];
 
-        // Check auth
-        async function checkAuth() {
+        // Load all data
+        async function loadAgents() {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/check-auth`, { credentials: 'include' });
+                const response = await fetch(`${API_BASE_URL}/api/agents/list`, { credentials: 'include' });
                 if (response.ok) {
                     const data = await response.json();
-                    currentUser = data.user;
-                    loadAllData();
-                } else {
-                    document.getElementById('chains-grid').innerHTML = '<div class="loading">🔐 Please login to use Agent Studio. <a href="/" style="color: #8b5cf6;">Go to Wizard.AI</a></div>';
-                    document.getElementById('agents-grid').innerHTML = '<div class="loading">🔐 Please login to use Agent Studio</div>';
-                    document.getElementById('marketplace-grid').innerHTML = '<div class="loading">🔐 Please login to use Agent Studio</div>';
+                    availableAgents = data.agents || [];
+                    const container = document.getElementById('agents-grid');
+                    const agentSelects = document.querySelectorAll('.agent-select');
+                    
+                    if (availableAgents.length === 0) {
+                        container.innerHTML = '<div class="loading">No agents available</div>';
+                    } else {
+                        container.innerHTML = '';
+                        availableAgents.forEach(agent => {
+                            const card = document.createElement('div');
+                            card.className = 'agent-card';
+                            card.innerHTML = `
+                                <div class="agent-icon">${agent.icon || '🤖'}</div>
+                                <h3>${agent.name}</h3>
+                                <p>${agent.specialty || 'General purpose'}</p>
+                                <div class="agent-stats">
+                                    <span>📊 ${agent.usage_count || 0} uses</span>
+                                    <span>${agent.is_custom ? '✨ Custom' : '⚡ Built-in'}</span>
+                                </div>
+                            `;
+                            container.appendChild(card);
+                        });
+                        
+                        // Update agent selects
+                        agentSelects.forEach(select => {
+                            select.innerHTML = '<option value="">Select agent...</option>';
+                            availableAgents.forEach(agent => {
+                                select.innerHTML += `<option value="${agent.name}">${agent.icon || '🤖'} ${agent.name}</option>`;
+                            });
+                        });
+                    }
                 }
             } catch (error) {
-                console.error('Auth error:', error);
+                console.error('Error loading agents:', error);
+                document.getElementById('agents-grid').innerHTML = '<div class="loading">Error loading agents</div>';
             }
         }
 
-        async function loadAllData() {
-            await loadChains();
-            await loadAgents();
-            await loadMarketplace();
-        }
-
-        // Load Chains
         async function loadChains() {
             try {
                 const response = await fetch(`${API_BASE_URL}/api/chains/list`, { credentials: 'include' });
@@ -398,7 +461,8 @@
                     const select = document.getElementById('chain-select');
                     
                     if (!data.chains || data.chains.length === 0) {
-                        container.innerHTML = '<div class="loading">No chains available. Create one in the Agents tab!</div>';
+                        container.innerHTML = '<div class="loading">No chains yet. Create one in the Build Chain tab!</div>';
+                        select.innerHTML = '<option value="">No chains available</option>';
                         return;
                     }
                     
@@ -410,13 +474,17 @@
                         card.className = 'chain-card';
                         card.onclick = () => {
                             document.getElementById('chain-select').value = chain.name;
-                            document.getElementById('chain-input').focus();
+                            document.querySelector('.tab-btn[data-tab="run"]').click();
                         };
                         card.innerHTML = `
                             <h3>🔗 ${chain.name}</h3>
                             <p>${chain.description || 'No description'}</p>
                             <div class="chain-steps">
                                 ${chain.steps ? chain.steps.map(s => `<span class="step-badge">${s.agent}</span>`).join('') : '<span class="step-badge">Ready</span>'}
+                            </div>
+                            <div class="agent-stats">
+                                <span>📊 ${chain.usage_count || 0} runs</span>
+                                <span>${chain.is_custom ? '✨ Custom' : '⚡ Built-in'}</span>
                             </div>
                         `;
                         container.appendChild(card);
@@ -433,89 +501,12 @@
             }
         }
 
-        // Load Agents
-        async function loadAgents() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/agents/list`, { credentials: 'include' });
-                if (response.ok) {
-                    const data = await response.json();
-                    const container = document.getElementById('agents-grid');
-                    
-                    if (!data.agents || data.agents.length === 0) {
-                        container.innerHTML = '<div class="loading">No agents available. Create your first agent below!</div>';
-                        return;
-                    }
-                    
-                    container.innerHTML = '';
-                    data.agents.forEach(agent => {
-                        const card = document.createElement('div');
-                        card.className = 'agent-card';
-                        card.innerHTML = `
-                            <div class="agent-icon">${agent.icon || '🤖'}</div>
-                            <h3>${agent.name}</h3>
-                            <p>${agent.specialty || 'General purpose'}</p>
-                            <div class="agent-stats">
-                                <span>📊 ${agent.usage_count || 0} uses</span>
-                                <span>⚡ ${agent.avg_time || 0}s avg</span>
-                            </div>
-                        `;
-                        container.appendChild(card);
-                    });
-                }
-            } catch (error) {
-                console.error('Error loading agents:', error);
-                document.getElementById('agents-grid').innerHTML = '<div class="loading">Error loading agents</div>';
-            }
-        }
-
-        // Load Marketplace
-        async function loadMarketplace() {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/marketplace/agents`, { credentials: 'include' });
-                if (response.ok) {
-                    const data = await response.json();
-                    const container = document.getElementById('marketplace-grid');
-                    
-                    if (!data.agents || data.agents.length === 0) {
-                        container.innerHTML = '<div class="loading">No community agents yet. Be the first to share!</div>';
-                        return;
-                    }
-                    
-                    container.innerHTML = '';
-                    data.agents.forEach(agent => {
-                        const card = document.createElement('div');
-                        card.className = 'marketplace-card';
-                        card.innerHTML = `
-                            <div class="agent-icon">${agent.icon || '🤖'}</div>
-                            <h3>${agent.name}</h3>
-                            <p>${agent.description || 'No description'}</p>
-                            <div class="agent-stats">
-                                <span>📥 ${agent.installs || 0} installs</span>
-                                <span>⭐ ${agent.rating || 0}/5</span>
-                                <span>👤 by ${agent.creator || 'Anonymous'}</span>
-                            </div>
-                            <button class="btn btn-secondary install-btn" data-agent-id="${agent.id}">➕ Install</button>
-                        `;
-                        container.appendChild(card);
-                        
-                        const installBtn = card.querySelector('.install-btn');
-                        installBtn.addEventListener('click', (e) => {
-                            e.stopPropagation();
-                            installAgent(agent.id);
-                        });
-                    });
-                }
-            } catch (error) {
-                console.error('Error loading marketplace:', error);
-                document.getElementById('marketplace-grid').innerHTML = '<div class="loading">Error loading marketplace</div>';
-            }
-        }
-
         // Run Chain
         document.getElementById('run-chain-btn').addEventListener('click', async () => {
             const chainName = document.getElementById('chain-select').value;
             const input = document.getElementById('chain-input').value;
-            const resultDiv = document.getElementById('chain-result');
+            const conversationDiv = document.getElementById('agent-conversation');
+            const finalDiv = document.getElementById('final-work');
             
             if (!chainName) {
                 alert('Please select a chain');
@@ -526,8 +517,8 @@
                 return;
             }
             
-            resultDiv.style.display = 'block';
-            resultDiv.innerHTML = '<div class="loading">🤖 Running chain...</div>';
+            conversationDiv.innerHTML = '<div class="loading">🤖 Running chain...</div>';
+            finalDiv.innerHTML = '<div class="loading">✨ Generating final output...</div>';
             
             try {
                 const response = await fetch(`${API_BASE_URL}/api/chains/run/${encodeURIComponent(chainName)}`, {
@@ -538,77 +529,109 @@
                 });
                 const data = await response.json();
                 
-                if (data.results && data.results.output) {
-                    resultDiv.innerHTML = data.results.output;
-                } else if (data.results) {
-                    let html = '';
+                if (data.results) {
+                    // Separate agent conversation from final work
+                    let conversation = '';
+                    let finalWork = '';
+                    
                     for (const [key, value] of Object.entries(data.results)) {
-                        if (value && key !== 'output') {
-                            html += `<strong>${key.toUpperCase()}</strong><br>${value}<br><br>`;
+                        if (key === 'final' || key === 'content' || key === 'output') {
+                            finalWork = value;
+                        } else if (key !== 'error' && value) {
+                            conversation += `<strong>🤖 ${key.toUpperCase()} AGENT</strong><br>${value}<br><br>`;
                         }
                     }
-                    resultDiv.innerHTML = html || 'No output generated';
+                    
+                    conversationDiv.innerHTML = conversation || '<i>No agent conversation recorded</i>';
+                    finalDiv.innerHTML = finalWork || '<i>No final output generated</i>';
                 } else {
-                    resultDiv.innerHTML = 'Error: No results returned';
+                    conversationDiv.innerHTML = '<div class="loading">Error: No results returned</div>';
+                    finalDiv.innerHTML = '<div class="loading">Error: No results returned</div>';
                 }
             } catch (error) {
-                resultDiv.innerHTML = 'Error running chain: ' + error.message;
+                conversationDiv.innerHTML = `<div class="loading">Error: ${error.message}</div>`;
+                finalDiv.innerHTML = `<div class="loading">Error: ${error.message}</div>`;
             }
         });
 
-        // Create Agent
-        document.getElementById('create-agent-btn').addEventListener('click', async () => {
-            const name = document.getElementById('agent-name').value;
-            const specialty = document.getElementById('agent-specialty').value;
-            const prompt = document.getElementById('agent-prompt').value;
-            const icon = document.getElementById('agent-icon').value || '🤖';
+        // Build Chain functionality
+        let stepCount = 1;
+
+        function updateAgentSelects() {
+            const selects = document.querySelectorAll('.agent-select');
+            selects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Select agent...</option>';
+                availableAgents.forEach(agent => {
+                    select.innerHTML += `<option value="${agent.name}" ${agent.name === currentValue ? 'selected' : ''}>${agent.icon || '🤖'} ${agent.name}</option>`;
+                });
+            });
+        }
+
+        document.getElementById('add-step-btn').addEventListener('click', () => {
+            const stepsDiv = document.getElementById('builder-steps');
+            const stepDiv = document.createElement('div');
+            stepDiv.className = 'builder-step';
+            stepDiv.innerHTML = `
+                <select class="agent-select">
+                    <option value="">Select agent...</option>
+                </select>
+                <button class="remove-step">🗑️</button>
+            `;
+            stepsDiv.appendChild(stepDiv);
+            updateAgentSelects();
             
-            if (!name || !specialty || !prompt) {
-                alert('Please fill in all fields');
+            stepDiv.querySelector('.remove-step').addEventListener('click', () => {
+                stepDiv.remove();
+            });
+        });
+
+        document.getElementById('save-chain-btn').addEventListener('click', async () => {
+            const name = document.getElementById('chain-name').value;
+            const description = document.getElementById('chain-desc').value;
+            const steps = [];
+            
+            document.querySelectorAll('.builder-step').forEach(step => {
+                const agentName = step.querySelector('.agent-select').value;
+                if (agentName) {
+                    steps.push({ agent: agentName, input_key: 'query', output_key: agentName.toLowerCase() });
+                }
+            });
+            
+            if (!name || steps.length === 0) {
+                alert('Please enter a chain name and at least one step');
                 return;
             }
             
             try {
-                const response = await fetch(`${API_BASE_URL}/api/agents/create`, {
+                const response = await fetch(`${API_BASE_URL}/api/chains/create`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
-                    body: JSON.stringify({ name, specialty, prompt, icon })
+                    body: JSON.stringify({ name, description, steps })
                 });
                 if (response.ok) {
-                    alert('✅ Agent created successfully!');
-                    document.getElementById('agent-name').value = '';
-                    document.getElementById('agent-specialty').value = '';
-                    document.getElementById('agent-prompt').value = '';
-                    document.getElementById('agent-icon').value = '';
-                    loadAgents();
+                    alert('✅ Chain saved successfully!');
+                    document.getElementById('chain-name').value = '';
+                    document.getElementById('chain-desc').value = '';
+                    document.getElementById('builder-steps').innerHTML = `
+                        <div class="builder-step">
+                            <select class="agent-select">
+                                <option value="">Select agent...</option>
+                            </select>
+                            <button class="remove-step" style="display: none;">🗑️</button>
+                        </div>
+                    `;
+                    stepCount = 1;
+                    updateAgentSelects();
+                    loadChains();
                 } else {
-                    alert('Failed to create agent');
+                    alert('Failed to save chain');
                 }
             } catch (error) {
-                alert('Error creating agent');
+                alert('Error saving chain');
             }
         });
-
-        // Install Agent from Marketplace
-        async function installAgent(agentId) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/marketplace/install`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ agent_id: agentId })
-                });
-                if (response.ok) {
-                    alert('✅ Agent installed successfully!');
-                    loadAgents();
-                } else {
-                    alert('Failed to install agent');
-                }
-            } catch (error) {
-                alert('Error installing agent');
-            }
-        }
 
         // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -617,10 +640,16 @@
                 document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
                 btn.classList.add('active');
                 document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+                
+                if (btn.dataset.tab === 'builder') {
+                    updateAgentSelects();
+                }
             });
         });
 
-        checkAuth();
+        // Initialize
+        loadAgents();
+        loadChains();
     </script>
 </body>
 </html>
