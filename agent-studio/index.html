@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 Agent Studio - Wizard.AI Multi-Agent Orchestration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #030614 0%, #0a0f1a 100%);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            background: linear-gradient(135deg, #c4b5fd, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #9ca3af;
+            font-size: 18px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #8b5cf6;
+            text-decoration: none;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Tabs */
+        .studio-tabs {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 50px;
+            padding: 12px 28px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #e0e7ff;
+        }
+
+        .tab-btn:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: #8b5cf6;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards Grid */
+        .chains-grid, .agents-grid, .marketplace-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .chain-card, .agent-card, .marketplace-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .chain-card:hover, .agent-card:hover, .marketplace-card:hover {
+            transform: translateY(-5px);
+            border-color: #8b5cf6;
+            box-shadow: 0 0 30px rgba(139, 92, 246, 0.2);
+        }
+
+        .chain-card h3, .agent-card h3, .marketplace-card h3 {
+            font-size: 20px;
+            color: #c4b5fd;
+            margin-bottom: 10px;
+        }
+
+        .chain-card p, .agent-card p, .marketplace-card p {
+            color: #9ca3af;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .chain-steps {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .step-badge {
+            background: rgba(139, 92, 246, 0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+        }
+
+        .agent-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .agent-stats {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* Executor Panel */
+        .executor-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            margin-top: 30px;
+        }
+
+        .executor-panel h4 {
+            color: #c4b5fd;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .executor-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .chain-select, .chain-input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .chain-input {
+            width: 100%;
+            resize: vertical;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border-radius: 50px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e7ff;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .result-area {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 13px;
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+
+        /* Create Agent Form */
+        .create-agent-form {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            color: white;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .install-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 32px; }
+            .chains-grid, .agents-grid, .marketplace-grid { grid-template-columns: 1fr; }
+            .executor-row { flex-direction: column; }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Agent Studio</h1>
+            <p>Multi-Agent Orchestration - Chain specialized AI agents together</p>
+            <a href="/" class="back-link">← Back to Wizard.AI</a>
+        </div>
+
+        <div class="studio-tabs">
+            <button class="tab-btn active" data-tab="chains">🔗 Chains</button>
+            <button class="tab-btn" data-tab="agents">🤖 Agents</button>
+            <button class="tab-btn" data-tab="marketplace">🛒 Marketplace</button>
+        </div>
+
+        <!-- Chains Tab -->
+        <div id="chains-tab" class="tab-content active">
+            <div class="chains-grid" id="chains-grid">
+                <div class="loading">Loading chains...</div>
+            </div>
+
+            <div class="executor-panel">
+                <h4>⚡ Run a Chain</h4>
+                <div class="executor-row">
+                    <select id="chain-select" class="chain-select">
+                        <option value="">Select a chain...</option>
+                    </select>
+                </div>
+                <textarea id="chain-input" class="chain-input" rows="3" placeholder="Enter your request..."></textarea>
+                <button id="run-chain-btn" class="btn btn-primary" style="margin-top: 15px;">▶ Run Chain</button>
+                <div id="chain-result" class="result-area"></div>
+            </div>
+        </div>
+
+        <!-- Agents Tab -->
+        <div id="agents-tab" class="tab-content">
+            <div class="agents-grid" id="agents-grid">
+                <div class="loading">Loading agents...</div>
+            </div>
+
+            <div class="create-agent-form">
+                <h4 style="color: #c4b5fd; margin-bottom: 15px;">✨ Create Custom Agent</h4>
+                <div class="form-group">
+                    <label>Agent Name</label>
+                    <input type="text" id="agent-name" placeholder="e.g., Marketing Expert">
+                </div>
+                <div class="form-group">
+                    <label>Specialty</label>
+                    <input type="text" id="agent-specialty" placeholder="e.g., Creating marketing copy">
+                </div>
+                <div class="form-group">
+                    <label>System Prompt</label>
+                    <textarea id="agent-prompt" placeholder="You are a marketing specialist..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Icon (emoji)</label>
+                    <input type="text" id="agent-icon" placeholder="📢" maxlength="2">
+                </div>
+                <button id="create-agent-btn" class="btn btn-primary">➕ Create Agent</button>
+            </div>
+        </div>
+
+        <!-- Marketplace Tab -->
+        <div id="marketplace-tab" class="tab-content">
+            <div class="marketplace-grid" id="marketplace-grid">
+                <div class="loading">Loading marketplace...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://arnav0928.pythonanywhere.com';
+        let currentUser = null;
+
+        // Check auth
+        async function checkAuth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/check-auth`, { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    loadAllData();
+                } else {
+                    document.getElementById('chains-grid').innerHTML = '<div class="loading">🔐 Please login to use Agent Studio. <a href="/" style="color: #8b5cf6;">Go to Wizard.AI</a></div>';
+                    document.getElementById('agents-grid').innerHTML = '<div class="loading">🔐 Please login to use Agent Studio</div>';
+                    document.getElementById('marketplace-grid').innerHTML = '<div class="loading">🔐 Please login to use Agent Studio</div>';
+                }
+            } catch (error) {
+                console.error('Auth error:', error);
+            }
+        }
+
+        async function loadAllData() {
+            await loadChains();
+            await loadAgents();
+            await loadMarketplace();
+        }
+
+        // Load Chains
+        async function loadChains() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/chains/list`, { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    const container = document.getElementById('chains-grid');
+                    const select = document.getElementById('chain-select');
+                    
+                    if (!data.chains || data.chains.length === 0) {
+                        container.innerHTML = '<div class="loading">No chains available. Create one in the Agents tab!</div>';
+                        return;
+                    }
+                    
+                    container.innerHTML = '';
+                    select.innerHTML = '<option value="">Select a chain...</option>';
+                    
+                    data.chains.forEach(chain => {
+                        const card = document.createElement('div');
+                        card.className = 'chain-card';
+                        card.onclick = () => {
+                            document.getElementById('chain-select').value = chain.name;
+                            document.getElementById('chain-input').focus();
+                        };
+                        card.innerHTML = `
+                            <h3>🔗 ${chain.name}</h3>
+                            <p>${chain.description || 'No description'}</p>
+                            <div class="chain-steps">
+                                ${chain.steps ? chain.steps.map(s => `<span class="step-badge">${s.agent}</span>`).join('') : '<span class="step-badge">Ready</span>'}
+                            </div>
+                        `;
+                        container.appendChild(card);
+                        
+                        const option = document.createElement('option');
+                        option.value = chain.name;
+                        option.textContent = chain.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading chains:', error);
+                document.getElementById('chains-grid').innerHTML = '<div class="loading">Error loading chains</div>';
+            }
+        }
+
+        // Load Agents
+        async function loadAgents() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/agents/list`, { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    const container = document.getElementById('agents-grid');
+                    
+                    if (!data.agents || data.agents.length === 0) {
+                        container.innerHTML = '<div class="loading">No agents available. Create your first agent below!</div>';
+                        return;
+                    }
+                    
+                    container.innerHTML = '';
+                    data.agents.forEach(agent => {
+                        const card = document.createElement('div');
+                        card.className = 'agent-card';
+                        card.innerHTML = `
+                            <div class="agent-icon">${agent.icon || '🤖'}</div>
+                            <h3>${agent.name}</h3>
+                            <p>${agent.specialty || 'General purpose'}</p>
+                            <div class="agent-stats">
+                                <span>📊 ${agent.usage_count || 0} uses</span>
+                                <span>⚡ ${agent.avg_time || 0}s avg</span>
+                            </div>
+                        `;
+                        container.appendChild(card);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading agents:', error);
+                document.getElementById('agents-grid').innerHTML = '<div class="loading">Error loading agents</div>';
+            }
+        }
+
+        // Load Marketplace
+        async function loadMarketplace() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/marketplace/agents`, { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    const container = document.getElementById('marketplace-grid');
+                    
+                    if (!data.agents || data.agents.length === 0) {
+                        container.innerHTML = '<div class="loading">No community agents yet. Be the first to share!</div>';
+                        return;
+                    }
+                    
+                    container.innerHTML = '';
+                    data.agents.forEach(agent => {
+                        const card = document.createElement('div');
+                        card.className = 'marketplace-card';
+                        card.innerHTML = `
+                            <div class="agent-icon">${agent.icon || '🤖'}</div>
+                            <h3>${agent.name}</h3>
+                            <p>${agent.description || 'No description'}</p>
+                            <div class="agent-stats">
+                                <span>📥 ${agent.installs || 0} installs</span>
+                                <span>⭐ ${agent.rating || 0}/5</span>
+                                <span>👤 by ${agent.creator || 'Anonymous'}</span>
+                            </div>
+                            <button class="btn btn-secondary install-btn" data-agent-id="${agent.id}">➕ Install</button>
+                        `;
+                        container.appendChild(card);
+                        
+                        const installBtn = card.querySelector('.install-btn');
+                        installBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            installAgent(agent.id);
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading marketplace:', error);
+                document.getElementById('marketplace-grid').innerHTML = '<div class="loading">Error loading marketplace</div>';
+            }
+        }
+
+        // Run Chain
+        document.getElementById('run-chain-btn').addEventListener('click', async () => {
+            const chainName = document.getElementById('chain-select').value;
+            const input = document.getElementById('chain-input').value;
+            const resultDiv = document.getElementById('chain-result');
+            
+            if (!chainName) {
+                alert('Please select a chain');
+                return;
+            }
+            if (!input) {
+                alert('Please enter a request');
+                return;
+            }
+            
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading">🤖 Running chain...</div>';
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/chains/run/${encodeURIComponent(chainName)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ input })
+                });
+                const data = await response.json();
+                
+                if (data.results && data.results.output) {
+                    resultDiv.innerHTML = data.results.output;
+                } else if (data.results) {
+                    let html = '';
+                    for (const [key, value] of Object.entries(data.results)) {
+                        if (value && key !== 'output') {
+                            html += `<strong>${key.toUpperCase()}</strong><br>${value}<br><br>`;
+                        }
+                    }
+                    resultDiv.innerHTML = html || 'No output generated';
+                } else {
+                    resultDiv.innerHTML = 'Error: No results returned';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = 'Error running chain: ' + error.message;
+            }
+        });
+
+        // Create Agent
+        document.getElementById('create-agent-btn').addEventListener('click', async () => {
+            const name = document.getElementById('agent-name').value;
+            const specialty = document.getElementById('agent-specialty').value;
+            const prompt = document.getElementById('agent-prompt').value;
+            const icon = document.getElementById('agent-icon').value || '🤖';
+            
+            if (!name || !specialty || !prompt) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/agents/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ name, specialty, prompt, icon })
+                });
+                if (response.ok) {
+                    alert('✅ Agent created successfully!');
+                    document.getElementById('agent-name').value = '';
+                    document.getElementById('agent-specialty').value = '';
+                    document.getElementById('agent-prompt').value = '';
+                    document.getElementById('agent-icon').value = '';
+                    loadAgents();
+                } else {
+                    alert('Failed to create agent');
+                }
+            } catch (error) {
+                alert('Error creating agent');
+            }
+        });
+
+        // Install Agent from Marketplace
+        async function installAgent(agentId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/marketplace/install`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ agent_id: agentId })
+                });
+                if (response.ok) {
+                    alert('✅ Agent installed successfully!');
+                    loadAgents();
+                } else {
+                    alert('Failed to install agent');
+                }
+            } catch (error) {
+                alert('Error installing agent');
+            }
+        }
+
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+            });
+        });
+
+        checkAuth();
+    </script>
+</body>
+</html>
