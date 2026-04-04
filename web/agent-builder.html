@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Builder - Wizard.AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #030614 0%, #0a0f1a 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { font-size: 48px; background: linear-gradient(135deg, #c4b5fd, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .builder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .panel { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 25px; border: 1px solid rgba(139,92,246,0.3); }
+        .panel h2 { margin-bottom: 20px; color: #c4b5fd; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #9ca3af; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(139,92,246,0.3);
+            border-radius: 12px; color: white; font-size: 14px;
+        }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        .step-item { background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .step-item .step-name { font-weight: 600; color: #c4b5fd; }
+        .step-item button { background: rgba(239,68,68,0.2); border: none; color: #ef4444; padding: 5px 10px; border-radius: 8px; cursor: pointer; }
+        .btn { padding: 12px 24px; border-radius: 50px; border: none; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .btn-primary { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; }
+        .btn-secondary { background: rgba(255,255,255,0.1); color: #e0e7ff; }
+        .btn-primary:hover, .btn-secondary:hover { transform: translateY(-2px); }
+        .agents-list { max-height: 300px; overflow-y: auto; }
+        .agent-tag { display: inline-block; background: rgba(139,92,246,0.2); padding: 5px 12px; border-radius: 20px; margin: 5px; cursor: pointer; transition: all 0.3s; }
+        .agent-tag:hover { background: #8b5cf6; transform: scale(1.05); }
+        @media (max-width: 768px) { .builder-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Agent Builder</h1>
+            <p>Create custom AI agents for your workflow</p>
+        </div>
+
+        <div class="builder-grid">
+            <!-- Left Panel: Agent Configuration -->
+            <div class="panel">
+                <h2>✨ Create New Agent</h2>
+                <div class="form-group">
+                    <label>Agent Name</label>
+                    <input type="text" id="agentName" placeholder="e.g., Marketing Writer">
+                </div>
+                <div class="form-group">
+                    <label>Specialty</label>
+                    <input type="text" id="agentSpecialty" placeholder="e.g., Creating marketing copy">
+                </div>
+                <div class="form-group">
+                    <label>System Prompt</label>
+                    <textarea id="agentPrompt" placeholder="You are a marketing specialist..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Icon (emoji)</label>
+                    <input type="text" id="agentIcon" placeholder="📢" maxlength="2">
+                </div>
+                <button class="btn btn-primary" id="createAgentBtn">➕ Create Agent</button>
+            </div>
+
+            <!-- Right Panel: Chain Builder -->
+            <div class="panel">
+                <h2>🔗 Build Chain</h2>
+                <div class="form-group">
+                    <label>Chain Name</label>
+                    <input type="text" id="chainName" placeholder="e.g., Marketing Campaign">
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" id="chainDesc" placeholder="What this chain does">
+                </div>
+                <div class="form-group">
+                    <label>Steps</label>
+                    <div id="stepsList" class="agents-list">
+                        <div style="color: #6b7280; text-align: center; padding: 20px;">No steps yet. Click agents below to add.</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Available Agents</label>
+                    <div id="availableAgents" class="agents-list">
+                        <div style="color: #6b7280; text-align: center; padding: 20px;">Loading agents...</div>
+                    </div>
+                </div>
+                <button class="btn btn-primary" id="saveChainBtn">💾 Save Chain</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let steps = [];
+
+        async function loadAgents() {
+            try {
+                const response = await fetch('/api/agents/list', { credentials: 'include' });
+                const data = await response.json();
+                const container = document.getElementById('availableAgents');
+                container.innerHTML = '';
+                data.agents.forEach(agent => {
+                    const tag = document.createElement('div');
+                    tag.className = 'agent-tag';
+                    tag.innerHTML = `${agent.icon} ${agent.name}`;
+                    tag.onclick = () => addStep(agent.name);
+                    container.appendChild(tag);
+                });
+            } catch(e) {
+                console.error('Error loading agents:', e);
+                document.getElementById('availableAgents').innerHTML = '<div style="color: #ef4444;">Failed to load agents</div>';
+            }
+        }
+
+        function addStep(agentName) {
+            steps.push(agentName);
+            renderSteps();
+        }
+
+        function removeStep(index) {
+            steps.splice(index, 1);
+            renderSteps();
+        }
+
+        function renderSteps() {
+            const container = document.getElementById('stepsList');
+            if (steps.length === 0) {
+                container.innerHTML = '<div style="color: #6b7280; text-align: center; padding: 20px;">No steps yet. Click agents above to add.</div>';
+                return;
+            }
+            container.innerHTML = '';
+            steps.forEach((step, i) => {
+                const div = document.createElement('div');
+                div.className = 'step-item';
+                div.innerHTML = `
+                    <span class="step-name">${i + 1}. ${step}</span>
+                    <button onclick="removeStep(${i})">🗑️ Remove</button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        document.getElementById('createAgentBtn').addEventListener('click', async () => {
+            const name = document.getElementById('agentName').value;
+            const specialty = document.getElementById('agentSpecialty').value;
+            const prompt = document.getElementById('agentPrompt').value;
+            const icon = document.getElementById('agentIcon').value || '🤖';
+
+            if (!name || !specialty || !prompt) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/agents/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ name, specialty, prompt, icon })
+                });
+                if (response.ok) {
+                    alert('✅ Agent created successfully!');
+                    document.getElementById('agentName').value = '';
+                    document.getElementById('agentSpecialty').value = '';
+                    document.getElementById('agentPrompt').value = '';
+                    document.getElementById('agentIcon').value = '';
+                    loadAgents();
+                } else {
+                    alert('Failed to create agent');
+                }
+            } catch(e) {
+                alert('Error creating agent');
+            }
+        });
+
+        document.getElementById('saveChainBtn').addEventListener('click', async () => {
+            const name = document.getElementById('chainName').value;
+            const description = document.getElementById('chainDesc').value;
+
+            if (!name || steps.length === 0) {
+                alert('Please enter a chain name and add at least one step');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/chains/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ name, description, steps })
+                });
+                if (response.ok) {
+                    alert('✅ Chain saved successfully!');
+                    steps = [];
+                    renderSteps();
+                    document.getElementById('chainName').value = '';
+                    document.getElementById('chainDesc').value = '';
+                } else {
+                    alert('Failed to save chain');
+                }
+            } catch(e) {
+                alert('Error saving chain');
+            }
+        });
+
+        loadAgents();
+    </script>
+</body>
+</html>
