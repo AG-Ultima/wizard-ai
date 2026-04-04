@@ -228,7 +228,7 @@ function registerServiceWorker() {
 function setupAgentStudioButton() {
     if (agentStudioBtn) {
         agentStudioBtn.addEventListener('click', () => {
-            window.open('/agents/', '_blank');
+            window.open('/agent-studio/', '_blank');
         });
     }
 }
