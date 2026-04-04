@@ -46,11 +46,6 @@ const statsBtn = document.getElementById('stats-btn');
 const personalitiesBtn = document.getElementById('personalities-btn');
 const devHubBtn = document.getElementById('devhub-btn');
 const agentStudioBtn = document.getElementById('agent-studio-btn');
-if (agentStudioBtn) {
-    agentStudioBtn.addEventListener('click', () => {
-        window.open('/agent-studio/', '_blank');
-    });
-}
 const searchIndicator = document.getElementById('search-indicator');
 const inputSearchIndicator = document.getElementById('input-search-indicator');
 const typingIndicator = document.getElementById('typing-indicator');
@@ -2059,13 +2054,14 @@ function showUpdateHistory() {
 }
 
 // ============================================
-// DESKTOP APP MENU INTEGRATION
+// DESKTOP APP MENU INTEGRATION - COMPLETE
 // ============================================
 const isElectron = navigator.userAgent.includes('Electron');
 
 if (isElectron && window.electronAPI) {
     console.log('🖥️ Desktop app detected - setting up menu handlers');
 
+    // Helper function to safely click elements
     function safeClick(elementId) {
         const el = document.getElementById(elementId);
         if (el) {
@@ -2074,48 +2070,25 @@ if (isElectron && window.electronAPI) {
         }
         return false;
     }
-    // Add to the existing desktop menu integration section
 
-// Open Developer Hub
-window.electronAPI.onOpenDevHub(() => {
-    console.log('🔑 Menu: Developer Hub');
-    window.open('/devhub/', '_blank');
-});
-
-// Open Agent Studio
-window.electronAPI.onOpenAgentStudio(() => {
-    console.log('🤖 Menu: Agent Studio');
-    window.open('/agent-studio/', '_blank');
-});
-
-// Update status (optional - shows update notifications)
-window.electronAPI.onUpdateStatus((event, data) => {
-    console.log('Update status:', data.status);
-    if (data.status === 'downloading') {
-        showNotification(`⬇️ Downloading update v${data.version}...`, 'info', 5000);
-    } else if (data.status === 'downloaded') {
-        showNotification(`✅ Update ready! Restart to install.`, 'success', 5000);
-    }
-});
-
-window.electronAPI.onUpdateProgress((event, data) => {
-    console.log(`Update progress: ${data.percent}%`);
-});
-    window.electronAPI.receive('new-chat', () => {
+    // New Chat
+    window.electronAPI.onNewChat(() => {
         console.log('📁 Menu: New Chat');
         if (!safeClick('new-chat-btn')) {
             if (typeof createNewChat === 'function') createNewChat();
         }
     });
 
-    window.electronAPI.receive('clear-chat', () => {
+    // Clear Current Chat
+    window.electronAPI.onClearChat(() => {
         console.log('🗑️ Menu: Clear Chat');
         if (!safeClick('reset-current-btn')) {
             if (typeof resetCurrentChat === 'function') resetCurrentChat();
         }
     });
 
-    window.electronAPI.receive('open-image-gen', () => {
+    // Generate Image
+    window.electronAPI.onOpenImageGen(() => {
         console.log('🎨 Menu: Generate Image');
         if (!safeClick('image-btn')) {
             const modal = document.getElementById('image-modal-overlay');
@@ -2123,7 +2096,8 @@ window.electronAPI.onUpdateProgress((event, data) => {
         }
     });
 
-    window.electronAPI.receive('open-code', () => {
+    // Run Code
+    window.electronAPI.onOpenCode(() => {
         console.log('💻 Menu: Run Code');
         if (!safeClick('code-btn')) {
             const modal = document.getElementById('code-modal-overlay');
@@ -2131,7 +2105,8 @@ window.electronAPI.onUpdateProgress((event, data) => {
         }
     });
 
-    window.electronAPI.receive('upload-file', () => {
+    // Upload File
+    window.electronAPI.onUploadFile(() => {
         console.log('📎 Menu: Upload File');
         if (!safeClick('upload-btn')) {
             const fileInput = document.getElementById('file-upload');
@@ -2139,21 +2114,24 @@ window.electronAPI.onUpdateProgress((event, data) => {
         }
     });
 
-    window.electronAPI.receive('view-memories', () => {
+    // View Memories
+    window.electronAPI.onViewMemories(() => {
         console.log('🧠 Menu: View Memories');
         if (!safeClick('memory-btn')) {
             if (typeof loadMemories === 'function') loadMemories();
         }
     });
 
-    window.electronAPI.receive('view-stats', () => {
+    // View Stats
+    window.electronAPI.onViewStats(() => {
         console.log('📊 Menu: View Stats');
         if (!safeClick('stats-btn')) {
             if (typeof loadDetailedStats === 'function') loadDetailedStats();
         }
     });
 
-    window.electronAPI.receive('change-mode', (mode) => {
+    // Change Mode
+    window.electronAPI.onChangeMode((mode) => {
         console.log('🎭 Menu: Change Mode to', mode);
         const items = document.querySelectorAll('.dropdown-item');
         let found = false;
@@ -2169,7 +2147,8 @@ window.electronAPI.onUpdateProgress((event, data) => {
         }
     });
 
-    window.electronAPI.receive('toggle-turbo', (enabled) => {
+    // Toggle Turbo Mode
+    window.electronAPI.onToggleTurbo((enabled) => {
         console.log('⚡ Menu: Turbo Mode', enabled ? 'ON' : 'OFF');
         const turboBtn = document.getElementById('turbo-btn');
         if (turboBtn) {
@@ -2180,7 +2159,8 @@ window.electronAPI.onUpdateProgress((event, data) => {
         }
     });
 
-    window.electronAPI.receive('toggle-search', (enabled) => {
+    // Toggle Search Mode
+    window.electronAPI.onToggleSearch((enabled) => {
         console.log('🌐 Menu: Web Search', enabled ? 'ON' : 'OFF');
         const searchBtn = document.getElementById('search-btn');
         if (searchBtn) {
@@ -2191,31 +2171,58 @@ window.electronAPI.onUpdateProgress((event, data) => {
         }
     });
 
-    window.electronAPI.receive('open-settings', () => {
+    // Open Settings
+    window.electronAPI.onOpenSettings(() => {
         console.log('⚙️ Menu: Settings');
         if (typeof showNotification === 'function') {
             showNotification('⚙️ Settings panel coming soon!', 'info', 2000);
         }
     });
 
-    window.electronAPI.receive('export-chat', () => {
+    // Export Chat
+    window.electronAPI.onExportChat(() => {
         console.log('💾 Menu: Export Chat');
         exportChatToFile();
     });
 
-    window.electronAPI.receive('browse-personalities', () => {
+    // Browse Personalities
+    window.electronAPI.onBrowsePersonalities(() => {
         console.log('🎭 Menu: Browse Personalities');
         if (!safeClick('personalities-btn')) {
             if (typeof openPersonalitiesBrowser === 'function') openPersonalitiesBrowser();
         }
     });
 
-    window.electronAPI.receive('manage-api-keys', () => {
-        console.log('🔑 Menu: Manage API Keys');
+    // Developer Hub
+    window.electronAPI.onOpenDevHub(() => {
+        console.log('🔑 Menu: Developer Hub');
         window.open('/devhub/', '_blank');
     });
+
+    // Agent Studio
+    window.electronAPI.onOpenAgentStudio(() => {
+        console.log('🤖 Menu: Agent Studio');
+        window.open('/agent-studio/', '_blank');
+    });
+
+    // Update status listeners
+    window.electronAPI.onUpdateStatus((event, data) => {
+        console.log('Update status:', data.status);
+        if (data.status === 'downloading') {
+            showNotification(`⬇️ Downloading update v${data.version}...`, 'info', 5000);
+        } else if (data.status === 'downloaded') {
+            showNotification(`✅ Update ready! Restart to install.`, 'success', 5000);
+        }
+    });
+
+    window.electronAPI.onUpdateProgress((event, data) => {
+        console.log(`Update progress: ${data.percent}%`);
+    });
+
+    console.log('✅ All menu handlers registered');
 }
 
+// Export chat function
 function exportChatToFile() {
     const chatContainer = document.getElementById('chat-history');
     if (!chatContainer || !chatContainer.children.length) {
@@ -2278,7 +2285,7 @@ function setupEventListeners() {
     if (statsBtn) statsBtn.addEventListener('click', loadDetailedStats);
     if (personalitiesBtn) personalitiesBtn.addEventListener('click', openPersonalitiesBrowser);
     if (devHubBtn) devHubBtn.addEventListener('click', () => window.open('/devhub/', '_blank'));
-    if (agentStudioBtn) agentStudioBtn.addEventListener('click', () => window.open('/agents/', '_blank'));
+    if (agentStudioBtn) agentStudioBtn.addEventListener('click', () => window.open('/agent-studio/', '_blank'));
     if (updateHistoryBtn) updateHistoryBtn.addEventListener('click', showUpdateHistory);
     if (closeUpdate) closeUpdate.addEventListener('click', () => closeModal(updateModal));
     if (fileUpload) fileUpload.addEventListener('change', handleFileUpload);
