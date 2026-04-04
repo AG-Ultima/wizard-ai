@@ -46,6 +46,11 @@ const statsBtn = document.getElementById('stats-btn');
 const personalitiesBtn = document.getElementById('personalities-btn');
 const devHubBtn = document.getElementById('devhub-btn');
 const agentStudioBtn = document.getElementById('agent-studio-btn');
+if (agentStudioBtn) {
+    agentStudioBtn.addEventListener('click', () => {
+        window.open('/agent-studio/', '_blank');
+    });
+}
 const searchIndicator = document.getElementById('search-indicator');
 const inputSearchIndicator = document.getElementById('input-search-indicator');
 const typingIndicator = document.getElementById('typing-indicator');
