@@ -2074,7 +2074,33 @@ if (isElectron && window.electronAPI) {
         }
         return false;
     }
+    // Add to the existing desktop menu integration section
 
+// Open Developer Hub
+window.electronAPI.onOpenDevHub(() => {
+    console.log('🔑 Menu: Developer Hub');
+    window.open('/devhub/', '_blank');
+});
+
+// Open Agent Studio
+window.electronAPI.onOpenAgentStudio(() => {
+    console.log('🤖 Menu: Agent Studio');
+    window.open('/agent-studio/', '_blank');
+});
+
+// Update status (optional - shows update notifications)
+window.electronAPI.onUpdateStatus((event, data) => {
+    console.log('Update status:', data.status);
+    if (data.status === 'downloading') {
+        showNotification(`⬇️ Downloading update v${data.version}...`, 'info', 5000);
+    } else if (data.status === 'downloaded') {
+        showNotification(`✅ Update ready! Restart to install.`, 'success', 5000);
+    }
+});
+
+window.electronAPI.onUpdateProgress((event, data) => {
+    console.log(`Update progress: ${data.percent}%`);
+});
     window.electronAPI.receive('new-chat', () => {
         console.log('📁 Menu: New Chat');
         if (!safeClick('new-chat-btn')) {
