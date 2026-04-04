@@ -2204,7 +2204,11 @@ if (isElectron && window.electronAPI) {
         console.log('🤖 Menu: Agent Studio');
         window.open('/agent-studio/', '_blank');
     });
-
+    // Admin Dashboard
+    window.electronAPI.onOpenAdmin(() => {
+        console.log('👑 Menu: Admin Dashboard');
+        window.open('/admin/', '_blank');
+    });
     // Update status listeners
     window.electronAPI.onUpdateStatus((event, data) => {
         console.log('Update status:', data.status);
