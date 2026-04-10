@@ -6,7 +6,8 @@
     <title>🧙 Wizard Mail</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
+        
+        [data-theme="purple"] {
             --bg-primary: #0d0d1a;
             --bg-secondary: #12122a;
             --text-primary: #ffffff;
@@ -15,8 +16,10 @@
             --border: rgba(139,92,246,0.25);
             --primary: #a78bfa;
             --primary-dark: #7c3aed;
+            --success: #10b981;
             --danger: #ef4444;
         }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-primary);
@@ -24,6 +27,7 @@
             height: 100vh;
             overflow: hidden;
         }
+        
         .mail-container { display: flex; height: 100vh; }
         
         /* Sidebar */
@@ -35,6 +39,7 @@
             display: flex;
             flex-direction: column;
         }
+        
         .logo {
             display: flex;
             align-items: center;
@@ -50,6 +55,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        
         .user-info {
             background: rgba(139,92,246,0.1);
             border-radius: 16px;
@@ -68,9 +74,10 @@
             margin-bottom: 12px;
         }
         .user-email { font-size: 12px; color: #c4b5fd; word-break: break-all; }
+        
         .connect-btn {
             width: 100%;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            background: linear-gradient(135deg, #4285f4, #34a853);
             border: none;
             border-radius: 24px;
             padding: 12px;
@@ -78,7 +85,12 @@
             font-weight: 600;
             cursor: pointer;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
+        
         .compose-btn {
             width: 100%;
             background: rgba(139,92,246,0.2);
@@ -90,6 +102,7 @@
             cursor: pointer;
             margin-bottom: 20px;
         }
+        
         .folder-list { list-style: none; flex: 1; }
         .folder-item {
             display: flex;
@@ -139,6 +152,7 @@
             color: var(--text-primary);
             outline: none;
         }
+        
         .mail-list { flex: 1; overflow-y: auto; }
         .email-item {
             display: flex;
@@ -161,8 +175,8 @@
         .email-subject { flex: 1; }
         .email-date { width: 100px; font-size: 12px; color: var(--text-muted); }
         
-        /* Modals */
-        .compose-modal, .connect-modal {
+        /* Compose Modal */
+        .compose-modal {
             display: none;
             position: fixed;
             bottom: 20px;
@@ -174,19 +188,19 @@
             z-index: 1000;
             border: 1px solid var(--border);
         }
-        .compose-modal.show, .connect-modal.show { display: block; animation: slideUp 0.3s ease; }
+        .compose-modal.show { display: block; animation: slideUp 0.3s ease; }
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(50px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        .compose-header, .connect-header {
+        .compose-header {
             display: flex;
             justify-content: space-between;
             padding: 16px;
             border-bottom: 1px solid var(--border);
         }
-        .compose-body, .connect-body { padding: 16px; }
-        .compose-body input, .compose-body textarea, .connect-body input {
+        .compose-body { padding: 16px; }
+        .compose-body input, .compose-body textarea {
             width: 100%;
             background: rgba(0,0,0,0.3);
             border: 1px solid var(--border);
@@ -196,13 +210,13 @@
             margin-bottom: 12px;
         }
         .compose-body textarea { height: 200px; resize: vertical; }
-        .compose-footer, .connect-footer {
+        .compose-footer {
             padding: 16px;
             border-top: 1px solid var(--border);
             display: flex;
             gap: 12px;
         }
-        .send-btn, .connect-submit {
+        .send-btn {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             border: none;
             border-radius: 24px;
@@ -236,54 +250,101 @@
             cursor: pointer;
             margin-bottom: 16px;
         }
+        
         .loading { text-align: center; padding: 60px; color: var(--text-muted); }
+        .connected-badge {
+            background: rgba(16,185,129,0.2);
+            border: 1px solid var(--success);
+            border-radius: 24px;
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--success);
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="mail-container">
         <div class="mail-sidebar">
-            <div class="logo"><span class="logo-icon">📧</span><h1>Wizard Mail</h1></div>
-            <div class="user-info"><div class="user-avatar">🧙</div><div><div id="user-email" class="user-email">Loading...</div></div></div>
-            <button class="connect-btn" id="connect-btn">📧 Connect Email</button>
+            <div class="logo">
+                <span class="logo-icon">📧</span>
+                <h1>Wizard Mail</h1>
+            </div>
+            
+            <div class="user-info">
+                <div class="user-avatar">🧙</div>
+                <div>
+                    <div id="user-email" class="user-email">Loading...</div>
+                </div>
+            </div>
+            
+            <div id="gmail-status">
+                <button class="connect-btn" id="connect-btn">
+                    <span>🔗</span> Connect Gmail
+                </button>
+            </div>
+            
             <button class="compose-btn" id="compose-btn">✏️ Compose</button>
+            
             <ul class="folder-list">
-                <li class="folder-item active" data-folder="INBOX"><span class="folder-icon">📥</span><span class="folder-name">Inbox</span><span class="folder-count" id="inbox-count">0</span></li>
-                <li class="folder-item" data-folder="STARRED"><span class="folder-icon">⭐</span><span class="folder-name">Starred</span></li>
+                <li class="folder-item active" data-folder="INBOX">
+                    <span class="folder-icon">📥</span>
+                    <span class="folder-name">Inbox</span>
+                    <span class="folder-count" id="inbox-count">0</span>
+                </li>
+                <li class="folder-item" data-folder="SENT">
+                    <span class="folder-icon">📤</span>
+                    <span class="folder-name">Sent</span>
+                </li>
             </ul>
         </div>
+        
         <div class="mail-main">
-            <div class="mail-header"><h2 id="folder-title">Inbox</h2><div class="mail-search"><span>🔍</span><input type="text" id="search-input" placeholder="Search..."></div></div>
-            <div id="email-list" class="mail-list"><div class="loading">Connect an email account</div></div>
+            <div class="mail-header">
+                <h2 id="folder-title">Inbox</h2>
+                <div class="mail-search">
+                    <span>🔍</span>
+                    <input type="text" id="search-input" placeholder="Search...">
+                </div>
+            </div>
+            
+            <div id="email-list" class="mail-list">
+                <div class="loading">Click "Connect Gmail" to get started</div>
+            </div>
+            
             <div id="email-view" class="email-view">
-                <div class="email-view-header"><button class="back-btn" id="back-to-list">← Back</button><h2 id="email-subject"></h2><p id="email-from"></p><p id="email-date"></p></div>
+                <div class="email-view-header">
+                    <button class="back-btn" id="back-to-list">← Back</button>
+                    <h2 id="email-subject"></h2>
+                    <p id="email-from"></p>
+                    <p id="email-date"></p>
+                </div>
                 <div id="email-body" class="email-view-body"></div>
             </div>
         </div>
     </div>
     
     <div id="compose-modal" class="compose-modal">
-        <div class="compose-header"><span>New Message</span><button id="close-compose" style="background:none;border:none;color:var(--text-muted);cursor:pointer;">✕</button></div>
+        <div class="compose-header">
+            <span>New Message</span>
+            <button id="close-compose" style="background: none; border: none; color: var(--text-muted); cursor: pointer;">✕</button>
+        </div>
         <div class="compose-body">
             <input type="text" id="compose-to" placeholder="To">
             <input type="text" id="compose-subject" placeholder="Subject">
             <textarea id="compose-body" placeholder="Write your message..."></textarea>
         </div>
-        <div class="compose-footer"><button class="send-btn" id="send-btn">Send</button></div>
-    </div>
-    
-    <div id="connect-modal" class="connect-modal">
-        <div class="connect-header"><span>Connect Email</span><button id="close-connect" style="background:none;border:none;color:var(--text-muted);cursor:pointer;">✕</button></div>
-        <div class="connect-body">
-            <input type="email" id="connect-email" placeholder="Email address">
-            <input type="password" id="connect-password" placeholder="Password">
-            <p style="font-size:11px;color:var(--text-muted);">Works with Gmail, Outlook, Yahoo, any IMAP email</p>
+        <div class="compose-footer">
+            <button class="send-btn" id="send-btn">Send</button>
         </div>
-        <div class="connect-footer"><button class="connect-submit" id="connect-submit">Connect</button></div>
     </div>
 
     <script>
         const API_BASE = 'https://arnav0928.pythonanywhere.com';
-        let currentUser = null, currentEmails = [], hasAccount = false;
+        let currentUser = null;
+        let currentEmails = [];
+        let gmailConnected = false;
         
         async function checkAuth() {
             try {
@@ -293,7 +354,7 @@
                     if (data.authenticated && data.user) {
                         currentUser = data.user;
                         document.getElementById('user-email').textContent = currentUser.email;
-                        await checkAccounts();
+                        await checkGmailStatus();
                         return;
                     }
                 }
@@ -301,33 +362,28 @@
             window.location.href = 'https://wizardai.dpdns.org';
         }
         
-        async function checkAccounts() {
+        async function checkGmailStatus() {
             try {
-                const res = await fetch(`${API_BASE}/api/mail/accounts`, { credentials: 'include' });
+                const res = await fetch(`${API_BASE}/api/mail/emails`, { credentials: 'include' });
                 if (res.ok) {
-                    const data = await res.json();
-                    hasAccount = data.accounts && data.accounts.length > 0;
-                    if (hasAccount) loadEmails();
-                    else document.getElementById('email-list').innerHTML = '<div class="loading">📧 Click "Connect Email" to get started</div>';
+                    gmailConnected = true;
+                    document.getElementById('gmail-status').innerHTML = '<div class="connected-badge">✅ Gmail Connected</div>';
+                    await loadEmails();
+                } else {
+                    gmailConnected = false;
+                    document.getElementById('gmail-status').innerHTML = '<button class="connect-btn" id="connect-btn"><span>🔗</span> Connect Gmail</button>';
+                    document.getElementById('connect-btn').onclick = connectGmail;
                 }
-            } catch(e) {}
+            } catch(e) {
+                document.getElementById('gmail-status').innerHTML = '<button class="connect-btn" id="connect-btn"><span>🔗</span> Connect Gmail</button>';
+                if (document.getElementById('connect-btn')) {
+                    document.getElementById('connect-btn').onclick = connectGmail;
+                }
+            }
         }
         
-        async function connectEmail() {
-            const email = document.getElementById('connect-email').value;
-            const password = document.getElementById('connect-password').value;
-            if (!email || !password) { alert('Enter email and password'); return; }
-            try {
-                const res = await fetch(`${API_BASE}/api/mail/connect`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
-                    body: JSON.stringify({ email, password })
-                });
-                if (res.ok) {
-                    document.getElementById('connect-modal').classList.remove('show');
-                    hasAccount = true;
-                    loadEmails();
-                } else { const err = await res.json(); alert(err.error || 'Connection failed'); }
-            } catch(e) { alert('Connection failed'); }
+        function connectGmail() {
+            window.location.href = `${API_BASE}/api/mail/connect`;
         }
         
         async function loadEmails() {
@@ -338,72 +394,78 @@
                     currentEmails = data.emails || [];
                     renderEmailList();
                 }
-            } catch(e) {}
+            } catch(e) {
+                console.error('Failed to load emails:', e);
+            }
         }
         
         function renderEmailList() {
             const container = document.getElementById('email-list');
-            if (!currentEmails.length) { container.innerHTML = '<div class="loading">No emails found</div>'; document.getElementById('inbox-count').textContent = '0'; return; }
-            container.innerHTML = currentEmails.map(e => `
-                <div class="email-item ${!e.is_read ? 'unread' : ''}" data-id="${e.id}">
-                    <button class="email-star">${e.is_starred ? '⭐' : '☆'}</button>
-                    <div class="email-from">${escapeHtml(e.from)}</div>
-                    <div class="email-subject">${escapeHtml(e.subject)}</div>
-                    <div class="email-date">${formatDate(e.received_at)}</div>
+            if (!currentEmails.length) {
+                container.innerHTML = '<div class="loading">No emails found</div>';
+                document.getElementById('inbox-count').textContent = '0';
+                return;
+            }
+            
+            container.innerHTML = currentEmails.map(email => `
+                <div class="email-item" data-id="${email.id}">
+                    <button class="email-star">${email.isStarred ? '⭐' : '☆'}</button>
+                    <div class="email-from">${escapeHtml(email.from)}</div>
+                    <div class="email-subject">${escapeHtml(email.subject)}</div>
+                    <div class="email-date">${formatDate(email.date)}</div>
                 </div>
             `).join('');
-            document.getElementById('inbox-count').textContent = currentEmails.filter(e => !e.is_read).length;
+            
+            document.getElementById('inbox-count').textContent = currentEmails.length;
+            
             document.querySelectorAll('.email-item').forEach(item => {
-                item.onclick = (e) => { if (!e.target.classList.contains('email-star')) viewEmail(item.dataset.id); };
-                item.querySelector('.email-star').onclick = async (e) => { e.stopPropagation(); await toggleStar(item.dataset.id, !currentEmails.find(em => em.id == item.dataset.id)?.is_starred); };
+                item.onclick = (e) => {
+                    if (!e.target.classList.contains('email-star')) {
+                        viewEmail(item.dataset.id);
+                    }
+                };
             });
         }
         
-        async function viewEmail(id) {
-            try {
-                const res = await fetch(`${API_BASE}/api/mail/emails`); // Need single email endpoint
-                const data = await res.json();
-                const email = data.emails?.find(e => e.id == id);
-                if (email) {
-                    document.getElementById('email-subject').textContent = email.subject;
-                    document.getElementById('email-from').textContent = `From: ${email.from}`;
-                    document.getElementById('email-date').textContent = new Date(email.received_at).toLocaleString();
-                    document.getElementById('email-body').innerHTML = email.body?.replace(/\n/g, '<br>') || email.snippet || 'No content';
-                    document.getElementById('email-list').style.display = 'none';
-                    document.getElementById('email-view').classList.add('show');
-                    loadEmails();
-                }
-            } catch(e) {}
-        }
-        
-        async function toggleStar(id, starred) {
-            try {
-                await fetch(`${API_BASE}/api/mail/star/${id}`, { method: 'POST', credentials: 'include', body: JSON.stringify({ starred }), headers: { 'Content-Type': 'application/json' } });
-                await loadEmails();
-            } catch(e) {}
+        async function viewEmail(emailId) {
+            // For now, just show a message - full email view coming soon
+            alert('Email viewer coming soon!');
         }
         
         async function sendEmail() {
             const to = document.getElementById('compose-to').value;
             const subject = document.getElementById('compose-subject').value;
             const body = document.getElementById('compose-body').value;
-            if (!to || !subject || !body) { alert('Fill all fields'); return; }
+            
+            if (!to || !subject || !body) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
             try {
                 const res = await fetch(`${API_BASE}/api/mail/send`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
                     body: JSON.stringify({ to, subject, body })
                 });
+                
                 if (res.ok) {
                     alert('Email sent!');
                     document.getElementById('compose-modal').classList.remove('show');
                     document.getElementById('compose-to').value = '';
                     document.getElementById('compose-subject').value = '';
                     document.getElementById('compose-body').value = '';
-                } else alert('Failed to send');
-            } catch(e) { alert('Failed to send'); }
+                } else {
+                    alert('Failed to send email');
+                }
+            } catch(e) {
+                alert('Failed to send email');
+            }
         }
         
         function formatDate(dateStr) {
+            if (!dateStr) return '';
             const date = new Date(dateStr);
             const now = new Date();
             const diff = now - date;
@@ -412,11 +474,13 @@
             return date.toLocaleDateString([], { month:'short', day:'numeric' });
         }
         
-        function escapeHtml(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
         
-        document.getElementById('connect-btn').onclick = () => document.getElementById('connect-modal').classList.add('show');
-        document.getElementById('close-connect').onclick = () => document.getElementById('connect-modal').classList.remove('show');
-        document.getElementById('connect-submit').onclick = connectEmail;
         document.getElementById('compose-btn').onclick = () => document.getElementById('compose-modal').classList.add('show');
         document.getElementById('close-compose').onclick = () => document.getElementById('compose-modal').classList.remove('show');
         document.getElementById('send-btn').onclick = sendEmail;
@@ -424,14 +488,6 @@
             document.getElementById('email-list').style.display = 'block';
             document.getElementById('email-view').classList.remove('show');
         };
-        document.querySelectorAll('.folder-item').forEach(f => {
-            f.onclick = () => {
-                document.querySelectorAll('.folder-item').forEach(fo => fo.classList.remove('active'));
-                f.classList.add('active');
-                document.getElementById('folder-title').textContent = f.dataset.folder === 'INBOX' ? 'Inbox' : 'Starred';
-                loadEmails();
-            };
-        });
         
         checkAuth();
     </script>
