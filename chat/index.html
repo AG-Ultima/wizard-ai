@@ -6,35 +6,17 @@
     <title>🧙 Wizard Chat</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        [data-theme="purple"] {
+        :root {
             --bg-primary: #0d0d1a;
             --bg-secondary: #12122a;
-            --bg-card: rgba(18,18,42,0.95);
             --text-primary: #ffffff;
             --text-secondary: #d8d4ff;
             --text-muted: #9a94c4;
             --border: rgba(139,92,246,0.25);
             --primary: #a78bfa;
             --primary-dark: #7c3aed;
-            --primary-light: #c4b5fd;
-            --danger: #ef4444;
             --success: #10b981;
         }
-        
-        [data-theme="dark"] {
-            --bg-primary: #0a0a1a;
-            --bg-secondary: #0f0f23;
-            --bg-card: rgba(20,20,40,0.95);
-            --text-primary: #ffffff;
-            --text-secondary: #c4c4e0;
-            --text-muted: #8888aa;
-            --border: rgba(139,92,246,0.2);
-            --primary: #8b5cf6;
-            --primary-dark: #6d28d9;
-            --primary-light: #c4b5fd;
-        }
-        
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg-primary);
@@ -42,40 +24,33 @@
             height: 100vh;
             overflow: hidden;
         }
+        .chat-container { display: flex; height: 100vh; }
         
-        .chat-container {
-            display: flex;
-            height: 100vh;
-        }
-        
-        .conversations-sidebar {
+        /* Sidebar */
+        .chat-sidebar {
             width: 320px;
             background: var(--bg-secondary);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
         }
-        
         .chat-header {
             padding: 20px;
             border-bottom: 1px solid var(--border);
         }
-        
         .logo {
             display: flex;
             align-items: center;
             gap: 12px;
             margin-bottom: 20px;
         }
-        
         .logo-icon { font-size: 32px; }
         .logo h1 {
             font-size: 20px;
-            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            background: linear-gradient(135deg, #c4b5fd, #a78bfa);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
         .user-info {
             display: flex;
             align-items: center;
@@ -85,7 +60,6 @@
             border-radius: 12px;
             margin-bottom: 20px;
         }
-        
         .user-avatar {
             width: 40px;
             height: 40px;
@@ -96,10 +70,8 @@
             justify-content: center;
             font-size: 20px;
         }
-        
         .user-name { font-weight: 600; }
         .user-email { font-size: 11px; color: var(--text-muted); }
-        
         .new-chat-btn {
             width: 100%;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
@@ -110,14 +82,12 @@
             font-weight: 600;
             cursor: pointer;
         }
-        
         .conversations-list {
             flex: 1;
             overflow-y: auto;
             padding: 12px;
         }
-        
-        .conversation-item {
+        .conv-item {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -126,14 +96,12 @@
             cursor: pointer;
             margin-bottom: 4px;
         }
-        
-        .conversation-item:hover { background: rgba(139,92,246,0.1); }
-        .conversation-item.active {
+        .conv-item:hover { background: rgba(139,92,246,0.1); }
+        .conv-item.active {
             background: rgba(139,92,246,0.2);
             border-left: 3px solid var(--primary);
         }
-        
-        .conversation-avatar {
+        .conv-avatar {
             width: 48px;
             height: 48px;
             background: rgba(139,92,246,0.2);
@@ -143,35 +111,25 @@
             justify-content: center;
             font-size: 24px;
         }
+        .conv-info { flex: 1; }
+        .conv-name { font-weight: 600; margin-bottom: 4px; }
+        .conv-last-msg { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .conv-time { font-size: 10px; color: var(--text-muted); }
         
-        .conversation-info { flex: 1; }
-        .conversation-name { font-weight: 600; margin-bottom: 4px; }
-        .conversation-last-msg { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .conversation-time { font-size: 10px; color: var(--text-muted); }
-        .conversation-unread {
-            background: var(--primary);
-            color: white;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 10px;
-        }
-        
+        /* Chat Area */
         .chat-area {
             flex: 1;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
-        
         .chat-area-header {
             padding: 16px 20px;
             border-bottom: 1px solid var(--border);
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 12px;
         }
-        
-        .chat-area-title { display: flex; align-items: center; gap: 12px; }
         .chat-avatar {
             width: 40px;
             height: 40px;
@@ -182,7 +140,6 @@
             justify-content: center;
             font-size: 20px;
         }
-        
         .messages-area {
             flex: 1;
             overflow-y: auto;
@@ -191,7 +148,6 @@
             flex-direction: column;
             gap: 16px;
         }
-        
         .message {
             display: flex;
             gap: 12px;
@@ -199,13 +155,11 @@
             animation: fadeIn 0.3s ease;
         }
         .message.own { align-self: flex-end; flex-direction: row-reverse; }
-        
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
-        .message-avatar {
+        .msg-avatar {
             width: 32px;
             height: 32px;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
@@ -216,22 +170,20 @@
             font-size: 14px;
             flex-shrink: 0;
         }
-        .message.own .message-avatar { background: var(--success); }
-        
-        .message-bubble {
+        .message.own .msg-avatar { background: var(--success); }
+        .msg-bubble {
             background: rgba(139,92,246,0.15);
             border-radius: 18px;
             padding: 10px 16px;
             font-size: 14px;
             line-height: 1.5;
         }
-        .message.own .message-bubble {
+        .message.own .msg-bubble {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
         }
-        
-        .message-time { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
-        .message.own .message-time { text-align: right; }
+        .msg-time { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+        .message.own .msg-time { text-align: right; }
         
         .chat-input-area {
             padding: 16px 20px;
@@ -239,7 +191,6 @@
             display: flex;
             gap: 12px;
         }
-        
         .chat-input {
             flex: 1;
             background: rgba(0,0,0,0.3);
@@ -252,7 +203,6 @@
             font-size: 14px;
         }
         .chat-input:focus { outline: none; border-color: var(--primary); }
-        
         .send-btn {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             border: none;
@@ -263,13 +213,7 @@
             cursor: pointer;
         }
         
-        .empty-state {
-            text-align: center;
-            padding: 60px;
-            color: var(--text-muted);
-        }
-        .empty-state-icon { font-size: 60px; margin-bottom: 20px; }
-        
+        /* Modal */
         .new-chat-modal {
             display: none;
             position: fixed;
@@ -284,7 +228,6 @@
             justify-content: center;
         }
         .new-chat-modal.show { display: flex; }
-        
         .new-chat-card {
             background: var(--bg-secondary);
             border-radius: 24px;
@@ -292,7 +235,6 @@
             width: 400px;
             max-width: 90%;
         }
-        
         .new-chat-card input {
             width: 100%;
             background: rgba(0,0,0,0.3);
@@ -302,9 +244,8 @@
             color: var(--text-primary);
             margin-bottom: 16px;
         }
-        
         .search-results { max-height: 300px; overflow-y: auto; margin-top: 16px; }
-        .search-result-item {
+        .search-result {
             display: flex;
             align-items: center;
             gap: 12px;
@@ -312,86 +253,47 @@
             border-radius: 12px;
             cursor: pointer;
         }
-        .search-result-item:hover { background: rgba(139,92,246,0.1); }
-        
+        .search-result:hover { background: rgba(139,92,246,0.1); }
         .loading { text-align: center; padding: 60px; color: var(--text-muted); }
+        .empty-state { text-align: center; padding: 60px; color: var(--text-muted); }
+        .empty-icon { font-size: 60px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
     <div class="chat-container">
-        <div class="conversations-sidebar">
+        <div class="chat-sidebar">
             <div class="chat-header">
-                <div class="logo">
-                    <span class="logo-icon">💬</span>
-                    <h1>Wizard Chat</h1>
-                </div>
-                
-                <div class="user-info">
-                    <div class="user-avatar">🧙</div>
-                    <div>
-                        <div class="user-name" id="user-name">Loading...</div>
-                        <div class="user-email" id="user-email">Loading...</div>
-                    </div>
-                </div>
-                
+                <div class="logo"><span class="logo-icon">💬</span><h1>Wizard Chat</h1></div>
+                <div class="user-info"><div class="user-avatar">🧙</div><div><div class="user-name" id="user-name">Loading...</div><div class="user-email" id="user-email">Loading...</div></div></div>
                 <button class="new-chat-btn" id="new-chat-btn">+ New Chat</button>
             </div>
-            
-            <div class="conversations-list" id="conversations-list">
-                <div class="empty-state">
-                    <div class="empty-state-icon">💬</div>
-                    <p>No conversations yet</p>
-                </div>
-            </div>
+            <div class="conversations-list" id="conversations-list"><div class="empty-state"><div class="empty-icon">💬</div><p>No conversations yet</p></div></div>
         </div>
-        
-        <div class="chat-area" id="chat-area">
-            <div class="chat-area-header">
-                <div class="chat-area-title">
-                    <div class="chat-avatar" id="chat-avatar">🧙</div>
-                    <div>
-                        <div id="chat-name" style="font-weight: 600;">Select a chat</div>
-                        <div id="chat-status" style="font-size: 11px; color: var(--text-muted);">Click a conversation to start</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="messages-area" id="messages-area">
-                <div class="empty-state">
-                    <div class="empty-state-icon">💬</div>
-                    <p>Select a conversation to start messaging</p>
-                </div>
-            </div>
-            
-            <div class="chat-input-area">
-                <textarea class="chat-input" id="message-input" placeholder="Type a message..." rows="1"></textarea>
-                <button class="send-btn" id="send-btn">Send</button>
-            </div>
+        <div class="chat-area">
+            <div class="chat-area-header"><div class="chat-avatar" id="chat-avatar">🧙</div><div><div id="chat-name" style="font-weight:600;">Select a chat</div><div id="chat-status" style="font-size:11px;color:var(--text-muted);">Click a conversation to start</div></div></div>
+            <div class="messages-area" id="messages-area"><div class="empty-state"><div class="empty-icon">💬</div><p>Select a conversation to start messaging</p></div></div>
+            <div class="chat-input-area"><textarea class="chat-input" id="message-input" placeholder="Type a message..." rows="1"></textarea><button class="send-btn" id="send-btn">Send</button></div>
         </div>
     </div>
     
     <div id="new-chat-modal" class="new-chat-modal">
         <div class="new-chat-card">
-            <h3 style="margin-bottom: 16px;">New Conversation</h3>
+            <h3 style="margin-bottom:16px;">New Conversation</h3>
             <input type="text" id="search-users" placeholder="Search by email...">
             <div id="search-results" class="search-results"></div>
-            <button id="close-new-chat" style="margin-top: 16px; background: none; border: none; color: var(--text-muted); cursor: pointer;">Cancel</button>
+            <button id="close-modal" style="margin-top:16px;background:none;border:none;color:var(--text-muted);cursor:pointer;">Cancel</button>
         </div>
     </div>
 
     <script>
         const API_BASE = 'https://arnav0928.pythonanywhere.com';
-        let currentUser = null;
-        let conversations = [];
-        let currentConversationId = null;
-        let messages = [];
-        let pollingInterval = null;
+        let currentUser = null, conversations = [], currentConvId = null, messages = [], polling = null;
         
         async function checkAuth() {
             try {
-                const response = await fetch(`${API_BASE}/api/check-auth`, { credentials: 'include' });
-                if (response.ok) {
-                    const data = await response.json();
+                const res = await fetch(`${API_BASE}/api/check-auth`, { credentials: 'include' });
+                if (res.ok) {
+                    const data = await res.json();
                     if (data.authenticated && data.user) {
                         currentUser = data.user;
                         document.getElementById('user-name').textContent = `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || currentUser.email;
@@ -407,20 +309,20 @@
         
         async function loadConversations() {
             try {
-                const response = await fetch(`${API_BASE}/api/chat/conversations`, { credentials: 'include' });
-                if (response.ok) {
-                    const data = await response.json();
+                const res = await fetch(`${API_BASE}/api/chat/conversations`, { credentials: 'include' });
+                if (res.ok) {
+                    const data = await res.json();
                     conversations = data.conversations || [];
                     renderConversations();
                 }
             } catch(e) {}
         }
         
-        async function loadMessages(conversationId) {
+        async function loadMessages(convId) {
             try {
-                const response = await fetch(`${API_BASE}/api/chat/messages/${conversationId}`, { credentials: 'include' });
-                if (response.ok) {
-                    const data = await response.json();
+                const res = await fetch(`${API_BASE}/api/chat/messages/${convId}`, { credentials: 'include' });
+                if (res.ok) {
+                    const data = await res.json();
                     messages = data.messages || [];
                     renderMessages();
                 }
@@ -429,18 +331,15 @@
         
         async function sendMessage() {
             const content = document.getElementById('message-input').value.trim();
-            if (!content || !currentConversationId) return;
-            
+            if (!content || !currentConvId) return;
             try {
-                const response = await fetch(`${API_BASE}/api/chat/messages`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ conversation_id: currentConversationId, content: content })
+                const res = await fetch(`${API_BASE}/api/chat/messages`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
+                    body: JSON.stringify({ conversation_id: currentConvId, content })
                 });
-                if (response.ok) {
+                if (res.ok) {
                     document.getElementById('message-input').value = '';
-                    await loadMessages(currentConversationId);
+                    await loadMessages(currentConvId);
                     await loadConversations();
                 }
             } catch(e) {}
@@ -448,14 +347,12 @@
         
         async function createConversation(userId) {
             try {
-                const response = await fetch(`${API_BASE}/api/chat/conversations`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
+                const res = await fetch(`${API_BASE}/api/chat/conversations`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include',
                     body: JSON.stringify({ participant_id: userId })
                 });
-                if (response.ok) {
-                    const data = await response.json();
+                if (res.ok) {
+                    const data = await res.json();
                     await loadConversations();
                     openConversation(data.conversation.id);
                     document.getElementById('new-chat-modal').classList.remove('show');
@@ -464,14 +361,11 @@
         }
         
         async function searchUsers(query) {
-            if (!query || query.length < 2) {
-                document.getElementById('search-results').innerHTML = '';
-                return;
-            }
+            if (!query || query.length < 2) { document.getElementById('search-results').innerHTML = ''; return; }
             try {
-                const response = await fetch(`${API_BASE}/api/users/search?q=${encodeURIComponent(query)}`, { credentials: 'include' });
-                if (response.ok) {
-                    const data = await response.json();
+                const res = await fetch(`${API_BASE}/api/chat/users/search?q=${encodeURIComponent(query)}`, { credentials: 'include' });
+                if (res.ok) {
+                    const data = await res.json();
                     renderSearchResults(data.users);
                 }
             } catch(e) {}
@@ -480,23 +374,17 @@
         function renderConversations() {
             const container = document.getElementById('conversations-list');
             if (!conversations.length) {
-                container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">💬</div><p>No conversations yet</p></div>`;
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p>No conversations yet</p></div>';
                 return;
             }
-            
-            container.innerHTML = conversations.map(conv => `
-                <div class="conversation-item ${currentConversationId === conv.id ? 'active' : ''}" data-id="${conv.id}">
-                    <div class="conversation-avatar">👤</div>
-                    <div class="conversation-info">
-                        <div class="conversation-name">${escapeHtml(conv.name)}</div>
-                        <div class="conversation-last-msg">${escapeHtml(conv.last_message || 'No messages yet')}</div>
-                    </div>
-                    <div class="conversation-time">${conv.last_message_time ? formatTime(conv.last_message_time) : ''}</div>
-                    ${conv.unread_count > 0 ? `<div class="conversation-unread">${conv.unread_count}</div>` : ''}
+            container.innerHTML = conversations.map(c => `
+                <div class="conv-item ${currentConvId === c.id ? 'active' : ''}" data-id="${c.id}">
+                    <div class="conv-avatar">👤</div>
+                    <div class="conv-info"><div class="conv-name">${escapeHtml(c.name)}</div><div class="conv-last-msg">${escapeHtml(c.last_message || 'No messages yet')}</div></div>
+                    <div class="conv-time">${c.last_message_time ? formatTime(c.last_message_time) : ''}</div>
                 </div>
             `).join('');
-            
-            document.querySelectorAll('.conversation-item').forEach(item => {
+            document.querySelectorAll('.conv-item').forEach(item => {
                 item.onclick = () => openConversation(parseInt(item.dataset.id));
             });
         }
@@ -504,17 +392,13 @@
         function renderMessages() {
             const container = document.getElementById('messages-area');
             if (!messages.length) {
-                container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">💬</div><p>No messages yet</p></div>`;
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p>No messages yet</p></div>';
                 return;
             }
-            
-            container.innerHTML = messages.map(msg => `
-                <div class="message ${msg.sender_id === currentUser?.id ? 'own' : ''}">
-                    <div class="message-avatar">${msg.sender_id === currentUser?.id ? '👤' : '🧙'}</div>
-                    <div>
-                        <div class="message-bubble">${escapeHtml(msg.content)}</div>
-                        <div class="message-time">${formatTime(msg.created_at)}</div>
-                    </div>
+            container.innerHTML = messages.map(m => `
+                <div class="message ${m.sender_id === currentUser?.id ? 'own' : ''}">
+                    <div class="msg-avatar">${m.sender_id === currentUser?.id ? '👤' : '🧙'}</div>
+                    <div><div class="msg-bubble">${escapeHtml(m.content)}</div><div class="msg-time">${formatTime(m.created_at)}</div></div>
                 </div>
             `).join('');
             container.scrollTop = container.scrollHeight;
@@ -522,61 +406,47 @@
         
         function renderSearchResults(users) {
             const container = document.getElementById('search-results');
-            if (!users || !users.length) {
-                container.innerHTML = '<div style="text-align: center; padding: 20px;">No users found</div>';
-                return;
-            }
-            container.innerHTML = users.map(user => `
-                <div class="search-result-item" data-id="${user.id}">
-                    <div class="conversation-avatar" style="width: 40px; height: 40px;">👤</div>
-                    <div>
-                        <div style="font-weight: 500;">${escapeHtml(user.name || user.email)}</div>
-                        <div style="font-size: 11px; color: var(--text-muted);">${escapeHtml(user.email)}</div>
-                    </div>
+            if (!users || !users.length) { container.innerHTML = '<div style="text-align:center;padding:20px;">No users found</div>'; return; }
+            container.innerHTML = users.map(u => `
+                <div class="search-result" data-id="${u.id}">
+                    <div class="conv-avatar" style="width:40px;height:40px;">👤</div>
+                    <div><div style="font-weight:500;">${escapeHtml(u.name || u.email)}</div><div style="font-size:11px;color:var(--text-muted);">${escapeHtml(u.email)}</div></div>
                 </div>
             `).join('');
-            document.querySelectorAll('.search-result-item').forEach(item => {
-                item.onclick = () => createConversation(parseInt(item.dataset.id));
+            document.querySelectorAll('.search-result').forEach(r => {
+                r.onclick = () => createConversation(parseInt(r.dataset.id));
             });
         }
         
-        function openConversation(conversationId) {
-            currentConversationId = conversationId;
-            const conv = conversations.find(c => c.id === conversationId);
-            if (conv) {
-                document.getElementById('chat-name').textContent = conv.name;
-                document.getElementById('chat-status').textContent = 'Online';
-            }
-            loadMessages(conversationId);
+        function openConversation(convId) {
+            currentConvId = convId;
+            const conv = conversations.find(c => c.id === convId);
+            if (conv) document.getElementById('chat-name').textContent = conv.name;
+            loadMessages(convId);
             renderConversations();
         }
         
-        function formatTime(timestamp) {
-            const date = new Date(timestamp);
+        function formatTime(ts) {
+            const date = new Date(ts);
             const now = new Date();
             const diff = now - date;
-            if (diff < 24*60*60*1000) return date.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
-            if (diff < 7*24*60*60*1000) return date.toLocaleDateString([], { weekday:'short' });
+            if (diff < 86400000) return date.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+            if (diff < 604800000) return date.toLocaleDateString([], { weekday:'short' });
             return date.toLocaleDateString([], { month:'short', day:'numeric' });
         }
         
         function startPolling() {
-            if (pollingInterval) clearInterval(pollingInterval);
-            pollingInterval = setInterval(async () => {
+            if (polling) clearInterval(polling);
+            polling = setInterval(async () => {
                 await loadConversations();
-                if (currentConversationId) await loadMessages(currentConversationId);
+                if (currentConvId) await loadMessages(currentConvId);
             }, 3000);
         }
         
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+        function escapeHtml(t) { if (!t) return ''; const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
         
         document.getElementById('new-chat-btn').onclick = () => document.getElementById('new-chat-modal').classList.add('show');
-        document.getElementById('close-new-chat').onclick = () => document.getElementById('new-chat-modal').classList.remove('show');
+        document.getElementById('close-modal').onclick = () => document.getElementById('new-chat-modal').classList.remove('show');
         document.getElementById('search-users').oninput = (e) => searchUsers(e.target.value);
         document.getElementById('send-btn').onclick = sendMessage;
         document.getElementById('message-input').onkeypress = (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } };
