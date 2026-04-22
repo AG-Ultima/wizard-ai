@@ -178,6 +178,45 @@ const modeData = {
 };
 
 // ============================================
+// TIMEZONE DETECTION & SAVING
+// ============================================
+
+async function detectAndSaveTimezone() {
+    if (!currentUser) return;
+    
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!timezone) return;
+    
+    console.log(`🌐 Detected timezone: ${timezone}`);
+    
+    try {
+        // Save to memory system
+        await fetch(`${API_BASE_URL}/api/memory/save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ 
+                key: 'preferred_timezone', 
+                value: timezone, 
+                category: 'preference' 
+            })
+        });
+        
+        // Also save to user location_timezone field
+        await fetch(`${API_BASE_URL}/api/user/timezone`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ timezone: timezone })
+        });
+        
+        console.log(`✅ Timezone saved: ${timezone}`);
+    } catch (error) {
+        console.error('Failed to save timezone:', error);
+    }
+}
+
+// ============================================
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
@@ -197,7 +236,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     loadGuestData();
     await checkAuth();
-    if (currentUser) startSessionCheck();
+    if (currentUser) {
+        startSessionCheck();
+        await detectAndSaveTimezone(); // Auto-detect timezone on login
+    }
     loadCustomPersonalities();
     loadChats();
     await loadStats();
@@ -1406,6 +1448,9 @@ async function checkAuth() {
             if (data.memories) userStats.memories = data.memories.length;
             loadUserPersonalitiesFromServer();
             localStorage.setItem('auth_time', Date.now().toString());
+            
+            // Auto-detect timezone after successful login
+            detectAndSaveTimezone();
         } else {
             updateUIForAuth();
             const authTime = localStorage.getItem('auth_time');
@@ -1521,6 +1566,10 @@ async function handleLogin() {
             loadUserPersonalitiesFromServer();
             await loadUserApiKeys();
             closeModal(authModal);
+            
+            // Detect timezone after login
+            detectAndSaveTimezone();
+            
             showNotification(`Welcome back, ${currentUser.first_name || ''}!`, 'success');
         } else {
             const error = await response.json();
@@ -1617,6 +1666,10 @@ async function handleVerify() {
             renderChatsList();
             renderMessages();
             closeModal(authModal);
+            
+            // Detect timezone after verification
+            detectAndSaveTimezone();
+            
             showNotification('Account verified! Welcome!', 'success');
         } else {
             if (authError) authError.textContent = data.error || 'Verification failed';
@@ -2061,7 +2114,6 @@ const isElectron = navigator.userAgent.includes('Electron');
 if (isElectron && window.electronAPI) {
     console.log('🖥️ Desktop app detected - setting up menu handlers');
 
-    // Helper function to safely click elements
     function safeClick(elementId) {
         const el = document.getElementById(elementId);
         if (el) {
@@ -2071,7 +2123,6 @@ if (isElectron && window.electronAPI) {
         return false;
     }
 
-    // New Chat
     window.electronAPI.onNewChat(() => {
         console.log('📁 Menu: New Chat');
         if (!safeClick('new-chat-btn')) {
@@ -2079,7 +2130,6 @@ if (isElectron && window.electronAPI) {
         }
     });
 
-    // Clear Current Chat
     window.electronAPI.onClearChat(() => {
         console.log('🗑️ Menu: Clear Chat');
         if (!safeClick('reset-current-btn')) {
@@ -2087,7 +2137,6 @@ if (isElectron && window.electronAPI) {
         }
     });
 
-    // Generate Image
     window.electronAPI.onOpenImageGen(() => {
         console.log('🎨 Menu: Generate Image');
         if (!safeClick('image-btn')) {
@@ -2096,7 +2145,6 @@ if (isElectron && window.electronAPI) {
         }
     });
 
-    // Run Code
     window.electronAPI.onOpenCode(() => {
         console.log('💻 Menu: Run Code');
         if (!safeClick('code-btn')) {
@@ -2105,7 +2153,6 @@ if (isElectron && window.electronAPI) {
         }
     });
 
-    // Upload File
     window.electronAPI.onUploadFile(() => {
         console.log('📎 Menu: Upload File');
         if (!safeClick('upload-btn')) {
@@ -2114,7 +2161,6 @@ if (isElectron && window.electronAPI) {
         }
     });
 
-    // View Memories
     window.electronAPI.onViewMemories(() => {
         console.log('🧠 Menu: View Memories');
         if (!safeClick('memory-btn')) {
@@ -2122,7 +2168,6 @@ if (isElectron && window.electronAPI) {
         }
     });
 
-    // View Stats
     window.electronAPI.onViewStats(() => {
         console.log('📊 Menu: View Stats');
         if (!safeClick('stats-btn')) {
@@ -2130,7 +2175,6 @@ if (isElectron && window.electronAPI) {
         }
     });
 
-    // Change Mode
     window.electronAPI.onChangeMode((mode) => {
         console.log('🎭 Menu: Change Mode to', mode);
         const items = document.querySelectorAll('.dropdown-item');
@@ -2147,7 +2191,6 @@ if (isElectron && window.electronAPI) {
         }
     });
 
-    // Toggle Turbo Mode
     window.electronAPI.onToggleTurbo((enabled) => {
         console.log('⚡ Menu: Turbo Mode', enabled ? 'ON' : 'OFF');
         const turboBtn = document.getElementById('turbo-btn');
@@ -2159,7 +2202,6 @@ if (isElectron && window.electronAPI) {
         }
     });
 
-    // Toggle Search Mode
     window.electronAPI.onToggleSearch((enabled) => {
         console.log('🌐 Menu: Web Search', enabled ? 'ON' : 'OFF');
         const searchBtn = document.getElementById('search-btn');
@@ -2171,7 +2213,6 @@ if (isElectron && window.electronAPI) {
         }
     });
 
-    // Open Settings
     window.electronAPI.onOpenSettings(() => {
         console.log('⚙️ Menu: Settings');
         if (typeof showNotification === 'function') {
@@ -2179,13 +2220,11 @@ if (isElectron && window.electronAPI) {
         }
     });
 
-    // Export Chat
     window.electronAPI.onExportChat(() => {
         console.log('💾 Menu: Export Chat');
         exportChatToFile();
     });
 
-    // Browse Personalities
     window.electronAPI.onBrowsePersonalities(() => {
         console.log('🎭 Menu: Browse Personalities');
         if (!safeClick('personalities-btn')) {
@@ -2193,24 +2232,21 @@ if (isElectron && window.electronAPI) {
         }
     });
 
-    // Agent Studio
-window.electronAPI.onOpenAgentStudio(() => {
-    console.log('🤖 Agent Studio clicked - opening...');
-    window.open('/agent-studio/', '_blank');
-});
+    window.electronAPI.onOpenAgentStudio(() => {
+        console.log('🤖 Agent Studio clicked - opening...');
+        window.open('/agent-studio/', '_blank');
+    });
 
-// Developer Hub
-window.electronAPI.onOpenDevHub(() => {
-    console.log('🔑 Developer Hub clicked - opening...');
-    window.open('/devhub/', '_blank');
-});
+    window.electronAPI.onOpenDevHub(() => {
+        console.log('🔑 Developer Hub clicked - opening...');
+        window.open('/devhub/', '_blank');
+    });
 
-// Admin Dashboard
-window.electronAPI.onOpenAdmin(() => {
-    console.log('👑 Admin Dashboard clicked - opening...');
-    window.open('/admin/', '_blank');
-});
-    // Update status listeners
+    window.electronAPI.onOpenAdmin(() => {
+        console.log('👑 Admin Dashboard clicked - opening...');
+        window.open('/admin/', '_blank');
+    });
+    
     window.electronAPI.onUpdateStatus((event, data) => {
         console.log('Update status:', data.status);
         if (data.status === 'downloading') {
