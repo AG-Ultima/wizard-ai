@@ -168,13 +168,13 @@ let sidebarOpen = false;
 // MODE DATA
 // ============================================
 const modeData = {
-    'Fast': { emoji: '⚡', name: 'Fast Mode', desc: 'Lightning quick responses.', model: 'Llama 3.1 8B', color: '#10b981' },
-    'Normal': { emoji: '✨', name: 'Normal Mode', desc: 'Balanced conversation.', model: 'Llama 3.1 8B', color: '#10b981' },
-    'Fun': { emoji: '🎉', name: 'Fun Mode', desc: 'Playful and energetic!', model: 'Llama 3.3 70B', color: '#8b5cf6' },
-    'Sarcastic': { emoji: '😏', name: 'Sarcastic Mode', desc: 'Witty and sarcastic.', model: 'Llama 3.1 8B', color: '#10b981' },
-    'Nerd': { emoji: '🧠', name: 'Nerd Mode', desc: 'Detailed and academic.', model: 'Llama 3.3 70B', color: '#8b5cf6' },
-    'JARVIS': { emoji: '🎩', name: 'JARVIS Mode', desc: 'Sophisticated AI assistant.', model: 'Llama 3.1 8B', color: '#00aaff' },
-    'ORACLE': { emoji: '🔮', name: 'ORACLE Mode', desc: 'Mystical and all-knowing.', model: 'Llama 3.3 70B', color: '#8b5cf6' }
+    'Fast': { emoji: '⚡', name: 'Fast Mode', desc: 'Lightning quick responses.', model: 'Llama 4 Scout', color: '#10b981' },
+    'Normal': { emoji: '✨', name: 'Normal Mode', desc: 'Balanced conversation.', model: 'Llama 4 Scout', color: '#10b981' },
+    'Fun': { emoji: '🎉', name: 'Fun Mode', desc: 'Playful and energetic!', model: 'Llama 4 Scout', color: '#8b5cf6' },
+    'Sarcastic': { emoji: '😏', name: 'Sarcastic Mode', desc: 'Witty and sarcastic.', model: 'Llama 4 Scout', color: '#10b981' },
+    'Nerd': { emoji: '🧠', name: 'Nerd Mode', desc: 'Detailed and academic.', model: 'Llama 4 Scout', color: '#8b5cf6' },
+    'JARVIS': { emoji: '🎩', name: 'JARVIS Mode', desc: 'Sophisticated AI assistant.', model: 'Llama 4 Scout', color: '#00aaff' },
+    'ORACLE': { emoji: '🔮', name: 'ORACLE Mode', desc: 'Mystical and all-knowing.', model: 'Llama 4 Scout', color: '#8b5cf6' }
 };
 
 // ============================================
