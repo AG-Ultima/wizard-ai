@@ -1,121 +1,257 @@
 # 🧙 Wizard.AI Pro
 
-**Your magical AI assistant with RAG, persistent memory, web search, code execution, image generation, and 7 personalities.**
+<div align="center">
 
-[![Website](https://img.shields.io/badge/Website-wizardai.dpdns.org-8b5cf6)](https://www.wizardai.dpdns.org)
-[![GitHub release](https://img.shields.io/github/v/release/ag-ultima/wizard-ai)](https://github.com/ag-ultima/wizard-ai/releases)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![Wizard.AI Banner](https://wizardai.dpdns.org/og-image.png)
+
+**Your magical AI assistant with multi-agent orchestration**
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-purple.svg)](https://opensource.org/licenses/MIT)
+[![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://python.org)
+[![Groq](https://img.shields.io/badge/Groq-API-orange.svg)](https://groq.com)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+
+[**Live Demo**](https://wizardai.dpdns.org) • [**Documentation**](https://github.com/ag-ultima/wizard-ai/wiki) • [**Report Bug**](https://github.com/ag-ultima/wizard-ai/issues)
+
+</div>
+
+---
 
 ## ✨ Features
 
-| Feature | Description |
-|---------|-------------|
-| 🎭 **7 Personalities** | JARVIS, ORACLE, Nerd, Fun, Sarcastic, Fast, Normal |
-| 💻 **Code Execution** | Run Python code directly in chat (safe sandbox) |
-| 📚 **RAG Document Q&A** | Upload PDFs, DOCX, Excel files and ask questions |
-| 🔍 **Web Search** | Real-time information with Tavily API |
-| 🎨 **Image Generation** | AI art from text prompts |
-| 🧠 **Persistent Memory** | Remembers your name, preferences, and facts |
-| 🔑 **Free API Keys** | OpenAI-compatible API for developers |
-| 📊 **User Statistics** | Track messages, images, searches, and more |
-| 👑 **Admin Dashboard** | Full system control (for self-hosting) |
+### 🤖 Multi-Agent Orchestration
+Chain specialized AI agents together for complex tasks:
+
+| Agent | Specialty |
+|-------|-----------|
+| 🔍 **Researcher** | Finds facts and information from the web |
+| ✍️ **Writer** | Creates engaging content, blog posts, articles |
+| 💻 **Coder** | Writes and debugs code in any language |
+| 🎨 **Designer** | Creates images, layouts, and visual designs |
+| 📊 **Data Analyst** | Analyzes numbers, statistics, and trends |
+| ✅ **Reviewer** | Checks quality and finds issues |
+| 📝 **Summarizer** | Condenses long text into key points |
+| 🌐 **Translator** | Converts between 15+ languages (including Hindi) |
+| ⚡ **Optimizer** | Improves performance and efficiency |
+
+### 🎭 7 Personalities
+- **JARVIS** - Sophisticated AI assistant
+- **ORACLE** - Mystical, all-knowing persona
+- **Nerd** - Detailed, academic responses
+- **Fun** - Playful and energetic
+- **Sarcastic** - Witty and sarcastic
+- **Fast** - Lightning quick responses
+- **Normal** - Balanced conversation
+
+### 🧠 Core Capabilities
+- 📚 **RAG Document Q&A** - Upload PDFs, DOCX, Excel, TXT
+- 🌐 **Web Search** - Real-time information with auto-detection
+- 💻 **Code Execution** - Python sandbox for running code
+- 🎨 **AI Image Generation** - Multiple fallback services
+- 🧠 **Persistent Memory** - Remembers user preferences
+- 🎤 **Voice Input** - Speak naturally
+- 📊 **User Statistics** - Track your usage
+- 🔑 **API Keys** - Programmatic access
+
+---
 
 ## 🚀 Quick Start
 
-### Web Version (No Installation)
-Simply visit: **[https://www.wizardai.dpdns.org](https://www.wizardai.dpdns.org)**
+### Web App (No Installation)
+Simply visit **[https://wizardai.dpdns.org](https://wizardai.dpdns.org)**
 
 ### Desktop App (Windows)
-1. Go to [Releases](https://github.com/ag-ultima/wizard-ai/releases)
-2. Download `Wizard.AI.Setup.exe`
-3. Run the installer
-4. Launch from desktop or start menu
+Download from: [https://wizardai.dpdns.org/download](https://wizardai.dpdns.org/download)
 
-### PWA (Mobile)
-- **iPhone/iPad**: Safari → Share → Add to Home Screen
-- **Android**: Chrome → Menu → Install App
+### Python SDK
 
-### API Access
-```python
+```bash
+pip install wizard-ai-pro
+python
 from wizard import Wizard
 
 client = Wizard(api_key="your-api-key")
+
 response = client.chat.create(
-    messages=[{"role": "user", "content": "Hello!"}],
+    messages=[
+        {"role": "user", "content": "Hello! Who are you?"}
+    ],
     model="wizard-jarvis"
 )
+
 print(response.choices[0].message.content)
-🎭 Personalities
-Personality	Description	Best For
-🎩 JARVIS	Sophisticated AI assistant	Professional tasks
-🔮 ORACLE	Mystical and all-knowing	Deep questions
-🧠 Nerd	Detailed, academic	Research, learning
-🎉 Fun	Playful and energetic	Casual chat, jokes
-😏 Sarcastic	Witty and sarcastic	Entertainment
-⚡ Fast	Lightning quick	Quick answers
-✨ Normal	Balanced conversation	Everyday use
-🛠️ Tech Stack
-Component	Technology
-Frontend	HTML5, CSS3, JavaScript (PWA)
-Backend	Flask (Python)
-Database	SQLite
-AI Models	Groq (Llama 3.1, Llama 3.3)
-Image Gen	Pollinations.ai, Hugging Face
-Web Search	Tavily API
-Desktop App	Electron
-📦 Installation for Development
+API Endpoint
+bash
+curl -X POST https://api.wizardai.dpdns.org/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "wizard-jarvis",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+🏗️ Architecture
+text
+┌─────────────────────────────────────────────────────────────┐
+│                     Wizard.AI Architecture                   │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  🌐 Frontend (GitHub Pages)                                │
+│  ├── index.html (Browser UI)                               │
+│  ├── style.css (Theming)                                   │
+│  └── script.js (Client logic)                              │
+│                                                             │
+│  ⬇️ API Calls                                              │
+│                                                             │
+│  🐍 Backend (PythonAnywhere)                               │
+│  ├── Flask API                                             │
+│  ├── Multi-Agent Orchestrator                              │
+│  ├── Groq Integration (Llama models)                       │
+│  ├── SQLite Database                                       │
+│  └── File Storage (RAG)                                    │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+📦 Installation
+Local Development
 bash
 # Clone the repository
 git clone https://github.com/ag-ultima/wizard-ai.git
 cd wizard-ai
 
-# Backend setup
-cd wizard_backend
+# Install Python dependencies
 pip install -r requirements.txt
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your API keys
+
+# Run the Flask app
 python flask_app.py
-
-# Frontend (just open index.html or serve with any static server)
-🔑 Environment Variables
-Create a .env file in wizard_backend/:
-
+Environment Variables
 env
-GROQ_API_KEY=your_groq_key
-TAVILY_API_KEY=your_tavily_key
-RESEND_API_KEY=your_resend_key
+GROQ_API_KEY=your_groq_api_key
+RESEND_API_KEY=your_resend_api_key
+TAVILY_API_KEY=your_tavily_api_key
 HF_TOKEN=your_huggingface_token
-📊 Database Schema
-User - Account management and statistics
+OPENWEATHER_API_KEY=your_openweather_key
+SECRET_KEY=your_secret_key
+🐳 Docker Deployment
+bash
+# Build the image
+docker build -t wizard-ai .
 
-Chat - Conversation history
-
-Memory - Persistent user memories
-
-Personality - Custom personalities
-
-ApiKey - API access keys
-
-UploadedFile - Document storage for RAG
-
+# Run the container
+docker run -p 5000:5000 --env-file .env wizard-ai
+📁 Project Structure
+text
+wizard-ai/
+├── flask_app.py          # Main Flask application
+├── models.py             # Database models
+├── auth.py               # Authentication routes
+├── chat.py               # Chat & streaming endpoints
+├── prompt_builder.py     # Prompt construction with context
+├── memory.py             # Persistent memory system
+├── rag.py                # RAG document processing
+├── image_routes.py       # AI image generation
+├── search_routes.py      # Web search integration
+├── code_routes.py        # Python code execution
+├── agents/               # Multi-agent system
+│   ├── orchestrator.py   # Agent coordination
+│   ├── researcher.py     # Web research agent
+│   ├── writer.py         # Content creation agent
+│   ├── coder.py          # Code generation agent
+│   ├── designer.py       # Image/design agent
+│   └── ...               # Other agents
+├── templates/            # HTML templates
+└── requirements.txt      # Python dependencies
+🔧 API Reference
+Chat Completions
+http
+POST /v1/chat/completions
+Parameter	Type	Description
+messages	array	List of message objects
+model	string	wizard-jarvis, wizard-oracle, wizard-nerd, etc.
+temperature	float	0.0 to 2.0 (default 0.7)
+max_tokens	int	Maximum tokens to generate
+stream	boolean	Enable streaming responses
+Available Models
+Model ID	Personality
+wizard-jarvis	JARVIS - Sophisticated AI
+wizard-oracle	ORACLE - Mystical
+wizard-nerd	Nerd - Academic
+wizard-fun	Fun - Playful
+wizard-sarcastic	Sarcastic - Witty
+wizard-fast	Fast - Quick responses
+wizard-normal	Normal - Balanced
+🧪 Multi-Agent Examples
+Research & Write Chain
+python
+# Automatically researches a topic and writes an essay
+response = client.chat.create(
+    messages=[{
+        "role": "user", 
+        "content": "Research the history of artificial intelligence and write a 500-word essay."
+    }],
+    model="wizard-jarvis"
+)
+Code Review Chain
+python
+# Writes code, reviews it, and optimizes
+response = client.chat.create(
+    messages=[{
+        "role": "user",
+        "content": "Write a Python function to sort a list of dictionaries by a key, then review and optimize it."
+    }],
+    model="wizard-jarvis"
+)
+Translation Chain
+python
+# Translates text to Hindi and summarizes it
+response = client.chat.create(
+    messages=[{
+        "role": "user",
+        "content": "Translate this to Hindi and summarize: [Your text here]"
+    }],
+    model="wizard-jarvis"
+)
 🤝 Contributing
-Contributions are welcome! Please:
+We welcome contributions! Please see our Contributing Guidelines.
 
 Fork the repository
 
-Create a feature branch
+Create your feature branch (git checkout -b feature/amazing)
 
-Submit a pull request
+Commit your changes (git commit -m 'Add amazing feature')
 
-📝 License
-MIT License - see LICENSE file for details.
+Push to the branch (git push origin feature/amazing)
 
-👨‍💻 Author
+Open a Pull Request
+
+📄 License
+Distributed under the MIT License. See LICENSE for more information.
+
+👤 Author
 Arnav Gupta
 
-Website: wizardai.dpdns.org
+Website: https://wizardai.dpdns.org
 
 GitHub: @ag-ultima
 
-⭐ Star History
-If you find Wizard.AI useful, please consider starring the repository!
+Email: arnav@wizardai.dpdns.org
 
-Built in 15 hours by a 12-year-old 🧙✨
+🙏 Acknowledgments
+Groq for fast LLM inference
+
+Llama by Meta for the foundation models
+
+DuckDuckGo for search API
+
+Unsplash for image fallback
+
+Hugging Face for image generation models
+
+⭐ Show Your Support
+If you found this project helpful, please give it a ⭐ on GitHub!
+
+https://img.shields.io/github/stars/ag-ultima/wizard-ai
+
+<div align="center"> <sub>Built with 🧙 by Arnav Gupta</sub> </div> ```
