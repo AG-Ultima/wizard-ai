@@ -580,107 +580,80 @@
             }
         }
 
-        // ========== RUN CHAIN ==========
-        async function runChain() {
-            const chainName = document.getElementById('chain-select').value;
-            const input = document.getElementById('chain-input').value;
-            const conversationDiv = document.getElementById('agent-conversation');
-            const finalDiv = document.getElementById('final-work');
-            
-            if (!chainName) {
-                alert('Please select a chain');
-                return;
-            }
-            if (!input) {
-                alert('Please enter a request');
-                return;
-            }
-            
-            conversationDiv.innerHTML = '<div class="loading">🤖 Running chain... <div class="spinner" style="display:inline-block; width:16px; height:16px; border:2px solid rgba(139,92,246,0.2); border-top-color:#8b5cf6; border-radius:50%; animation:spin 1s linear infinite; margin-left:10px;"></div></div>';
-            finalDiv.innerHTML = '<div class="loading">✨ Generating final output...</div>';
-            
-            try {
-                console.log('Running chain:', chainName, 'with input:', input);
-                
-                const response = await fetch(`${API_BASE_URL}/api/chains/run/${encodeURIComponent(chainName)}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({ input: input })
-                });
-                
-                console.log('Response status:', response.status);
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Error response:', errorText);
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                const data = await response.json();
-                console.log('Chain response:', data);
-                
-                // Handle different response formats
-                if (data.error) {
-                    conversationDiv.innerHTML = `<div class="error-message">❌ Error: ${data.error}</div>`;
-                    finalDiv.innerHTML = `<div class="error-message">❌ Error: ${data.error}</div>`;
-                    return;
-                }
-                
-                // Format 1: { steps: {...}, output: "..." }
-                if (data.steps) {
-                    let conversation = '';
-                    let finalWork = '';
-                    
-                    for (const [key, value] of Object.entries(data.steps)) {
-                        if (key === 'final' || key === 'output') {
-                            finalWork = value;
-                        } else if (value && typeof value === 'string' && value.length > 0) {
-                            conversation += `<strong>🤖 ${key.toUpperCase()}</strong><br>${value}<br><br>`;
-                        }
-                    }
-                    
-                    conversationDiv.innerHTML = conversation || '<i>No agent conversation recorded</i>';
-                    finalDiv.innerHTML = finalWork || data.output || '<i>No final output generated</i>';
-                }
-                // Format 2: { output: "...", steps: {...} }
-                else if (data.output) {
-                    conversationDiv.innerHTML = '<i>Chain completed successfully</i>';
-                    finalDiv.innerHTML = data.output;
-                }
-                // Format 3: Direct content
-                else if (data.content) {
-                    conversationDiv.innerHTML = '<i>Chain completed successfully</i>';
-                    finalDiv.innerHTML = data.content;
-                }
-                // Format 4: Something else
-                else {
-                    conversationDiv.innerHTML = '<i>Chain completed</i>';
-                    finalDiv.innerHTML = JSON.stringify(data, null, 2);
-                }
-                
-            } catch (error) {
-                console.error('Chain error:', error);
-                conversationDiv.innerHTML = `<div class="error-message">❌ Error: ${error.message}<br><br>Please make sure you are logged in and try again.</div>`;
-                finalDiv.innerHTML = `<div class="error-message">❌ Error: ${error.message}<br><br>Tip: Try a simpler chain like "research_write" first.</div>`;
-            }
+        
+async function runChain() {
+    const chainName = document.getElementById('chain-select').value;
+    const input = document.getElementById('chain-input').value;
+    const conversationDiv = document.getElementById('agent-conversation');
+    const finalDiv = document.getElementById('final-work');
+    
+    if (!chainName) {
+        alert('Please select a chain');
+        return;
+    }
+    if (!input) {
+        alert('Please enter a request');
+        return;
+    }
+    
+    conversationDiv.innerHTML = '<div class="loading">🤖 Running chain...</div>';
+    finalDiv.innerHTML = '<div class="loading">✨ Generating final output...</div>';
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/chains/run/${encodeURIComponent(chainName)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ input })
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || `HTTP ${response.status}`);
         }
-
-        // ========== BUILD CHAIN ==========
-        let stepCount = 1;
-
-        function updateAgentSelects() {
-            const selects = document.querySelectorAll('.agent-select');
-            selects.forEach(select => {
-                const currentValue = select.value;
-                select.innerHTML = '<option value="">Select agent...</option>';
-                availableAgents.forEach(agent => {
-                    let agentKey = agent.name.toLowerCase();
-                    select.innerHTML += `<option value="${agentKey}">${agent.icon || '🤖'} ${agent.name}</option>`;
-                });
-                if (currentValue) select.value = currentValue;
-            });
+        
+        const data = await response.json();
+        console.log('Chain response:', data);  // Debug log
+        
+        // Handle the response format from your backend
+        if (data.steps) {
+            // Build conversation from steps
+            let conversation = '';
+            let finalWork = '';
+            
+            for (const [key, value] of Object.entries(data.steps)) {
+                if (key === 'final' || key === 'output') {
+                    finalWork = value;
+                } else if (value && typeof value === 'string' && value.length > 0) {
+                    // Format each agent's output nicely
+                    const agentName = key.charAt(0).toUpperCase() + key.slice(1);
+                    conversation += `<strong>🤖 ${agentName} AGENT</strong><br>${value.replace(/\n/g, '<br>')}<br><br>`;
+                }
+            }
+            
+            conversationDiv.innerHTML = conversation || '<i>No agent conversation recorded</i>';
+            finalDiv.innerHTML = finalWork || data.output || '<i>No final output generated</i>';
+        } 
+        else if (data.output) {
+            conversationDiv.innerHTML = '<i>Chain completed successfully</i>';
+            finalDiv.innerHTML = data.output;
         }
+        else if (data.error) {
+            conversationDiv.innerHTML = `<div class="error-message">❌ Error: ${data.error}</div>`;
+            finalDiv.innerHTML = `<div class="error-message">❌ Error: ${data.error}</div>`;
+        }
+        else {
+            // Fallback: display raw data
+            conversationDiv.innerHTML = '<i>Chain completed</i>';
+            finalDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        }
+        
+    } catch (error) {
+        console.error('Chain error:', error);
+        conversationDiv.innerHTML = `<div class="error-message">❌ Error: ${error.message}</div>`;
+        finalDiv.innerHTML = `<div class="error-message">❌ Error: ${error.message}<br><br>Please make sure you are logged in and try again.</div>`;
+    }
+}
 
         async function saveChain() {
             const name = document.getElementById('chain-name').value.trim();
