@@ -137,6 +137,7 @@
         .chain-input {
             resize: vertical;
             min-height: 120px;
+            font-family: inherit;
         }
 
         .btn {
@@ -158,6 +159,12 @@
             box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
         }
 
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .btn-secondary {
             background: rgba(255, 255, 255, 0.1);
             color: #e0e7ff;
@@ -168,7 +175,6 @@
             background: rgba(0, 0, 0, 0.3);
             border-radius: 16px;
             padding: 20px;
-            max-height: 500px;
             overflow-y: auto;
             white-space: pre-wrap;
             font-size: 14px;
@@ -177,21 +183,23 @@
 
         .agent-conversation {
             border-left: 3px solid #8b5cf6;
+            height: 300px;
         }
 
         .final-work {
             border-left: 3px solid #10b981;
+            height: 350px;
         }
 
         /* Chains Grid */
-        .chains-grid, .agents-grid, .marketplace-grid {
+        .chains-grid, .agents-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 25px;
             margin-bottom: 40px;
         }
 
-        .chain-card, .agent-card, .marketplace-card {
+        .chain-card, .agent-card {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 20px;
             padding: 25px;
@@ -200,19 +208,19 @@
             cursor: pointer;
         }
 
-        .chain-card:hover, .agent-card:hover, .marketplace-card:hover {
+        .chain-card:hover, .agent-card:hover {
             transform: translateY(-5px);
             border-color: #8b5cf6;
             box-shadow: 0 0 30px rgba(139, 92, 246, 0.2);
         }
 
-        .chain-card h3, .agent-card h3, .marketplace-card h3 {
+        .chain-card h3, .agent-card h3 {
             font-size: 20px;
             color: #c4b5fd;
             margin-bottom: 10px;
         }
 
-        .chain-card p, .agent-card p, .marketplace-card p {
+        .chain-card p, .agent-card p {
             color: #9ca3af;
             font-size: 14px;
             margin-bottom: 15px;
@@ -298,12 +306,13 @@
             border: 1px solid rgba(139, 92, 246, 0.3);
             border-radius: 12px;
             color: white;
+            font-family: inherit;
         }
 
         .loading {
             text-align: center;
             padding: 40px;
-            color: #6b7280;
+            color: #9ca3af;
         }
 
         .error-message {
@@ -312,7 +321,59 @@
             border-radius: 12px;
             padding: 20px;
             color: #ef4444;
-            margin: 20px;
+        }
+
+        .success-message {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid #10b981;
+            border-radius: 12px;
+            padding: 20px;
+            color: #10b981;
+        }
+
+        /* Spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(139, 92, 246, 0.2);
+            border-top-color: #8b5cf6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Agent Output Styling */
+        .agent-output {
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            border-left: 3px solid #8b5cf6;
+        }
+
+        .agent-name {
+            font-weight: bold;
+            color: #c4b5fd;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .agent-content {
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .final-output {
+            background: rgba(16, 185, 129, 0.1);
+            padding: 16px;
+            border-radius: 12px;
+            border-left: 3px solid #10b981;
         }
 
         @media (max-width: 1024px) {
@@ -323,7 +384,9 @@
 
         @media (max-width: 768px) {
             .header h1 { font-size: 32px; }
-            .chains-grid, .agents-grid, .marketplace-grid { grid-template-columns: 1fr; }
+            .chains-grid, .agents-grid { grid-template-columns: 1fr; }
+            .studio-tabs { gap: 8px; }
+            .tab-btn { padding: 8px 16px; font-size: 14px; }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -351,18 +414,18 @@
                     <select id="chain-select" class="chain-select">
                         <option value="">Select a chain...</option>
                     </select>
-                    <textarea id="chain-input" class="chain-input" placeholder="Enter your request..."></textarea>
+                    <textarea id="chain-input" class="chain-input" placeholder="Enter your request...&#10;&#10;Example:&#10;- Write an essay about artificial intelligence&#10;- Create a Python function to sort a list&#10;- Research and summarize the latest tech news"></textarea>
                     <button id="run-chain-btn" class="btn btn-primary">▶ Run Chain</button>
                 </div>
 
                 <div class="chain-output-panel">
                     <h3>📊 Agent Conversation & Findings</h3>
-                    <div id="agent-conversation" class="result-area agent-conversation" style="height: 200px; overflow-y: auto;">
-                        <div class="loading">Run a chain to see agent conversation...</div>
+                    <div id="agent-conversation" class="result-area agent-conversation">
+                        <div class="loading">✨ Select a chain and enter your request, then click "Run Chain"</div>
                     </div>
                     <h3 style="margin-top: 20px;">✨ Final Work</h3>
-                    <div id="final-work" class="result-area final-work" style="height: 250px; overflow-y: auto;">
-                        <div class="loading">Run a chain to see final output...</div>
+                    <div id="final-work" class="result-area final-work">
+                        <div class="loading">📝 Final output will appear here</div>
                     </div>
                 </div>
             </div>
@@ -395,7 +458,7 @@
                     <input type="text" id="chain-desc" placeholder="What this chain does">
                 </div>
                 <div class="form-group">
-                    <label>Steps</label>
+                    <label>Steps (in order of execution)</label>
                     <div id="builder-steps">
                         <div class="builder-step">
                             <select class="agent-select">
@@ -414,17 +477,38 @@
     <script>
         const API_BASE_URL = 'https://arnav0928.pythonanywhere.com';
         let availableAgents = [];
-        let currentUser = null;
+        let isRunning = false;
+
+        // ========== UTILITY FUNCTIONS ==========
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showLoading(element, message = 'Processing...') {
+            element.innerHTML = `<div class="loading">${message} <span class="spinner"></span></div>`;
+        }
+
+        function showError(element, message) {
+            element.innerHTML = `<div class="error-message">❌ ${escapeHtml(message)}</div>`;
+        }
+
+        function showSuccess(element, message) {
+            element.innerHTML = `<div class="success-message">✅ ${escapeHtml(message)}</div>`;
+        }
 
         // ========== AUTH CHECK ==========
         async function checkAuth() {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/check-auth`, { credentials: 'include' });
+                const response = await fetch(`${API_BASE_URL}/api/check-auth`, { 
+                    credentials: 'include' 
+                });
                 if (response.ok) {
                     const data = await response.json();
                     if (data.authenticated && data.user) {
-                        currentUser = data.user;
-                        console.log('✅ Authenticated as:', currentUser.email);
+                        console.log('✅ Authenticated as:', data.user.email);
                         return true;
                     }
                 }
@@ -432,18 +516,19 @@
                 console.error('Auth check error:', error);
             }
             
-            // Not authenticated - show message but don't redirect
-            const container = document.getElementById('chains-grid');
-            if (container) {
-                container.innerHTML = '<div class="error-message">⚠️ Please <a href="/" style="color: #8b5cf6;">login to Wizard.AI</a> to use Agent Studio</div>';
+            const chainsGrid = document.getElementById('chains-grid');
+            if (chainsGrid) {
+                chainsGrid.innerHTML = '<div class="error-message">⚠️ Please <a href="/" style="color: #8b5cf6;">login to Wizard.AI</a> to use Agent Studio</div>';
             }
             return false;
         }
 
         // ========== LOAD AGENTS ==========
         async function loadAgents() {
+            const container = document.getElementById('agents-grid');
+            if (container) showLoading(container, 'Loading agents...');
+            
             try {
-                // Try to get agents from API
                 const response = await fetch(`${API_BASE_URL}/api/agents/list`, { 
                     credentials: 'include' 
                 });
@@ -452,63 +537,56 @@
                     const data = await response.json();
                     availableAgents = data.agents || [];
                 } else {
-                    // Fallback to default agents
+                    // Fallback default agents
                     availableAgents = [
-                        { name: 'researcher', specialty: 'Finds facts from the web', icon: '🔍' },
-                        { name: 'writer', specialty: 'Creates content and articles', icon: '✍️' },
-                        { name: 'coder', specialty: 'Writes and debugs code', icon: '💻' },
-                        { name: 'designer', specialty: 'Creates visual designs', icon: '🎨' },
-                        { name: 'data_analyst', specialty: 'Analyzes numbers and trends', icon: '📊' },
-                        { name: 'reviewer', specialty: 'Reviews quality and gives feedback', icon: '✅' },
-                        { name: 'summarizer', specialty: 'Condenses long text', icon: '📝' },
-                        { name: 'translator', specialty: 'Translates between languages', icon: '🌐' },
-                        { name: 'optimizer', specialty: 'Improves performance', icon: '⚡' }
+                        { name: 'researcher', specialty: 'Finds facts and information from the web', icon: '🔍', usage_count: 0 },
+                        { name: 'writer', specialty: 'Creates engaging content and articles', icon: '✍️', usage_count: 0 },
+                        { name: 'coder', specialty: 'Writes and debugs code', icon: '💻', usage_count: 0 },
+                        { name: 'designer', specialty: 'Creates images and visual designs', icon: '🎨', usage_count: 0 },
+                        { name: 'data_analyst', specialty: 'Analyzes numbers, statistics, and trends', icon: '📊', usage_count: 0 },
+                        { name: 'reviewer', specialty: 'Checks quality and provides feedback', icon: '✅', usage_count: 0 },
+                        { name: 'summarizer', specialty: 'Condenses long text into key points', icon: '📝', usage_count: 0 },
+                        { name: 'translator', specialty: 'Converts text between languages', icon: '🌐', usage_count: 0 },
+                        { name: 'optimizer', specialty: 'Improves performance and efficiency', icon: '⚡', usage_count: 0 }
                     ];
                 }
                 
-                const container = document.getElementById('agents-grid');
-                const agentSelects = document.querySelectorAll('.agent-select');
-                
-                if (availableAgents.length === 0) {
-                    if (container) container.innerHTML = '<div class="loading">No agents available</div>';
-                } else {
-                    if (container) {
-                        container.innerHTML = '';
-                        availableAgents.forEach(agent => {
-                            const card = document.createElement('div');
-                            card.className = 'agent-card';
-                            card.innerHTML = `
+                if (container) {
+                    if (availableAgents.length === 0) {
+                        container.innerHTML = '<div class="loading">No agents available</div>';
+                    } else {
+                        container.innerHTML = availableAgents.map(agent => `
+                            <div class="agent-card">
                                 <div class="agent-icon">${agent.icon || '🤖'}</div>
-                                <h3>${agent.name}</h3>
-                                <p>${agent.specialty || 'General purpose'}</p>
+                                <h3>${escapeHtml(agent.name)}</h3>
+                                <p>${escapeHtml(agent.specialty || 'General purpose agent')}</p>
                                 <div class="agent-stats">
                                     <span>📊 ${agent.usage_count || 0} uses</span>
                                     <span>${agent.is_custom ? '✨ Custom' : '⚡ Built-in'}</span>
                                 </div>
-                            `;
-                            container.appendChild(card);
-                        });
+                            </div>
+                        `).join('');
                     }
-                    
-                    // Update agent selects
-                    agentSelects.forEach(select => {
-                        select.innerHTML = '<option value="">Select agent...</option>';
-                        availableAgents.forEach(agent => {
-                            const agentKey = agent.name.toLowerCase();
-                            select.innerHTML += `<option value="${agentKey}">${agent.icon || '🤖'} ${agent.name}</option>`;
-                        });
-                    });
                 }
+                
+                // Update agent selects in builder
+                updateAgentSelects();
+                
             } catch (error) {
                 console.error('Error loading agents:', error);
-                if (document.getElementById('agents-grid')) {
-                    document.getElementById('agents-grid').innerHTML = '<div class="loading">Error loading agents. Using defaults.</div>';
+                if (container) {
+                    container.innerHTML = '<div class="error-message">Error loading agents. Please refresh.</div>';
                 }
             }
         }
 
         // ========== LOAD CHAINS ==========
         async function loadChains() {
+            const container = document.getElementById('chains-grid');
+            const select = document.getElementById('chain-select');
+            
+            if (container) showLoading(container, 'Loading chains...');
+            
             try {
                 const response = await fetch(`${API_BASE_URL}/api/chains/list`, { 
                     credentials: 'include' 
@@ -520,46 +598,42 @@
                     const data = await response.json();
                     chains = data.chains || [];
                 } else {
-                    // Fallback to default chains
+                    // Fallback default chains
                     chains = [
-                        { name: 'research_write', description: 'Research a topic and write an article', steps: ['researcher', 'writer', 'reviewer'] },
-                        { name: 'code_review', description: 'Write code and have it reviewed', steps: ['coder', 'reviewer', 'optimizer'] },
-                        { name: 'data_visualize', description: 'Analyze data and create visualization', steps: ['data_analyst', 'designer'] },
-                        { name: 'translate_summarize', description: 'Translate and summarize text', steps: ['translator', 'summarizer'] }
+                        { name: 'research_write', description: 'Research a topic and write a comprehensive essay', steps: ['researcher', 'writer', 'reviewer'], usage_count: 0, is_custom: false },
+                        { name: 'code_review', description: 'Write code and have it reviewed and optimized', steps: ['coder', 'reviewer', 'optimizer'], usage_count: 0, is_custom: false },
+                        { name: 'data_visualize', description: 'Analyze data and create visualizations', steps: ['data_analyst', 'designer'], usage_count: 0, is_custom: false },
+                        { name: 'translate_summarize', description: 'Translate text and create a summary', steps: ['translator', 'summarizer'], usage_count: 0, is_custom: false }
                     ];
                 }
                 
-                const container = document.getElementById('chains-grid');
-                const select = document.getElementById('chain-select');
-                
-                if (!chains || chains.length === 0) {
-                    if (container) container.innerHTML = '<div class="loading">No chains yet. Create one in the Build Chain tab!</div>';
-                    if (select) select.innerHTML = '<option value="">No chains available</option>';
-                    return;
-                }
-                
                 if (container) {
-                    container.innerHTML = '';
-                    chains.forEach(chain => {
-                        const card = document.createElement('div');
-                        card.className = 'chain-card';
-                        card.onclick = () => {
+                    if (!chains || chains.length === 0) {
+                        container.innerHTML = '<div class="loading">No chains yet. Create one in the Build Chain tab!</div>';
+                    } else {
+                        container.innerHTML = chains.map(chain => `
+                            <div class="chain-card" data-chain-name="${escapeHtml(chain.name)}">
+                                <h3>🔗 ${escapeHtml(chain.name)}</h3>
+                                <p>${escapeHtml(chain.description || 'No description')}</p>
+                                <div class="chain-steps">
+                                    ${chain.steps ? chain.steps.map(s => `<span class="step-badge">${escapeHtml(typeof s === 'string' ? s : s.agent || s)}</span>`).join('') : '<span class="step-badge">Ready</span>'}
+                                </div>
+                                <div class="agent-stats">
+                                    <span>📊 ${chain.usage_count || 0} runs</span>
+                                    <span>${chain.is_custom ? '✨ Custom' : '⚡ Built-in'}</span>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                    
+                    // Add click handlers to chain cards
+                    document.querySelectorAll('.chain-card').forEach(card => {
+                        card.addEventListener('click', () => {
+                            const chainName = card.dataset.chainName;
                             const chainSelect = document.getElementById('chain-select');
-                            if (chainSelect) chainSelect.value = chain.name;
+                            if (chainSelect) chainSelect.value = chainName;
                             document.querySelector('.tab-btn[data-tab="run"]').click();
-                        };
-                        card.innerHTML = `
-                            <h3>🔗 ${chain.name}</h3>
-                            <p>${chain.description || 'No description'}</p>
-                            <div class="chain-steps">
-                                ${chain.steps ? chain.steps.map(s => `<span class="step-badge">${typeof s === 'string' ? s : s.agent || s}</span>`).join('') : '<span class="step-badge">Ready</span>'}
-                            </div>
-                            <div class="agent-stats">
-                                <span>📊 ${chain.usage_count || 0} runs</span>
-                                <span>${chain.is_custom ? '✨ Custom' : '⚡ Built-in'}</span>
-                            </div>
-                        `;
-                        container.appendChild(card);
+                        });
                     });
                 }
                 
@@ -572,88 +646,139 @@
                         select.appendChild(option);
                     });
                 }
+                
             } catch (error) {
                 console.error('Error loading chains:', error);
-                if (document.getElementById('chains-grid')) {
-                    document.getElementById('chains-grid').innerHTML = '<div class="loading">Error loading chains. Please try again.</div>';
+                if (container) {
+                    container.innerHTML = '<div class="error-message">Error loading chains. Please refresh.</div>';
                 }
             }
         }
 
-        
-async function runChain() {
-    const chainName = document.getElementById('chain-select').value;
-    const input = document.getElementById('chain-input').value;
-    const conversationDiv = document.getElementById('agent-conversation');
-    const finalDiv = document.getElementById('final-work');
-    
-    if (!chainName) {
-        alert('Please select a chain');
-        return;
-    }
-    if (!input) {
-        alert('Please enter a request');
-        return;
-    }
-    
-    conversationDiv.innerHTML = '<div class="loading">🤖 Running chain...</div>';
-    finalDiv.innerHTML = '<div class="loading">✨ Generating final output...</div>';
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/chains/run/${encodeURIComponent(chainName)}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ input })
-        });
-        
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || `HTTP ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Chain response:', data);  // Debug log
-        
-        // Handle the response format from your backend
-        if (data.steps) {
-            // Build conversation from steps
-            let conversation = '';
-            let finalWork = '';
+        // ========== RUN CHAIN ==========
+        async function runChain() {
+            if (isRunning) return;
             
-            for (const [key, value] of Object.entries(data.steps)) {
-                if (key === 'final' || key === 'output') {
-                    finalWork = value;
-                } else if (value && typeof value === 'string' && value.length > 0) {
-                    // Format each agent's output nicely
-                    const agentName = key.charAt(0).toUpperCase() + key.slice(1);
-                    conversation += `<strong>🤖 ${agentName} AGENT</strong><br>${value.replace(/\n/g, '<br>')}<br><br>`;
-                }
+            const chainName = document.getElementById('chain-select').value;
+            const input = document.getElementById('chain-input').value.trim();
+            const conversationDiv = document.getElementById('agent-conversation');
+            const finalDiv = document.getElementById('final-work');
+            
+            if (!chainName) {
+                showError(conversationDiv, 'Please select a chain');
+                return;
+            }
+            if (!input) {
+                showError(conversationDiv, 'Please enter a request');
+                return;
             }
             
-            conversationDiv.innerHTML = conversation || '<i>No agent conversation recorded</i>';
-            finalDiv.innerHTML = finalWork || data.output || '<i>No final output generated</i>';
-        } 
-        else if (data.output) {
-            conversationDiv.innerHTML = '<i>Chain completed successfully</i>';
-            finalDiv.innerHTML = data.output;
+            isRunning = true;
+            const runBtn = document.getElementById('run-chain-btn');
+            runBtn.disabled = true;
+            runBtn.textContent = '⏳ Running...';
+            
+            showLoading(conversationDiv, '🤖 Running agents in sequence...');
+            showLoading(finalDiv, '✨ Generating final output...');
+            
+            try {
+                console.log('Running chain:', chainName, 'with input:', input.substring(0, 100));
+                
+                const response = await fetch(`${API_BASE_URL}/api/chains/run/${encodeURIComponent(chainName)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ input: input })
+                });
+                
+                const data = await response.json();
+                console.log('Chain response:', data);
+                
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || `HTTP ${response.status}`);
+                }
+                
+                // ========== FORMAT AND DISPLAY RESULTS ==========
+                // This matches the backend response format: { steps: {...}, output: "..." }
+                
+                let conversationHtml = '';
+                let finalHtml = '';
+                
+                if (data.steps && typeof data.steps === 'object') {
+                    // Display each agent's output
+                    const stepEntries = Object.entries(data.steps);
+                    
+                    if (stepEntries.length === 0) {
+                        conversationHtml = '<div class="loading">No agent outputs recorded</div>';
+                    } else {
+                        for (const [agentName, agentOutput] of stepEntries) {
+                            if (agentOutput && typeof agentOutput === 'string' && agentOutput.length > 0) {
+                                conversationHtml += `
+                                    <div class="agent-output">
+                                        <div class="agent-name">🤖 ${escapeHtml(agentName.toUpperCase())} AGENT</div>
+                                        <div class="agent-content">${escapeHtml(agentOutput).replace(/\n/g, '<br>')}</div>
+                                    </div>
+                                `;
+                            }
+                        }
+                    }
+                } else {
+                    conversationHtml = '<div class="loading">No agent conversation recorded</div>';
+                }
+                
+                // Display final output
+                if (data.output && typeof data.output === 'string' && data.output.length > 0) {
+                    finalHtml = `
+                        <div class="final-output">
+                            ${escapeHtml(data.output).replace(/\n/g, '<br>')}
+                        </div>
+                    `;
+                } else if (data.final) {
+                    finalHtml = `
+                        <div class="final-output">
+                            ${escapeHtml(data.final).replace(/\n/g, '<br>')}
+                        </div>
+                    `;
+                } else if (data.content) {
+                    finalHtml = `
+                        <div class="final-output">
+                            ${escapeHtml(data.content).replace(/\n/g, '<br>')}
+                        </div>
+                    `;
+                } else {
+                    finalHtml = '<div class="loading">No final output generated</div>';
+                }
+                
+                conversationDiv.innerHTML = conversationHtml || '<div class="loading">Chain completed - no conversation to display</div>';
+                finalDiv.innerHTML = finalHtml;
+                
+                // Reload chains to update usage counts
+                await loadChains();
+                
+            } catch (error) {
+                console.error('Chain error:', error);
+                showError(conversationDiv, error.message);
+                showError(finalDiv, 'Chain execution failed. Please try again.');
+            } finally {
+                isRunning = false;
+                runBtn.disabled = false;
+                runBtn.textContent = '▶ Run Chain';
+            }
         }
-        else if (data.error) {
-            conversationDiv.innerHTML = `<div class="error-message">❌ Error: ${data.error}</div>`;
-            finalDiv.innerHTML = `<div class="error-message">❌ Error: ${data.error}</div>`;
+
+        // ========== BUILD CHAIN ==========
+        function updateAgentSelects() {
+            const selects = document.querySelectorAll('.agent-select');
+            selects.forEach(select => {
+                const currentValue = select.value;
+                select.innerHTML = '<option value="">Select agent...</option>';
+                availableAgents.forEach(agent => {
+                    const agentKey = agent.name.toLowerCase();
+                    select.innerHTML += `<option value="${escapeHtml(agentKey)}">${agent.icon || '🤖'} ${escapeHtml(agent.name)}</option>`;
+                });
+                if (currentValue) select.value = currentValue;
+            });
         }
-        else {
-            // Fallback: display raw data
-            conversationDiv.innerHTML = '<i>Chain completed</i>';
-            finalDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
-        }
-        
-    } catch (error) {
-        console.error('Chain error:', error);
-        conversationDiv.innerHTML = `<div class="error-message">❌ Error: ${error.message}</div>`;
-        finalDiv.innerHTML = `<div class="error-message">❌ Error: ${error.message}<br><br>Please make sure you are logged in and try again.</div>`;
-    }
-}
 
         async function saveChain() {
             const name = document.getElementById('chain-name').value.trim();
@@ -671,6 +796,10 @@ async function runChain() {
                 alert('Please enter a chain name and at least one step');
                 return;
             }
+            
+            const saveBtn = document.getElementById('save-chain-btn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
             
             try {
                 const response = await fetch(`${API_BASE_URL}/api/chains/create`, {
@@ -692,9 +821,8 @@ async function runChain() {
                             <button class="remove-step" style="display: none;">🗑️</button>
                         </div>
                     `;
-                    stepCount = 1;
                     updateAgentSelects();
-                    loadChains();
+                    await loadChains();
                 } else {
                     const error = await response.json();
                     alert('Failed to save chain: ' + (error.error || 'Unknown error'));
@@ -702,58 +830,79 @@ async function runChain() {
             } catch (error) {
                 console.error('Save chain error:', error);
                 alert('Error saving chain: ' + error.message);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.textContent = '💾 Save Chain';
             }
         }
 
         // ========== EVENT LISTENERS ==========
-        document.getElementById('run-chain-btn').addEventListener('click', runChain);
-        
-        document.getElementById('add-step-btn').addEventListener('click', () => {
-            const stepsDiv = document.getElementById('builder-steps');
-            const stepDiv = document.createElement('div');
-            stepDiv.className = 'builder-step';
-            stepDiv.innerHTML = `
-                <select class="agent-select">
-                    <option value="">Select agent...</option>
-                </select>
-                <button class="remove-step">🗑️</button>
-            `;
-            stepsDiv.appendChild(stepDiv);
-            updateAgentSelects();
+        function setupEventListeners() {
+            const runBtn = document.getElementById('run-chain-btn');
+            if (runBtn) runBtn.addEventListener('click', runChain);
             
-            stepDiv.querySelector('.remove-step').addEventListener('click', () => {
-                stepDiv.remove();
-            });
-        });
-
-        document.getElementById('save-chain-btn').addEventListener('click', saveChain);
-
-        // Tab switching
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-                btn.classList.add('active');
-                document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
-                
-                if (btn.dataset.tab === 'builder') {
+            const addStepBtn = document.getElementById('add-step-btn');
+            if (addStepBtn) {
+                addStepBtn.addEventListener('click', () => {
+                    const stepsDiv = document.getElementById('builder-steps');
+                    const stepDiv = document.createElement('div');
+                    stepDiv.className = 'builder-step';
+                    stepDiv.innerHTML = `
+                        <select class="agent-select">
+                            <option value="">Select agent...</option>
+                        </select>
+                        <button class="remove-step">🗑️</button>
+                    `;
+                    stepsDiv.appendChild(stepDiv);
                     updateAgentSelects();
-                }
-                if (btn.dataset.tab === 'chains') {
-                    loadChains();
-                }
-                if (btn.dataset.tab === 'agents') {
-                    loadAgents();
-                }
+                    
+                    stepDiv.querySelector('.remove-step').addEventListener('click', () => {
+                        stepDiv.remove();
+                    });
+                });
+            }
+            
+            const saveChainBtn = document.getElementById('save-chain-btn');
+            if (saveChainBtn) saveChainBtn.addEventListener('click', saveChain);
+            
+            // Tab switching
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+                    
+                    if (btn.dataset.tab === 'builder') {
+                        updateAgentSelects();
+                    }
+                    if (btn.dataset.tab === 'chains') {
+                        loadChains();
+                    }
+                    if (btn.dataset.tab === 'agents') {
+                        loadAgents();
+                    }
+                });
             });
-        });
+            
+            // Enter key in chain input
+            const chainInput = document.getElementById('chain-input');
+            if (chainInput) {
+                chainInput.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.key === 'Enter') {
+                        runChain();
+                    }
+                });
+            }
+        }
 
         // ========== INITIALIZE ==========
         async function init() {
             await checkAuth();
             await loadAgents();
             await loadChains();
-            updateAgentSelects();
+            setupEventListeners();
+            console.log('✅ Agent Studio ready');
         }
         
         init();
