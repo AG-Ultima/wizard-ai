@@ -440,7 +440,7 @@ async function checkBackendStatus() {
             }
             statusDotEl.classList.remove('offline');
         } else {
-            statusTextEl.textContent = 'Limited';
+            statusTextEl.textContent = 'Maintenance in Progress';
             statusDotEl.style.background = '#f59e0b';
             statusDotEl.classList.remove('offline');
         }
