@@ -61,19 +61,57 @@ while True:
                 </div>
                 <div class="code-block">
                     <pre style="margin: 0;">from wizard import Wizard
+from wizard.errors import APIError, AuthenticationError
 
-client = Wizard(api_key="wiz_DKbLh2t3HpMS-CrSmZJMa_V5OUZeWVuG7Kn3EzKrNxg")
+client = Wizard(api_key="URKEYHERENOW")
 
+print("🧙 Wizard.AI Chat (type 'exit' to quit, 'clear' to reset)")
+print("-" * 50)
+
+conversation = []
+
+name = input("🧙 What's your name, wizard?")
 while True:
-    q = input("User: ")
-    stream = client.chat.create(
-        messages=[{"role": "user", "content": q}],
-        model="wizard-fun",
-        stream=True
-    )
-
-    for chunk in stream:
-        print("Wizard AI: ", chunk.choices[0].delta.content, end="")</pre>
+    q = input("\n👤 You: ")
+    
+    if q.lower() == 'exit':
+        print("🧙 Goodbye, ", name)
+        break
+    elif q.lower() == 'clear':
+        conversation = []
+        print("🧙 Conversation cleared!")
+        continue
+    
+    # Add to conversation history
+    conversation.append({"role": "user", "content": q})
+    
+    try:
+        stream = client.chat.create(
+            messages=conversation,
+            model="wizard-jarvis",  # Try: wizard-jarvis, wizard-fun, wizard-oracle, wizard-sarcastic
+            stream=True,
+            temperature=0.8
+        )
+        
+        print("🧙 Wizard: ", end="")
+        full_response = ""
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                content = chunk.choices[0].delta.content
+                print(content, end="", flush=True)
+                full_response += content
+        
+        # Add assistant response to history
+        conversation.append({"role": "assistant", "content": full_response})
+        print("\n")
+        
+    except AuthenticationError:
+        print("❌ Invalid API key!")
+        break
+    except APIError as e:
+        print(f"❌ API Error: {e}")
+    except Exception as e:
+        print(f"❌ Error: {e}")</pre>
                 </div>
             </div>
         </div>
