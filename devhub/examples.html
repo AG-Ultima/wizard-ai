@@ -38,18 +38,20 @@
                 <div class="code-block">
                     <pre style="margin: 0;">from wizard import Wizard
 
-client = Wizard(api_key="YOUR_API_KEY")
+client = Wizard(api_key="PUT_UR_API_KEY_HERE_PLS")
+while True:
+    query=input("User: ")
 
-response = client.chat.create(
-    messages=[
-        {"role": "system", "content": "You are JARVIS, a helpful AI."},
-        {"role": "user", "content": "What's the weather like today?"}
-    ],
-    model="wizard-jarvis",
-    temperature=0.7
-)
-
-print(response.choices[0].message.content)</pre>
+    response = client.chat.create(
+        messages=[
+            {"role": "system", "content": "You are JARVIS, a helpful AI."},
+            {"role": "user", "content": query}
+        ],
+        model="wizard-jarvis",
+        temperature=0.7
+    )
+    print("Wizard AI: ", response.choices[0].message.content)
+                    </pre>
                 </div>
             </div>
 
@@ -60,16 +62,18 @@ print(response.choices[0].message.content)</pre>
                 <div class="code-block">
                     <pre style="margin: 0;">from wizard import Wizard
 
-client = Wizard(api_key="YOUR_API_KEY")
+client = Wizard(api_key="wiz_DKbLh2t3HpMS-CrSmZJMa_V5OUZeWVuG7Kn3EzKrNxg")
 
-stream = client.chat.create(
-    messages=[{"role": "user", "content": "Tell me a story"}],
-    model="wizard-fun",
-    stream=True
-)
+while True:
+    q = input("User: ")
+    stream = client.chat.create(
+        messages=[{"role": "user", "content": q}],
+        model="wizard-fun",
+        stream=True
+    )
 
-for chunk in stream:
-    print(chunk.choices[0].delta.content, end="")</pre>
+    for chunk in stream:
+        print("Wizard AI: ", chunk.choices[0].delta.content, end="")</pre>
                 </div>
             </div>
         </div>
