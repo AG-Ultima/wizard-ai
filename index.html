@@ -3,463 +3,344 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    
-    <!-- Primary SEO Meta Tags -->
+
+    <!-- Primary SEO -->
     <title>Wizard.AI Pro — Multi-Agent AI Assistant with 7 Personalities</title>
     <meta name="title" content="Wizard.AI Pro — Multi-Agent AI Assistant | Your Magical AI Workspace">
-    <meta name="description" content="Wizard.AI is a complete AI platform with multi-agent orchestration, RAG, persistent memory, web search, code execution, image generation, admin dashboard, developer hub, and 7 distinct personalities.">
-    <meta name="keywords" content="Wizard.AI, AI assistant, multi-agent, RAG, machine learning, Flask, Groq, Llama, AI chatbot, code execution, image generation, web search, Arnav Gupta">
+    <meta name="description" content="Wizard.AI is a complete AI platform with multi-agent orchestration, RAG, persistent memory, web search, code execution, image generation, admin dashboard, developer hub, and 7 distinct personalities. Part of the Wizard Ecosystem.">
+    <meta name="keywords" content="Wizard.AI, AI assistant, multi-agent, RAG, machine learning, Flask, Groq, Llama, AI chatbot, code execution, image generation, web search, Wizard Ecosystem, Arnav Gupta">
     <meta name="author" content="Arnav Gupta">
     <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#0a0814">
-    
-    <!-- Open Graph / Facebook -->
+
+    <!-- Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.wizardai.dpdns.org/">
     <meta property="og:title" content="Wizard.AI Pro — Your Magical AI Workspace">
     <meta property="og:description" content="Multi-agent orchestration, RAG, memory, web search, code execution, image generation, admin dashboard, developer hub, and 7 personalities.">
     <meta property="og:image" content="https://www.wizardai.dpdns.org/og-image.png">
     <meta property="og:site_name" content="Wizard.AI Pro">
-    
+
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://www.wizardai.dpdns.org/">
     <meta name="twitter:title" content="Wizard.AI Pro — Your Magical AI Workspace">
     <meta name="twitter:description" content="Multi-agent orchestration, RAG, memory, web search, code execution, and 7 AI personalities.">
     <meta name="twitter:image" content="https://www.wizardai.dpdns.org/og-image.png">
-    
-    <!-- Canonical URL -->
+
+    <!-- Canonical -->
     <link rel="canonical" href="https://www.wizardai.dpdns.org/">
-    
-    <!-- Structured Data / JSON-LD -->
+
+    <!-- Structured Data -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
       "name": "Wizard.AI Pro",
       "url": "https://www.wizardai.dpdns.org/",
-      "description": "A complete AI platform with multi-agent orchestration, RAG, persistent memory, and 7 AI personalities.",
+      "description": "A complete AI platform with multi-agent orchestration, RAG, persistent memory, and 7 AI personalities. Part of the Wizard Ecosystem.",
       "applicationCategory": "AIApplication",
       "operatingSystem": "Web, Windows, macOS, Linux, iOS, Android",
       "author": { "@type": "Person", "name": "Arnav Gupta" },
       "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "isPartOf": { "@type": "WebApplication", "name": "Wizard Ecosystem", "url": "https://wizardecosystem.dpdns.org" },
       "featureList": "Multi-agent orchestration, RAG document Q&A, Persistent memory, Web search, Code execution, Image generation, 7 personalities, Developer API, Admin dashboard"
     }
     </script>
-    
-    <!-- PWA Manifest -->
+
+    <!-- PWA -->
     <link rel="manifest" href="/manifest.json">
-    
-    <!-- iOS PWA Meta Tags -->
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Wizard.AI">
-    
-    <!-- Apple Touch Icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="/icons/apple-touch-icon.png">
-    
-    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/icons/favicon.ico">
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
-    
-    <!-- Preconnect for performance -->
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Stylesheet -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Animated Stars Canvas -->
     <canvas id="starfield" aria-hidden="true"></canvas>
-    
-    <!-- Ambient Blobs -->
     <div class="ambient ambient-1" aria-hidden="true"></div>
     <div class="ambient ambient-2" aria-hidden="true"></div>
     <div class="ambient ambient-3" aria-hidden="true"></div>
-    
-    <!-- Install Prompt for PWA -->
-    <div id="install-prompt" class="install-prompt" style="display: none;">
+    <div class="ambient ambient-4" aria-hidden="true"></div>
+
+    <!-- PWA Install Prompt -->
+    <div id="install-prompt" class="install-prompt" style="display:none;" role="banner">
         <div class="install-content">
-            <span class="install-icon">🧙</span>
+            <span class="install-icon" aria-hidden="true">🧙</span>
             <span class="install-text">Install Wizard.AI on your device</span>
             <button id="install-btn" class="install-btn">Install</button>
-            <button id="close-install" class="close-install">✕</button>
+            <button id="close-install" class="close-install" aria-label="Dismiss">✕</button>
         </div>
     </div>
-    
-    <!-- Floating Desktop Download Button -->
-    <div id="desktop-download-btn" style="position: fixed; bottom: 30px; right: 30px; z-index: 10000; display: none;">
-        <button class="desktop-download-button">
-            💻 Download Desktop App
-        </button>
+
+    <!-- Desktop Download -->
+    <div id="desktop-download-btn" style="position:fixed;bottom:30px;right:30px;z-index:10000;display:none;">
+        <button class="desktop-download-button">💻 Download Desktop App</button>
     </div>
-    
-    <!-- Main Container -->
+
     <div class="app-container">
-        <!-- ============================================
-             LEFT SIDEBAR - WIZARD PROFILE & SETTINGS
-             ============================================ -->
-        <div class="sidebar">
+
+        <!-- ══════════════════════════════════════
+             LEFT SIDEBAR
+             ══════════════════════════════════════ -->
+        <aside class="sidebar" role="complementary" aria-label="Wizard settings and profile">
+
+            <!-- Profile -->
             <div class="wizard-profile">
                 <div class="rune-ring" aria-hidden="true"></div>
-                <div class="wizard-avatar">
+                <div class="wizard-avatar" aria-hidden="true">
                     <span class="floating-emoji">🧙‍♂️</span>
                 </div>
-                <h1 class="gradient-text">Wizard.AI Pro</h1>
+                <h1 class="hero-wordmark">Wizard<em>.AI</em></h1>
                 <p class="tagline">Your magical AI companion</p>
-                <div class="status-badge" id="status-badge">
+                <div class="status-badge" id="status-badge" role="status">
                     <span class="status-dot"></span>
-                    <span id="status-text">Connecting...</span>
+                    <span id="status-text">Connecting…</span>
                 </div>
             </div>
-            
-            <!-- User Account Section -->
-            <div class="user-section glass-panel" id="user-section">
-                <div class="user-info" id="user-info" style="display: none;">
+
+            <div class="sidebar-divider" aria-hidden="true"><span>✦</span></div>
+
+            <!-- User Account -->
+            <div class="user-section grimoire-panel" id="user-section">
+                <div class="user-info" id="user-info" style="display:none;">
                     <div class="user-avatar" id="user-avatar">👤</div>
                     <div class="user-details">
-                        <span class="user-email" id="user-email"></span>
                         <span class="user-name" id="user-name"></span>
+                        <span class="user-email" id="user-email"></span>
                     </div>
-                    <button class="logout-btn" id="logout-btn" title="Logout">🚪</button>
+                    <button class="logout-btn" id="logout-btn" title="Logout" aria-label="Logout">🚪</button>
                 </div>
                 <div class="auth-buttons" id="auth-buttons">
                     <button class="auth-btn login-btn" id="show-login-btn">🔐 Login</button>
                     <button class="auth-btn signup-btn" id="show-signup-btn">✨ Sign Up</button>
                 </div>
             </div>
-            
-            <!-- Personality Mode Section -->
-            <div class="mode-section glass-panel">
-                <div class="section-header">
-                    <span class="section-icon">🧠</span>
-                    <h2>Personality Mode</h2>
-                </div>
-                
-                <!-- Custom Dropdown -->
+
+            <!-- Personality Mode -->
+            <div class="mode-section grimoire-panel">
+                <div class="panel-label"><span class="panel-label-icon">🧠</span>Personality Mode</div>
                 <div class="custom-dropdown" id="mode-dropdown">
                     <div class="custom-dropdown-btn" id="dropdown-btn">
                         <span id="selected-mode-display">🎩 JARVIS</span>
-                        <span class="dropdown-arrow">▼</span>
+                        <span class="dropdown-arrow" aria-hidden="true">▼</span>
                     </div>
-                    <div class="custom-dropdown-content" id="dropdown-content"></div>
+                    <div class="custom-dropdown-content" id="dropdown-content" role="listbox"></div>
                 </div>
-                
-                <!-- Create Personality Button -->
                 <button class="create-personality-btn" id="toggle-creator-btn">
-                    <span class="btn-icon">➕</span>
-                    <span class="btn-text">Create New Personality</span>
+                    <span class="btn-icon" aria-hidden="true">➕</span>
+                    <span>Create New Personality</span>
                 </button>
-                
-                <!-- Personality Creator Panel -->
-                <div class="creator-panel" id="creator-panel" style="display: none;">
+                <div class="creator-panel" id="creator-panel" style="display:none;">
                     <div class="creator-header">
-                        <h3>Create Custom Personality</h3>
-                        <button class="close-creator" id="close-creator">&times;</button>
+                        <h3>Craft a Personality</h3>
+                        <button class="close-creator" id="close-creator" aria-label="Close">&times;</button>
                     </div>
                     <div class="creator-body">
-                        <div class="form-row">
-                            <input type="text" id="custom-name" placeholder="Personality name (e.g., 'Pirate')" maxlength="30">
-                        </div>
-                        <div class="form-row">
-                            <input type="text" id="custom-emoji" placeholder="Emoji (e.g., '🏴‍☠️')" maxlength="2">
-                        </div>
-                        <div class="form-row">
-                            <textarea id="custom-prompt" placeholder="System prompt..." rows="3"></textarea>
-                        </div>
-                        <div class="form-row">
-                            <input type="text" id="custom-greeting" placeholder="Greeting message (optional)">
-                        </div>
+                        <div class="form-row"><input type="text" id="custom-name" placeholder="Personality name (e.g., 'Pirate')" maxlength="30"></div>
+                        <div class="form-row"><input type="text" id="custom-emoji" placeholder="Emoji (e.g., '🏴‍☠️')" maxlength="2"></div>
+                        <div class="form-row"><textarea id="custom-prompt" placeholder="System prompt…" rows="3"></textarea></div>
+                        <div class="form-row"><input type="text" id="custom-greeting" placeholder="Greeting message (optional)"></div>
                         <div class="form-row checkbox">
-                            <label>
-                                <input type="checkbox" id="custom-public" checked> Make public (share with community)
-                            </label>
+                            <label><input type="checkbox" id="custom-public" checked> Make public</label>
                         </div>
                         <div class="creator-actions">
-                            <button class="creator-save" id="save-personality">Save Personality</button>
+                            <button class="creator-save" id="save-personality">Save</button>
                             <button class="creator-cancel" id="cancel-personality">Cancel</button>
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <!-- Stats Dashboard -->
-            <div class="stats-dashboard glass-panel">
-                <div class="section-header">
-                    <span class="section-icon">📊</span>
-                    <h3>Your Stats</h3>
+
+            <!-- Active Model -->
+            <div class="model-status grimoire-panel" id="model-status">
+                <div class="panel-label"><span class="panel-label-icon">📦</span>Active Model</div>
+                <div class="model-info" id="current-model">
+                    <span class="model-icon" aria-hidden="true">🧙‍♂️</span>
+                    <span class="model-name">Llama 4 Scout</span>
                 </div>
-                <div class="stats-grid">
-                    <div class="stat-card" title="Total messages sent">
-                        <span class="stat-icon">💬</span>
-                        <span class="stat-value" id="stat-messages">0</span>
-                        <span class="stat-label">Messages</span>
-                    </div>
-                    <div class="stat-card" title="Files uploaded">
-                        <span class="stat-icon">📎</span>
-                        <span class="stat-value" id="stat-files">0</span>
-                        <span class="stat-label">Files</span>
-                    </div>
-                    <div class="stat-card" title="Memories stored">
-                        <span class="stat-icon">🧠</span>
-                        <span class="stat-value" id="stat-memories">0</span>
-                        <span class="stat-label">Memories</span>
-                    </div>
-                    <div class="stat-card" title="Images generated">
-                        <span class="stat-icon">🎨</span>
-                        <span class="stat-value" id="stat-images">0</span>
-                        <span class="stat-label">Images</span>
-                    </div>
-                    <div class="stat-card" title="Web searches">
-                        <span class="stat-icon">🌐</span>
-                        <span class="stat-value" id="stat-searches">0</span>
-                        <span class="stat-label">Searches</span>
-                    </div>
-                    <div class="stat-card" title="Average response time">
-                        <span class="stat-icon">⚡</span>
-                        <span class="stat-value" id="stat-response">0.4s</span>
-                        <span class="stat-label">Avg Response</span>
-                    </div>
+                <!-- Turbo -->
+                <div class="turbo-row">
+                    <button id="turbo-btn" class="turbo-btn" aria-pressed="false">
+                        <span aria-hidden="true">⚡</span>
+                        <span class="turbo-text">TURBO MODE</span>
+                        <span class="turbo-status" id="turbo-status">OFF</span>
+                    </button>
+                    <p class="turbo-description">2× faster · more tokens</p>
                 </div>
             </div>
-            
-            <!-- API Keys Section -->
-            <div class="api-keys-section glass-panel">
-                <div class="section-header">
-                    <span class="section-icon">🔑</span>
-                    <h3>API Keys</h3>
+
+            <!-- Stats -->
+            <div class="stats-dashboard grimoire-panel">
+                <div class="panel-label"><span class="panel-label-icon">📊</span>Your Stats</div>
+                <div class="stats-grid">
+                    <div class="stat-card" title="Total messages"><span class="stat-icon">💬</span><span class="stat-value" id="stat-messages">0</span><span class="stat-label">Messages</span></div>
+                    <div class="stat-card" title="Files uploaded"><span class="stat-icon">📎</span><span class="stat-value" id="stat-files">0</span><span class="stat-label">Files</span></div>
+                    <div class="stat-card" title="Memories stored"><span class="stat-icon">🧠</span><span class="stat-value" id="stat-memories">0</span><span class="stat-label">Memories</span></div>
+                    <div class="stat-card" title="Images generated"><span class="stat-icon">🎨</span><span class="stat-value" id="stat-images">0</span><span class="stat-label">Images</span></div>
+                    <div class="stat-card" title="Web searches"><span class="stat-icon">🌐</span><span class="stat-value" id="stat-searches">0</span><span class="stat-label">Searches</span></div>
+                    <div class="stat-card" title="Avg response time"><span class="stat-icon">⚡</span><span class="stat-value" id="stat-response">0.4s</span><span class="stat-label">Avg Speed</span></div>
                 </div>
+            </div>
+
+            <!-- API Keys -->
+            <div class="api-keys-section grimoire-panel">
+                <div class="panel-label"><span class="panel-label-icon">🔑</span>API Keys</div>
                 <div class="api-keys-list" id="api-keys-list">
                     <div class="no-keys-message">🔐 Login to view your API keys</div>
                 </div>
                 <button class="create-key-btn" id="create-api-key-sidebar">
-                    <span class="btn-icon">👨‍💻</span>
-                    <span class="btn-text">Developer Hub</span>
+                    <span aria-hidden="true">👨‍💻</span> Developer Hub
                 </button>
             </div>
-            
-            <!-- Turbo Mode Toggle -->
-            <div class="turbo-container glass-panel">
-                <button id="turbo-btn" class="turbo-btn">
-                    <span class="turbo-icon">⚡</span>
-                    <span class="turbo-text">TURBO MODE</span>
-                    <span class="turbo-status" id="turbo-status">OFF</span>
+
+            <!-- Footer Actions -->
+            <div class="sidebar-footer-actions">
+                <button id="reset-current-btn" class="footer-action-btn reset-btn">
+                    <span aria-hidden="true">🧹</span> Clear Current Chat
                 </button>
-                <p class="turbo-description">2x faster responses, uses more tokens</p>
+                <button id="update-history-btn" class="footer-action-btn version-btn">
+                    <span aria-hidden="true">📜</span> v15.0.0 · What's New?
+                </button>
             </div>
-            
-            <!-- Active Model Display -->
-            <div class="model-status glass-panel" id="model-status">
-                <div class="section-header">
-                    <span class="section-icon">📦</span>
-                    <h2>Active Model</h2>
-                </div>
-                <div class="model-info" id="current-model">
-                    <span class="model-icon">🧙‍♂️</span>
-                    <span class="model-name">Llama 4 Scout</span>
-                </div>
-            </div>
-            
-            <!-- Reset Button -->
-            <button id="reset-current-btn" class="reset-button glass-button">
-                <span class="button-icon">🧹</span>
-                <span class="button-text">Clear Current Chat</span>
-            </button>
-            
-            <!-- Update History Button -->
-            <button id="update-history-btn" class="version-badge-btn">
-                <span class="button-icon">📜</span>
-                <span class="button-text">v13.0.0 • What's New?</span>
-            </button>
-            
-            <!-- Footer -->
+
+            <!-- Footer Note -->
             <div class="footer-note">
-                <p>Crafted by <a href="#" rel="author">Arnav Gupta</a> ✨</p>
-                <p class="version">v13.0.0 - Multi-Agent Update</p>
-                <p class="domain">wizardai.dpdns.org</p>
+                <p>Crafted with ✦ by <a href="https://wizardecosystem.dpdns.org" rel="author">Arnav Gupta</a></p>
+                <p class="version-tag">v15.0.0 — UI Update</p>
+                <p class="domain-tag">wizardai.dpdns.org</p>
             </div>
-        </div>
-        
-        <!-- ============================================
+        </aside>
+
+        <!-- ══════════════════════════════════════
              MAIN CHAT AREA
-             ============================================ -->
-        <div class="chat-area">
-            <div class="chat-header glass-panel">
+             ══════════════════════════════════════ -->
+        <main class="chat-area" role="main">
+            <!-- Chat Header -->
+            <div class="chat-header grimoire-panel">
                 <div class="chat-title">
-                    <span id="current-chat-emoji" class="chat-emoji-large">🧙</span>
+                    <span id="current-chat-emoji" class="chat-emoji-large" aria-hidden="true">🧙</span>
                     <h2 id="current-chat-name">Main Chat</h2>
                 </div>
                 <div class="chat-actions">
-                    <button id="rename-chat-btn" class="chat-action-btn" title="Rename Chat">✏️</button>
-                    <button id="delete-chat-btn" class="chat-action-btn delete-btn" title="Delete Chat">🗑️</button>
+                    <button id="rename-chat-btn" class="chat-action-btn" title="Rename Chat" aria-label="Rename chat">✏️</button>
+                    <button id="delete-chat-btn" class="chat-action-btn delete-btn" title="Delete Chat" aria-label="Delete chat">🗑️</button>
                 </div>
             </div>
-            
+
             <!-- Pro Toolbar -->
-            <div class="pro-toolbar" id="pro-toolbar">
-                <button class="pro-btn" id="search-btn" title="Web Search (auto-detects when needed)">
-                    <span class="btn-icon">🌐</span>
-                    <span class="btn-text">Search</span>
-                    <span class="btn-indicator" id="search-indicator" style="display: none;">⚡</span>
-                </button>
-                <button class="pro-btn" id="upload-btn" title="Upload File">
-                    <span class="btn-icon">📎</span>
-                    <span class="btn-text">Upload</span>
-                </button>
-                <button class="pro-btn" id="code-btn" title="Run Python Code">
-                    <span class="btn-icon">💻</span>
-                    <span class="btn-text">Code</span>
-                </button>
-                <button class="pro-btn" id="image-btn" title="Generate Image">
-                    <span class="btn-icon">🎨</span>
-                    <span class="btn-text">Generate</span>
-                </button>
-                <button class="pro-btn" id="memory-btn" title="View Memories">
-                    <span class="btn-icon">🧠</span>
-                    <span class="btn-text">Memory</span>
-                </button>
-                <button class="pro-btn" id="stats-btn" title="View Detailed Stats">
-                    <span class="btn-icon">📊</span>
-                    <span class="btn-text">Stats</span>
-                </button>
-                <button class="pro-btn" id="personalities-btn" title="Browse Community Personalities">
-                    <span class="btn-icon">🎭</span>
-                    <span class="btn-text">Personalities</span>
-                </button>
-                <button class="pro-btn" id="devhub-btn" title="Developer Hub">
-                    <span class="btn-icon">👨‍💻</span>
-                    <span class="btn-text">Dev Hub</span>
-                </button>
-                <button class="pro-btn" id="agent-studio-btn" title="Multi-Agent Studio">
-                    <span class="btn-icon">🤖</span>
-                    <span class="btn-text">Agent Studio</span>
-                </button>
+            <div class="pro-toolbar" id="pro-toolbar" role="toolbar" aria-label="Chat tools">
+                <button class="pro-btn" id="search-btn" title="Web Search"><span class="btn-icon" aria-hidden="true">🌐</span><span class="btn-text">Search</span><span class="btn-indicator" id="search-indicator" style="display:none;" aria-hidden="true">⚡</span></button>
+                <button class="pro-btn" id="upload-btn" title="Upload File"><span class="btn-icon" aria-hidden="true">📎</span><span class="btn-text">Upload</span></button>
+                <button class="pro-btn" id="code-btn" title="Run Python Code"><span class="btn-icon" aria-hidden="true">💻</span><span class="btn-text">Code</span></button>
+                <button class="pro-btn" id="image-btn" title="Generate Image"><span class="btn-icon" aria-hidden="true">🎨</span><span class="btn-text">Generate</span></button>
+                <button class="pro-btn" id="memory-btn" title="View Memories"><span class="btn-icon" aria-hidden="true">🧠</span><span class="btn-text">Memory</span></button>
+                <button class="pro-btn" id="stats-btn" title="Detailed Stats"><span class="btn-icon" aria-hidden="true">📊</span><span class="btn-text">Stats</span></button>
+                <button class="pro-btn" id="personalities-btn" title="Community Personalities"><span class="btn-icon" aria-hidden="true">🎭</span><span class="btn-text">Personalities</span></button>
+                <button class="pro-btn" id="devhub-btn" title="Developer Hub"><span class="btn-icon" aria-hidden="true">👨‍💻</span><span class="btn-text">Dev Hub</span></button>
+                <button class="pro-btn" id="agent-studio-btn" title="Multi-Agent Studio"><span class="btn-icon" aria-hidden="true">🤖</span><span class="btn-text">Agent Studio</span></button>
             </div>
-            
+
             <!-- Chat History -->
-            <div id="chat-history" class="chat-history" role="log" aria-live="polite"></div>
-            
-            <!-- Input Area with Voice -->
-            <div class="input-area glass-panel">
+            <div id="chat-history" class="chat-history" role="log" aria-live="polite" aria-label="Chat messages"></div>
+
+            <!-- Typing Indicator -->
+            <div id="typing-indicator" class="typing-indicator" style="display:none;" aria-live="polite" aria-label="Wizard is thinking">
+                <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+                <span class="typing-text">Wizard is weaving a reply…</span>
+            </div>
+
+            <!-- Upload Progress -->
+            <div id="upload-progress" class="upload-progress grimoire-panel" style="display:none;" role="progressbar">
+                <div class="progress-bar-container"><div class="progress-bar-fill" id="progress-bar-fill" style="width:0%"></div></div>
+                <span class="progress-text" id="progress-text">Uploading…</span>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area grimoire-panel">
                 <div class="input-wrapper">
-                    <input type="text" id="chat-input" placeholder="Type your message here... or click 🎤 to speak" autocomplete="off" aria-label="Your message">
-                    <div class="input-indicators">
-                        <span class="search-indicator-pulse" id="input-search-indicator" style="display: none;">🌐</span>
-                    </div>
+                    <input type="text" id="chat-input" placeholder="Speak your incantation… or click 🎤 to conjure" autocomplete="off" aria-label="Your message">
+                    <span class="search-indicator-pulse" id="input-search-indicator" style="display:none;" aria-hidden="true">🌐</span>
                 </div>
-                <button id="voice-input-btn" class="voice-btn" title="Voice input">🎤</button>
+                <button id="voice-input-btn" class="voice-btn" title="Voice input" aria-label="Voice input">🎤</button>
                 <button id="send-btn" class="send-button" aria-label="Send message">
                     <span class="send-text">Send</span>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-                    </svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
                 </button>
             </div>
-            
-            <!-- Typing Indicator -->
-            <div id="typing-indicator" class="typing-indicator" style="display: none;">
-                <span></span>
-                <span></span>
-                <span></span>
-                <span class="typing-text">Wizard is thinking</span>
+        </main>
+
+        <!-- ══════════════════════════════════════
+             RIGHT SIDEBAR — CHATS
+             ══════════════════════════════════════ -->
+        <aside class="chats-sidebar" role="complementary" aria-label="Chat list and community">
+            <div class="chats-header grimoire-panel">
+                <div class="panel-label" style="margin-bottom:0;"><span class="panel-label-icon">💬</span>Your Chats</div>
+                <button id="new-chat-btn" class="new-chat-btn" title="New Chat" aria-label="New chat">➕</button>
             </div>
-            
-            <!-- Upload Progress Bar -->
-            <div id="upload-progress" class="upload-progress glass-panel" style="display: none;">
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%"></div>
-                </div>
-                <span class="progress-text" id="progress-text">Uploading...</span>
-            </div>
-        </div>
-        
-        <!-- ============================================
-             RIGHT SIDEBAR - CHATS & PERSONALITIES
-             ============================================ -->
-        <div class="chats-sidebar">
-            <div class="chats-header glass-panel">
-                <div class="section-header">
-                    <span class="section-icon">💬</span>
-                    <h2>Your Chats</h2>
-                </div>
-                <button id="new-chat-btn" class="new-chat-btn" title="New Chat">➕</button>
-            </div>
-            
-            <div class="chats-list" id="chats-list"></div>
-            
-            <!-- Community Personalities Section -->
-            <div class="public-personalities glass-panel">
-                <div class="section-header">
-                    <span class="section-icon">🎭</span>
-                    <h3>Community Personalities</h3>
-                </div>
+
+            <div class="chats-list" id="chats-list" role="list"></div>
+
+            <!-- Community Personalities -->
+            <div class="public-personalities grimoire-panel">
+                <div class="panel-label"><span class="panel-label-icon">🎭</span>Community Personalities</div>
                 <div class="personalities-list" id="personalities-list">
-                    <div class="loading-personalities">Loading personalities...</div>
+                    <div class="loading-personalities">Summoning personalities…</div>
                 </div>
             </div>
-            
-            <!-- Quick Stats Mini -->
-            <div class="quick-stats glass-panel">
-                <div class="quick-stat-item">
-                    <span class="quick-stat-icon">⚡</span>
-                    <span class="quick-stat-label">Today:</span>
-                    <span class="quick-stat-value" id="quick-today">0 msgs</span>
-                </div>
-                <div class="quick-stat-item">
-                    <span class="quick-stat-icon">📊</span>
-                    <span class="quick-stat-label">Total:</span>
-                    <span class="quick-stat-value" id="quick-total">0 msgs</span>
-                </div>
+
+            <!-- Quick Stats -->
+            <div class="quick-stats grimoire-panel">
+                <div class="quick-stat-item"><span class="quick-stat-icon">⚡</span><span class="quick-stat-label">Today</span><span class="quick-stat-value" id="quick-today">0 msgs</span></div>
+                <div class="quick-stat-item"><span class="quick-stat-icon">📊</span><span class="quick-stat-label">Total</span><span class="quick-stat-value" id="quick-total">0 msgs</span></div>
             </div>
-        </div>
+
+            <!-- Ecosystem Link -->
+            <div class="ecosystem-link-panel grimoire-panel">
+                <a href="https://wizardecosystem.dpdns.org" class="ecosystem-link" rel="noopener">
+                    <span aria-hidden="true">🧙</span>
+                    <span>Back to Ecosystem</span>
+                    <span class="ecosystem-arrow" aria-hidden="true">→</span>
+                </a>
+            </div>
+        </aside>
     </div>
 
-    <!-- ============================================
-         MODALS (Auth, Rename, Code, Image, Memory, Stats, Personalities)
-         ============================================ -->
+    <!-- ══════════════════════════════════════
+         MODALS
+         ══════════════════════════════════════ -->
 
     <!-- Auth Modal -->
-    <div class="modal-overlay" id="auth-modal-overlay">
-        <div class="modal glass-panel" id="auth-modal">
+    <div class="modal-overlay" id="auth-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
+        <div class="modal grimoire-modal">
             <div class="modal-header">
                 <h3 id="auth-modal-title">Login to Wizard.AI</h3>
-                <button class="close-modal" id="close-auth-modal">&times;</button>
+                <button class="close-modal" id="close-auth-modal" aria-label="Close">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="auth-form">
-                    <div class="form-group" id="first-name-group" style="display: none;">
-                        <label for="first-name">First Name</label>
-                        <input type="text" id="first-name" placeholder="Enter your first name">
-                    </div>
-                    <div class="form-group" id="last-name-group" style="display: none;">
-                        <label for="last-name">Last Name</label>
-                        <input type="text" id="last-name" placeholder="Enter your last name">
-                    </div>
-                    <div class="form-group">
-                        <label for="auth-email">Email</label>
-                        <input type="email" id="auth-email" placeholder="Enter your email">
-                    </div>
-                    <div class="form-group">
-                        <label for="auth-password">Password</label>
-                        <input type="password" id="auth-password" placeholder="Enter your password">
-                    </div>
-                    <div class="form-group" id="confirm-password-group" style="display: none;">
-                        <label for="auth-confirm">Confirm Password</label>
-                        <input type="password" id="auth-confirm" placeholder="Confirm your password">
-                    </div>
-                    <div class="form-group" id="verification-group" style="display: none;">
+                    <div class="form-group" id="first-name-group" style="display:none;"><label for="first-name">First Name</label><input type="text" id="first-name" placeholder="Enter your first name" autocomplete="given-name"></div>
+                    <div class="form-group" id="last-name-group" style="display:none;"><label for="last-name">Last Name</label><input type="text" id="last-name" placeholder="Enter your last name" autocomplete="family-name"></div>
+                    <div class="form-group"><label for="auth-email">Email</label><input type="email" id="auth-email" placeholder="Enter your email" autocomplete="email"></div>
+                    <div class="form-group"><label for="auth-password">Password</label><input type="password" id="auth-password" placeholder="Enter your password" autocomplete="current-password"></div>
+                    <div class="form-group" id="confirm-password-group" style="display:none;"><label for="auth-confirm">Confirm Password</label><input type="password" id="auth-confirm" placeholder="Confirm your password" autocomplete="new-password"></div>
+                    <div class="form-group" id="verification-group" style="display:none;">
                         <label for="verification-code">Verification Code</label>
-                        <input type="text" id="verification-code" placeholder="Enter 6-digit code" maxlength="6">
+                        <input type="text" id="verification-code" placeholder="Enter 6-digit code" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
                         <button id="resend-code-btn" class="resend-btn">📧 Resend Code</button>
                     </div>
-                    <div class="auth-error" id="auth-error"></div>
-                    <button class="auth-submit glass-button" id="auth-submit">Login</button>
+                    <div class="auth-error" id="auth-error" role="alert"></div>
+                    <button class="auth-submit" id="auth-submit">Login</button>
                 </div>
                 <div class="auth-switch">
                     <span id="auth-switch-text">Don't have an account?</span>
@@ -470,109 +351,102 @@
     </div>
 
     <!-- Rename Chat Modal -->
-    <div class="modal-overlay" id="rename-modal-overlay">
-        <div class="modal glass-panel" id="rename-modal">
-            <h3>Rename Chat</h3>
-            <input type="text" id="rename-input" placeholder="Enter new name..." maxlength="30">
+    <div class="modal-overlay" id="rename-modal-overlay" role="dialog" aria-modal="true" aria-label="Rename chat">
+        <div class="modal grimoire-modal">
+            <h3 class="modal-simple-title">Rename Chat</h3>
+            <input type="text" id="rename-input" placeholder="Enter new name…" maxlength="30" aria-label="New chat name">
             <div class="modal-buttons">
-                <button id="modal-save" class="glass-button">Save</button>
-                <button id="modal-cancel" class="glass-button secondary">Cancel</button>
+                <button id="modal-save" class="modal-btn-primary">Save</button>
+                <button id="modal-cancel" class="modal-btn-ghost">Cancel</button>
             </div>
         </div>
     </div>
 
-    <!-- Code Execution Modal -->
-    <div class="modal-overlay" id="code-modal-overlay">
-        <div class="modal glass-panel large-modal" id="code-modal">
+    <!-- Code Modal -->
+    <div class="modal-overlay" id="code-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="code-modal-title">
+        <div class="modal grimoire-modal large-modal">
             <div class="modal-header">
-                <h3>🐍 Python Code Interpreter</h3>
-                <button class="close-modal" id="close-code-modal">&times;</button>
+                <h3 id="code-modal-title">🐍 Python Code Interpreter</h3>
+                <button class="close-modal" id="close-code-modal" aria-label="Close">&times;</button>
             </div>
             <div class="modal-body">
-                <textarea id="code-input" placeholder="# Write your Python code here\nprint('Hello Wizard!')" rows="8"></textarea>
+                <textarea id="code-input" placeholder="# Write your Python code here&#10;print('Hello Wizard!')" rows="8" aria-label="Python code editor"></textarea>
                 <div class="modal-actions">
-                    <button id="run-code" class="glass-button primary">Run Code</button>
-                    <button id="clear-code" class="glass-button secondary">Clear</button>
+                    <button id="run-code" class="modal-btn-primary">▶ Run Code</button>
+                    <button id="clear-code" class="modal-btn-ghost">Clear</button>
                 </div>
-                <div id="code-output" class="code-output"></div>
+                <div id="code-output" class="code-output" role="region" aria-label="Code output"></div>
             </div>
         </div>
     </div>
 
-    <!-- Image Generation Modal -->
-    <div class="modal-overlay" id="image-modal-overlay">
-        <div class="modal glass-panel" id="image-modal">
+    <!-- Image Modal -->
+    <div class="modal-overlay" id="image-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="image-modal-title">
+        <div class="modal grimoire-modal">
             <div class="modal-header">
-                <h3>🎨 AI Image Generator</h3>
-                <button class="close-modal" id="close-image-modal">&times;</button>
+                <h3 id="image-modal-title">🎨 AI Image Generator</h3>
+                <button class="close-modal" id="close-image-modal" aria-label="Close">&times;</button>
             </div>
             <div class="modal-body">
-                <input type="text" id="image-prompt" placeholder="Describe the image you want..." class="modal-input">
+                <input type="text" id="image-prompt" placeholder="Describe the image you want to conjure…" class="modal-input" aria-label="Image description">
                 <div class="image-size-selector">
-                    <label>Size:</label>
-                    <select id="image-size">
-                        <option value="512x512">Square (512x512)</option>
-                        <option value="768x512">Landscape (768x512)</option>
-                        <option value="512x768">Portrait (512x768)</option>
+                    <label for="image-size">Size</label>
+                    <select id="image-size" class="modal-input" aria-label="Image size">
+                        <option value="512x512">Square (512×512)</option>
+                        <option value="768x512">Landscape (768×512)</option>
+                        <option value="512x768">Portrait (512×768)</option>
                     </select>
                 </div>
-                <div class="modal-actions">
-                    <button id="generate-image" class="glass-button primary">Generate</button>
-                </div>
-                <div id="image-result" class="image-result"></div>
+                <div class="modal-actions"><button id="generate-image" class="modal-btn-primary">✦ Generate</button></div>
+                <div id="image-result" class="image-result" role="region" aria-label="Generated image"></div>
             </div>
         </div>
     </div>
 
     <!-- Memory Modal -->
-    <div class="modal-overlay" id="memory-modal-overlay">
-        <div class="modal glass-panel" id="memory-modal">
+    <div class="modal-overlay" id="memory-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="memory-modal-title">
+        <div class="modal grimoire-modal">
             <div class="modal-header">
-                <h3>🧠 Your Memories</h3>
-                <button class="close-modal" id="close-memory-modal">&times;</button>
+                <h3 id="memory-modal-title">🧠 Your Memories</h3>
+                <button class="close-modal" id="close-memory-modal" aria-label="Close">&times;</button>
             </div>
             <div class="modal-body">
-                <div id="memory-list" class="memory-list">Loading memories...</div>
+                <div id="memory-list" class="memory-list" role="list">Loading memories…</div>
             </div>
         </div>
     </div>
 
     <!-- Stats Modal -->
-    <div class="modal-overlay" id="stats-modal-overlay">
-        <div class="modal glass-panel large-modal" id="stats-modal">
+    <div class="modal-overlay" id="stats-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="stats-modal-title">
+        <div class="modal grimoire-modal large-modal">
             <div class="modal-header">
-                <h3>📊 Detailed Statistics</h3>
-                <button class="close-modal" id="close-stats-modal">&times;</button>
+                <h3 id="stats-modal-title">📊 Detailed Statistics</h3>
+                <button class="close-modal" id="close-stats-modal" aria-label="Close">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="stats-detailed">
-                    <div class="stats-section">
-                        <h4>📈 Usage Overview</h4>
-                        <div class="stats-row"><span>Account Created:</span><span id="stats-created">-</span></div>
-                        <div class="stats-row"><span>Last Active:</span><span id="stats-last">-</span></div>
-                        <div class="stats-row"><span>Total Messages:</span><span id="stats-total-msgs">0</span></div>
-                        <div class="stats-row"><span>Total Chats:</span><span id="stats-total-chats">0</span></div>
+                    <div class="stats-section"><h4>📈 Usage Overview</h4>
+                        <div class="stats-row"><span>Account Created</span><span id="stats-created">—</span></div>
+                        <div class="stats-row"><span>Last Active</span><span id="stats-last">—</span></div>
+                        <div class="stats-row"><span>Total Messages</span><span id="stats-total-msgs">0</span></div>
+                        <div class="stats-row"><span>Total Chats</span><span id="stats-total-chats">0</span></div>
                     </div>
-                    <div class="stats-section">
-                        <h4>📁 Content Stats</h4>
-                        <div class="stats-row"><span>Files Uploaded:</span><span id="stats-files">0</span></div>
-                        <div class="stats-row"><span>Images Generated:</span><span id="stats-images">0</span></div>
-                        <div class="stats-row"><span>Code Executions:</span><span id="stats-code">0</span></div>
-                        <div class="stats-row"><span>Web Searches:</span><span id="stats-searches">0</span></div>
+                    <div class="stats-section"><h4>📁 Content Stats</h4>
+                        <div class="stats-row"><span>Files Uploaded</span><span id="stats-files">0</span></div>
+                        <div class="stats-row"><span>Images Generated</span><span id="stats-images">0</span></div>
+                        <div class="stats-row"><span>Code Executions</span><span id="stats-code">0</span></div>
+                        <div class="stats-row"><span>Web Searches</span><span id="stats-searches">0</span></div>
                     </div>
-                    <div class="stats-section">
-                        <h4>🧠 Memory Stats</h4>
-                        <div class="stats-row"><span>Memories Stored:</span><span id="stats-memories">0</span></div>
-                        <div class="stats-row"><span>Documents in RAG:</span><span id="stats-docs">0</span></div>
+                    <div class="stats-section"><h4>🧠 Memory Stats</h4>
+                        <div class="stats-row"><span>Memories Stored</span><span id="stats-memories">0</span></div>
+                        <div class="stats-row"><span>Documents in RAG</span><span id="stats-docs">0</span></div>
                     </div>
-                    <div class="stats-section">
-                        <h4>⚡ Performance</h4>
-                        <div class="stats-row"><span>Avg Response Time:</span><span id="stats-avg-response">0.4s</span></div>
-                        <div class="stats-row"><span>Fastest Response:</span><span id="stats-fastest">0.2s</span></div>
+                    <div class="stats-section"><h4>⚡ Performance</h4>
+                        <div class="stats-row"><span>Avg Response Time</span><span id="stats-avg-response">0.4s</span></div>
+                        <div class="stats-row"><span>Fastest Response</span><span id="stats-fastest">0.2s</span></div>
                     </div>
-                    <div class="stats-section">
-                        <h4>🔑 API Usage</h4>
-                        <div class="stats-row"><span>API Keys:</span><span id="stats-api-keys">0</span></div>
+                    <div class="stats-section"><h4>🔑 API Usage</h4>
+                        <div class="stats-row"><span>API Keys</span><span id="stats-api-keys">0</span></div>
                     </div>
                 </div>
             </div>
@@ -580,136 +454,133 @@
     </div>
 
     <!-- Personalities Browser Modal -->
-    <div class="modal-overlay" id="personalities-modal-overlay">
-        <div class="modal glass-panel large-modal" id="personalities-modal">
+    <div class="modal-overlay" id="personalities-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="personalities-modal-title">
+        <div class="modal grimoire-modal large-modal">
             <div class="modal-header">
-                <h3>🎭 Community Personalities</h3>
-                <button class="close-modal" id="close-personalities-modal">&times;</button>
+                <h3 id="personalities-modal-title">🎭 Community Personalities</h3>
+                <button class="close-modal" id="close-personalities-modal" aria-label="Close">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="personalities-browser">
-                    <div class="personalities-tabs">
-                        <button class="tab-btn active" data-tab="featured">Featured</button>
-                        <button class="tab-btn" data-tab="popular">Popular</button>
-                        <button class="tab-btn" data-tab="recent">Recent</button>
-                        <button class="tab-btn" data-tab="mine">Mine</button>
+                    <div class="personalities-tabs" role="tablist">
+                        <button class="tab-btn active" data-tab="featured" role="tab" aria-selected="true">Featured</button>
+                        <button class="tab-btn" data-tab="popular" role="tab" aria-selected="false">Popular</button>
+                        <button class="tab-btn" data-tab="recent" role="tab" aria-selected="false">Recent</button>
+                        <button class="tab-btn" data-tab="mine" role="tab" aria-selected="false">Mine</button>
                     </div>
-                    <div class="personalities-grid" id="personalities-grid"></div>
+                    <div class="personalities-grid" id="personalities-grid" role="list"></div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Update History Modal -->
-    <div class="modal-overlay" id="update-modal-overlay">
-        <div class="modal glass-panel large-modal" id="update-modal">
+    <div class="modal-overlay" id="update-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="update-modal-title">
+        <div class="modal grimoire-modal large-modal">
             <div class="modal-header">
-                <h3>📜 Wizard.AI Update History</h3>
-                <button class="close-modal" id="close-update-modal">&times;</button>
+                <h3 id="update-modal-title">📜 Wizard.AI Update History</h3>
+                <button class="close-modal" id="close-update-modal" aria-label="Close">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="update-timeline">
+
                     <div class="update-item current">
-                        <div class="update-version">🤖 v13.0.0 - Multi-Agent Update (April 2026)</div>
+                        <div class="update-version">🎨 v15.0.0 — UI Update <span class="update-badge">Current</span></div>
+                        <div class="update-date">May 2026</div>
+                        <div class="update-content"><ul>
+                            <li>🎨 Complete UI overhaul — unified Wizard Ecosystem visual language</li>
+                            <li>✦ Cormorant Garamond display font, grimoire-panel aesthetic throughout</li>
+                            <li>🌟 New ambient depth system: 4-layer atmospheric blobs + starfield</li>
+                            <li>📐 Restructured sidebar hierarchy: model + turbo merged, cleaner panels</li>
+                            <li>🔗 Ecosystem link panel in chat sidebar</li>
+                            <li>💫 Gold ink dividers and rune-ring section markers</li>
+                            <li>🎭 Elevated dropdown, modal, and button design language</li>
+                            <li>♿ Full ARIA labels and role attributes across all interactive elements</li>
+                        </ul></div>
+                    </div>
+
+                    <div class="update-item">
+                        <div class="update-version">🌐 v14.0.0 — Ecosystem Update</div>
+                        <div class="update-date">April 2026</div>
+                        <div class="update-content"><ul>
+                            <li>🌐 New Wizard Ecosystem homepage at wizardecosystem.dpdns.org</li>
+                            <li>📧 Wizard Mail — Gmail, Outlook & IMAP email client</li>
+                            <li>💬 Wizard Chat — real-time messaging between Wizard users</li>
+                            <li>📅 Wizard Calendar — event scheduling and management</li>
+                            <li>🌍 Wizard Browser — AI-powered web browsing</li>
+                            <li>🔍 Wizard Search — intelligent web search</li>
+                            <li>🔐 Unified authentication across all Ecosystem apps</li>
+                            <li>☁️ Cross-app cloud sync and session sharing</li>
+                        </ul></div>
+                    </div>
+
+                    <div class="update-item">
+                        <div class="update-version">🤖 v13.0.0 — Multi-Agent Update</div>
                         <div class="update-date">April 3, 2026</div>
-                        <div class="update-content">
-                            <ul>
-                                <li>🤖 Multi-Agent Orchestration - Chain specialized AI agents together</li>
-                                <li>🔍 Researcher Agent - Web search and fact-finding</li>
-                                <li>✍️ Writer Agent - Content creation and editing</li>
-                                <li>💻 Coder Agent - Programming and debugging</li>
-                                <li>🎨 Designer Agent - Images and visual design</li>
-                                <li>📊 Data Analyst Agent - Numbers and trend analysis</li>
-                                <li>✅ Reviewer Agent - Quality checking and feedback</li>
-                                <li>📝 Summarizer Agent - Condense long text</li>
-                                <li>🌐 Translator Agent - Language translation</li>
-                                <li>⚡ Optimizer Agent - Performance improvements</li>
-                                <li>🔗 Chain Studio - Run pre-built multi-agent workflows</li>
-                                <li>🛠️ Agent Builder - Create custom agents</li>
-                                <li>🛒 Agent Marketplace - Share and install community agents</li>
-                            </ul>
-                        </div>
+                        <div class="update-content"><ul>
+                            <li>🤖 Multi-Agent Orchestration — chain specialized AI agents together</li>
+                            <li>🔍 Researcher, ✍️ Writer, 💻 Coder, 🎨 Designer agents</li>
+                            <li>📊 Data Analyst, ✅ Reviewer, 📝 Summarizer, 🌐 Translator agents</li>
+                            <li>🔗 Chain Studio — pre-built multi-agent workflows</li>
+                            <li>🛠️ Agent Builder — create custom agents</li>
+                            <li>🛒 Agent Marketplace — share and install community agents</li>
+                        </ul></div>
                     </div>
-                    
+
                     <div class="update-item">
-                        <div class="update-version">👨‍💻 v12.0.0 - Developer Hub Update (April 2026)</div>
+                        <div class="update-version">👨‍💻 v12.0.0 — Developer Hub Update</div>
                         <div class="update-date">April 2026</div>
-                        <div class="update-content">
-                            <ul>
-                                <li>👨‍💻 Developer Hub at /devhub</li>
-                                <li>🔑 API Keys management UI</li>
-                                <li>📚 API documentation with code examples</li>
-                                <li>📊 API usage analytics dashboard</li>
-                                <li>🐛 Fixed mobile auth issues</li>
-                                <li>📱 ChatGPT-style mobile layout with hamburger menu</li>
-                            </ul>
-                        </div>
+                        <div class="update-content"><ul>
+                            <li>👨‍💻 Developer Hub at /devhub</li>
+                            <li>🔑 API key management UI and analytics</li>
+                            <li>📚 Full API documentation with code examples</li>
+                            <li>📱 ChatGPT-style mobile layout with hamburger menu</li>
+                        </ul></div>
                     </div>
-                    
+
                     <div class="update-item">
-                        <div class="update-version">👑 v11.0.0 - Admin Update (April 2026)</div>
+                        <div class="update-version">👑 v11.0.0 — Admin Update</div>
                         <div class="update-date">April 2026</div>
-                        <div class="update-content">
-                            <ul>
-                                <li>👑 Admin Dashboard with full system control</li>
-                                <li>🔧 Fixed API keys display in sidebar</li>
-                                <li>🎨 Fixed image generation with multiple fallbacks</li>
-                                <li>🌐 Fixed web search with Tavily API</li>
-                                <li>💻 Fixed code execution sandbox</li>
-                                <li>🖥️ Desktop app released for Windows</li>
-                            </ul>
-                        </div>
+                        <div class="update-content"><ul>
+                            <li>👑 Admin Dashboard with full system control</li>
+                            <li>🎨 Fixed image generation with multiple fallbacks</li>
+                            <li>🌐 Fixed web search with Tavily API</li>
+                            <li>🖥️ Desktop app released for Windows</li>
+                        </ul></div>
                     </div>
-                    
+
                     <div class="update-item">
-                        <div class="update-version">🔧 v10.0.0 - Bug Fix Update (March 2026)</div>
+                        <div class="update-version">🚀 v9.0.0 — PRO Update</div>
                         <div class="update-date">March 2026</div>
-                        <div class="update-content">
-                            <ul>
-                                <li>🐛 Fixed message overwriting in chat history</li>
-                                <li>🔐 Fixed login session persistence</li>
-                                <li>📄 Enhanced document processing (PDF, DOCX, Excel)</li>
-                            </ul>
-                        </div>
+                        <div class="update-content"><ul>
+                            <li>🌐 Web search with auto-detection</li>
+                            <li>📎 File upload with RAG document Q&A</li>
+                            <li>💻 Python code execution sandbox</li>
+                            <li>🎨 AI image generation</li>
+                            <li>🎭 Community personalities browser</li>
+                        </ul></div>
                     </div>
-                    
-                    <div class="update-item">
-                        <div class="update-version">🚀 v9.0.0 - PRO Update (March 2026)</div>
-                        <div class="update-date">March 2026</div>
-                        <div class="update-content">
-                            <ul>
-                                <li>🌐 Web search with auto-detection</li>
-                                <li>📎 File upload with RAG document Q&A</li>
-                                <li>💻 Python code execution sandbox</li>
-                                <li>🎨 AI image generation</li>
-                                <li>🎭 Community personalities browser</li>
-                                <li>🔑 API key management</li>
-                            </ul>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Hidden File Input -->
-    <input type="file" id="file-upload" style="display: none;" accept=".txt,.pdf,.doc,.docx,.xls,.xlsx,.csv,.jpg,.png">
+    <!-- Hidden file input -->
+    <input type="file" id="file-upload" style="display:none;" accept=".txt,.pdf,.doc,.docx,.xls,.xlsx,.csv,.jpg,.png" aria-hidden="true">
 
     <!-- Notification Toast -->
-    <div id="notification-toast" class="notification-toast"></div>
+    <div id="notification-toast" class="notification-toast" role="status" aria-live="polite"></div>
 
-    <!-- Service Worker Registration -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js')
-                    .then(reg => console.log('✅ Service Worker registered'))
-                    .catch(err => console.log('❌ Service Worker error:', err));
+                    .then(() => console.log('✅ SW registered'))
+                    .catch(err => console.log('❌ SW error:', err));
             });
         }
     </script>
-    
-    <!-- Main Script -->
     <script src="script.js"></script>
 </body>
 </html>
