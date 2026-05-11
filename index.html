@@ -3,27 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>🧙 Wizard.AI Pro v13.0 - Multi-Agent AI Assistant</title>
     
-    <!-- Primary Meta Tags -->
-    <meta name="title" content="Wizard.AI Pro v13.0 - Multi-Agent AI Assistant">
-    <meta name="description" content="Wizard.AI is a full AI platform with multi-agent orchestration, RAG, persistent memory, web search, code execution, image generation, admin dashboard, developer hub, and 7 personalities.">
-    <meta name="keywords" content="AI, chatbot, multi-agent, RAG, machine learning, Flask, Groq, Llama, admin dashboard, developer hub">
+    <!-- Primary SEO Meta Tags -->
+    <title>Wizard.AI Pro — Multi-Agent AI Assistant with 7 Personalities</title>
+    <meta name="title" content="Wizard.AI Pro — Multi-Agent AI Assistant | Your Magical AI Workspace">
+    <meta name="description" content="Wizard.AI is a complete AI platform with multi-agent orchestration, RAG, persistent memory, web search, code execution, image generation, admin dashboard, developer hub, and 7 distinct personalities.">
+    <meta name="keywords" content="Wizard.AI, AI assistant, multi-agent, RAG, machine learning, Flask, Groq, Llama, AI chatbot, code execution, image generation, web search, Arnav Gupta">
     <meta name="author" content="Arnav Gupta">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#0a0814">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.wizardai.dpdns.org/">
-    <meta property="og:title" content="Wizard.AI Pro v13.0 - Multi-Agent AI Assistant">
+    <meta property="og:title" content="Wizard.AI Pro — Your Magical AI Workspace">
     <meta property="og:description" content="Multi-agent orchestration, RAG, memory, web search, code execution, image generation, admin dashboard, developer hub, and 7 personalities.">
     <meta property="og:image" content="https://www.wizardai.dpdns.org/og-image.png">
+    <meta property="og:site_name" content="Wizard.AI Pro">
     
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://www.wizardai.dpdns.org/">
-    <meta property="twitter:title" content="Wizard.AI Pro v13.0 - Multi-Agent AI Assistant">
-    <meta property="twitter:description" content="Multi-agent orchestration, RAG, memory, web search, code execution, image generation, admin dashboard, developer hub, and 7 personalities.">
-    <meta property="twitter:image" content="https://www.wizardai.dpdns.org/og-image.png">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://www.wizardai.dpdns.org/">
+    <meta name="twitter:title" content="Wizard.AI Pro — Your Magical AI Workspace">
+    <meta name="twitter:description" content="Multi-agent orchestration, RAG, memory, web search, code execution, and 7 AI personalities.">
+    <meta name="twitter:image" content="https://www.wizardai.dpdns.org/og-image.png">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://www.wizardai.dpdns.org/">
+    
+    <!-- Structured Data / JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Wizard.AI Pro",
+      "url": "https://www.wizardai.dpdns.org/",
+      "description": "A complete AI platform with multi-agent orchestration, RAG, persistent memory, and 7 AI personalities.",
+      "applicationCategory": "AIApplication",
+      "operatingSystem": "Web, Windows, macOS, Linux, iOS, Android",
+      "author": { "@type": "Person", "name": "Arnav Gupta" },
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": "Multi-agent orchestration, RAG document Q&A, Persistent memory, Web search, Code execution, Image generation, 7 personalities, Developer API, Admin dashboard"
+    }
+    </script>
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
@@ -34,30 +56,32 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Wizard.AI">
     
-    <!-- Apple Touch Icons (iOS Home Screen) -->
+    <!-- Apple Touch Icons -->
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
     <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon.png">
     <link rel="apple-touch-icon" sizes="120x120" href="/icons/apple-touch-icon.png">
     
-    <!-- Favicon for browsers -->
+    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/icons/favicon.ico">
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png">
     
-    <!-- Theme Color -->
-    <meta name="theme-color" content="#8b5cf6">
-    <meta name="msapplication-TileColor" content="#8b5cf6">
-    <meta name="msapplication-TileImage" content="/icons/icon-192.png">
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Stylesheets -->
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Animated Background -->
-    <div class="stars"></div>
-    <div class="twinkling"></div>
-    <div class="clouds"></div>
+    <!-- Animated Stars Canvas -->
+    <canvas id="starfield" aria-hidden="true"></canvas>
+    
+    <!-- Ambient Blobs -->
+    <div class="ambient ambient-1" aria-hidden="true"></div>
+    <div class="ambient ambient-2" aria-hidden="true"></div>
+    <div class="ambient ambient-3" aria-hidden="true"></div>
     
     <!-- Install Prompt for PWA -->
     <div id="install-prompt" class="install-prompt" style="display: none;">
@@ -71,7 +95,7 @@
     
     <!-- Floating Desktop Download Button -->
     <div id="desktop-download-btn" style="position: fixed; bottom: 30px; right: 30px; z-index: 10000; display: none;">
-        <button style="background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 60px; padding: 14px 28px; color: white; cursor: pointer; font-weight: 700; font-size: 16px; box-shadow: 0 4px 20px rgba(16,185,129,0.4); transition: all 0.3s ease; display: flex; align-items: center; gap: 10px;">
+        <button class="desktop-download-button">
             💻 Download Desktop App
         </button>
     </div>
@@ -83,6 +107,7 @@
              ============================================ -->
         <div class="sidebar">
             <div class="wizard-profile">
+                <div class="rune-ring" aria-hidden="true"></div>
                 <div class="wizard-avatar">
                     <span class="floating-emoji">🧙‍♂️</span>
                 </div>
@@ -255,7 +280,7 @@
             
             <!-- Footer -->
             <div class="footer-note">
-                <p>Created by Arnav ✨</p>
+                <p>Crafted by <a href="#" rel="author">Arnav Gupta</a> ✨</p>
                 <p class="version">v13.0.0 - Multi-Agent Update</p>
                 <p class="domain">wizardai.dpdns.org</p>
             </div>
@@ -659,97 +684,6 @@
                                 <li>🎨 AI image generation</li>
                                 <li>🎭 Community personalities browser</li>
                                 <li>🔑 API key management</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="update-item">
-                        <div class="update-version">📊 v8.0.0 - Stats Update (March 2026)</div>
-                        <div class="update-date">March 2026</div>
-                        <div class="update-content">
-                            <ul>
-                                <li>📈 User statistics tracking</li>
-                                <li>🧠 Persistent memory system</li>
-                                <li>⚡ Average response time tracking</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="update-item">
-                        <div class="update-version">💬 v7.0.0 - Chats & User Update (March 2026)</div>
-                        <div class="update-date">March 2026</div>
-                        <div class="update-content">
-                            <ul>
-                                <li>🔐 User signup and login with email verification</li>
-                                <li>💾 Real database storage</li>
-                                <li>💬 Create, rename, and delete multiple chats</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="update-item">
-                        <div class="update-version">🌐 v6.0.0 - Web Update (March 2026)</div>
-                        <div class="update-date">March 2026</div>
-                        <div class="update-content">
-                            <ul>
-                                <li>🔄 Complete overhaul to web-based application</li>
-                                <li>🎨 Beautiful UI with dark theme</li>
-                                <li>📱 Mobile-responsive design</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="update-item">
-                        <div class="update-version">🎭 v5.0.0 - Personality Update (March 2026)</div>
-                        <div class="update-date">March 2026</div>
-                        <div class="update-content">
-                            <ul>
-                                <li>🎭 7 personality modes (JARVIS, ORACLE, Nerd, Fun, Sarcastic, Fast, Normal)</li>
-                                <li>✨ Custom personality creator</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="update-item">
-                        <div class="update-version">🎨 v4.0.0 - UI Update (March 2026)</div>
-                        <div class="update-date">March 2026</div>
-                        <div class="update-content">
-                            <ul>
-                                <li>🖥️ Basic UI added through Flask and HTML</li>
-                                <li>⚡ Turbo mode for faster responses</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="update-item">
-                        <div class="update-version">🤖 v3.0.0 - Ollama Integration (March 2026)</div>
-                        <div class="update-date">March 2026</div>
-                        <div class="update-content">
-                            <ul>
-                                <li>🤖 Integrated Ollama for better AI inference</li>
-                                <li>🧠 Smart logic and improved responses</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="update-item">
-                        <div class="update-version">🧩 v2.0.0 - Enhanced Logic (March 2026)</div>
-                        <div class="update-date">March 2026</div>
-                        <div class="update-content">
-                            <ul>
-                                <li>🧩 Enhanced logic for better phrase recognition</li>
-                                <li>🔤 Spelling error correction</li>
-                            </ul>
-                        </div>
-                    </div>
-                    
-                    <div class="update-item">
-                        <div class="update-version">🚀 v1.0.0 - Initial Release (March 2026)</div>
-                        <div class="update-date">March 2026</div>
-                        <div class="update-content">
-                            <ul>
-                                <li>🚀 Initial release</li>
-                                <li>💻 Local terminal bot</li>
                             </ul>
                         </div>
                     </div>
