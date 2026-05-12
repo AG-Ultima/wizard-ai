@@ -3,407 +3,469 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🧙 Wizard.AI Admin Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Wizard.AI — Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
         :root {
-            --primary: #8b5cf6;
-            --primary-dark: #6d28d9;
-            --primary-light: #c4b5fd;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
-            --info: #3b82f6;
-            --bg-deep: #030614;
-            --bg-dark: #0a0f1a;
-            --bg-card: rgba(15, 20, 30, 0.95);
-            --text-primary: #ffffff;
-            --text-secondary: #e0e7ff;
-            --text-muted: #9ca3af;
-            --border: rgba(139, 92, 246, 0.3);
+            --ink:          #080612;
+            --ink-2:        #0e0b1e;
+            --ink-3:        #13102a;
+            --gold:         #c9a84c;
+            --gold-light:   #e8c97a;
+            --gold-glow:    rgba(201,168,76,0.18);
+            --violet:       #7c5cbf;
+            --silver:       #d4d0e8;
+            --silver-dim:   rgba(212,208,232,0.55);
+            --muted:        rgba(212,208,232,0.35);
+            --border:       rgba(201,168,76,0.18);
+            --border-mid:   rgba(201,168,76,0.30);
+            --border-strong:rgba(201,168,76,0.50);
+            --danger:       #e05555;
+            --danger-glow:  rgba(224,85,85,0.25);
+            --warning:      #f0a832;
+            --warning-glow: rgba(240,168,50,0.25);
+            --success:      #5cb87a;
+            --success-glow: rgba(92,184,122,0.25);
+            --info:         #4a8fe8;
+            --pill:         100px;
+            --panel:        20px;
         }
-        
+
+        html { scroll-behavior: smooth; }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-deep);
-            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            background: var(--ink);
+            color: var(--silver);
             min-height: 100vh;
+            overflow-x: hidden;
         }
-        
-        .stars {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 20% 30%, rgba(139,92,246,0.1) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 0;
+
+        /* ── Ambient ── */
+        .ambient {
+            position: fixed; border-radius: 50%;
+            filter: blur(130px); pointer-events: none; z-index: 0;
+            animation: drift 20s ease-in-out infinite alternate;
         }
-        
-        .admin-container {
-            position: relative;
-            z-index: 10;
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        /* Header */
-        .admin-header {
-            background: var(--bg-card);
-            backdrop-filter: blur(12px);
+        .ambient-1 { width:700px;height:700px;top:-200px;left:-200px;background:radial-gradient(circle,#3a1f6e,transparent 70%);opacity:0.4; }
+        .ambient-2 { width:500px;height:500px;bottom:-100px;right:-100px;background:radial-gradient(circle,#5c3a1e,transparent 70%);opacity:0.35;animation-delay:-10s; }
+        .ambient-3 { width:350px;height:350px;top:35%;left:35%;background:radial-gradient(circle,#1a1040,transparent 70%);opacity:0.3;animation-delay:-5s; }
+        @keyframes drift { from{transform:translate(0,0) scale(1);} to{transform:translate(40px,28px) scale(1.1);} }
+
+        /* ── Grimoire Panel ── */
+        .grimoire-panel {
+            background: linear-gradient(150deg, rgba(19,16,42,0.94), rgba(10,8,24,0.92));
             border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 20px 30px;
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
+            border-radius: var(--panel);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.55), inset 0 1px 0 rgba(201,168,76,0.06);
+            backdrop-filter: blur(14px);
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .grimoire-panel:hover {
+            border-color: var(--border-mid);
+            box-shadow: 0 0 24px var(--gold-glow), 0 10px 30px rgba(0,0,0,0.65);
         }
-        
-        .logo-icon { font-size: 36px; }
-        .logo-text {
-            font-size: 24px;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--primary-light), var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+
+        /* ── Panel Label ── */
+        .panel-label {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 16px;
+            font-size: 10px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase;
+            color: var(--muted);
+            padding-bottom: 10px; position: relative;
         }
-        
-        .version-badge {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
+        .panel-label::after {
+            content:''; position:absolute; bottom:0; left:0; right:0;
+            height:1px; background:linear-gradient(90deg,rgba(201,168,76,0.2),transparent 80%);
         }
-        
-        .admin-user {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        .panel-label-icon { font-size:14px; filter:drop-shadow(0 0 6px rgba(201,168,76,0.35)); }
+
+        /* ── Layout ── */
+        .shell {
+            position: relative; z-index: 10;
+            max-width: 1560px; margin: 0 auto;
+            padding: 24px 20px 60px;
         }
-        
+
+        /* ── Header ── */
+        .admin-header {
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 16px;
+            padding: 18px 28px; margin-bottom: 28px;
+        }
+        .logo { display: flex; align-items: center; gap: 14px; text-decoration: none; }
+        .logo-glyph {
+            font-size: 34px;
+            filter: drop-shadow(0 0 16px rgba(201,168,76,0.4));
+            animation: levitate 5s ease-in-out infinite;
+        }
+        @keyframes levitate { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
+        .logo-wordmark {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px; font-weight: 300; color: var(--silver);
+        }
+        .logo-wordmark em {
+            font-style: italic;
+            background: linear-gradient(135deg, var(--gold-light), var(--gold));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .logo-badge {
+            font-size: 10px; font-weight: 600; letter-spacing: 0.12em;
+            background: linear-gradient(135deg, var(--gold), #8a5a1a);
+            color: var(--ink); padding: 3px 10px; border-radius: var(--pill);
+        }
+        .header-right { display: flex; align-items: center; gap: 14px; }
+        .admin-crown { font-size: 14px; color: var(--gold); letter-spacing: 0.04em; }
+
         .logout-btn {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid var(--danger);
-            border-radius: 30px;
-            padding: 8px 20px;
-            color: var(--danger);
-            cursor: pointer;
-            transition: all 0.3s;
+            background: rgba(224,85,85,0.12); border: 1px solid rgba(224,85,85,0.35);
+            border-radius: var(--pill); padding: 8px 20px;
+            color: var(--danger); font-family: 'DM Sans', sans-serif;
+            font-size: 13px; font-weight: 500; cursor: pointer;
+            transition: all 0.25s;
         }
-        
-        .logout-btn:hover {
-            background: var(--danger);
-            color: white;
-        }
-        
-        /* Stats Grid */
+        .logout-btn:hover { background: var(--danger); color: #fff; }
+
+        /* ── Stats Grid ── */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+            gap: 14px; margin-bottom: 28px;
         }
-        
         .stat-card {
-            background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(0,0,0,0.3));
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            transition: all 0.3s;
+            padding: 22px 16px; text-align: center;
+            position: relative; overflow: hidden;
+            transition: all 0.25s;
         }
-        
-        .stat-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--primary);
-            box-shadow: 0 0 20px rgba(139,92,246,0.2);
+        .stat-card::before {
+            content:''; position:absolute; inset:0;
+            background:radial-gradient(circle at 50% 0%, rgba(201,168,76,0.07), transparent 70%);
+            opacity:0; transition:opacity 0.3s;
         }
-        
-        .stat-icon { font-size: 36px; margin-bottom: 10px; }
-        .stat-value { font-size: 32px; font-weight: 800; color: var(--primary); }
-        .stat-label { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
-        
-        /* Dashboard Grid */
+        .stat-card:hover::before { opacity:1; }
+        .stat-card:hover { transform:translateY(-4px); border-color:var(--border-strong); }
+        .stat-icon  { font-size:32px; display:block; margin-bottom:10px; }
+        .stat-value {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 34px; font-weight: 600; color: var(--gold);
+            display: block; line-height: 1;
+        }
+        .stat-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.12em; display:block; margin-top:6px; }
+
+        /* ── Dashboard Grid ── */
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 18px; margin-bottom: 28px;
         }
-        
-        .panel {
-            background: var(--bg-card);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            overflow: hidden;
-        }
-        
+
         .panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
+            display: flex; justify-content:space-between; align-items:center;
+            padding: 16px 22px;
             border-bottom: 1px solid var(--border);
             background: rgba(0,0,0,0.2);
+            border-radius: var(--panel) var(--panel) 0 0;
         }
-        
         .panel-header h3 {
-            color: var(--primary-light);
-            font-size: 16px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 17px; font-weight: 400; color: var(--gold);
         }
-        
         .panel-content {
-            padding: 20px;
-            max-height: 400px;
-            overflow-y: auto;
+            padding: 20px 22px;
+            max-height: 360px; overflow-y: auto;
         }
-        
-        /* Tables */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
+
+        /* ── Table ── */
+        .data-table { width:100%; border-collapse:collapse; }
+        .data-table th, .data-table td {
+            padding: 10px 12px; text-align:left;
+            border-bottom: 1px solid rgba(201,168,76,0.08);
         }
-        
-        .data-table th,
-        .data-table td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-        
         .data-table th {
-            color: var(--primary-light);
-            font-weight: 600;
-            font-size: 12px;
+            font-size: 10px; font-weight: 600; letter-spacing: 0.15em;
+            text-transform: uppercase; color: var(--gold);
         }
-        
-        .data-table td {
+        .data-table td { font-size: 13px; color: var(--silver-dim); }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover td { background: rgba(201,168,76,0.04); }
+
+        /* ── Server Status ── */
+        .status-row {
+            display: flex; justify-content:space-between; align-items:center;
+            padding: 10px 0; border-bottom: 1px solid rgba(201,168,76,0.08);
             font-size: 13px;
         }
-        
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 30px;
+        .status-row:last-child { border-bottom: none; }
+        .status-row span:first-child { color: var(--muted); }
+        .status-row span:last-child  { color: var(--gold-light); font-weight: 600; }
+
+        /* ── Logs ── */
+        .log-line {
+            display: flex; gap: 10px; align-items: flex-start;
+            padding: 6px 0; border-bottom: 1px solid rgba(201,168,76,0.06);
+            font-family: monospace; font-size: 11px; line-height: 1.5;
         }
-        
+        .log-line:last-child { border-bottom: none; }
+        .log-time  { color: var(--muted); flex-shrink: 0; }
+        .log-level-ok  { color: var(--success); }
+        .log-level-err { color: var(--danger); }
+        .log-msg { color: var(--silver-dim); }
+
+        /* ── Action Buttons ── */
+        .action-buttons { display:flex; gap:12px; flex-wrap:wrap; }
+
         .action-btn {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border: none;
-            border-radius: 40px;
-            padding: 12px 24px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: flex; align-items: center; gap: 8px;
+            padding: 12px 22px; border: none; border-radius: var(--pill);
+            font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600;
+            cursor: pointer; letter-spacing: 0.03em;
+            transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
         }
-        
-        .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 0 20px rgba(139,92,246,0.4);
+        .action-btn-primary {
+            background: linear-gradient(135deg, var(--gold), #8a5a1a);
+            color: var(--ink);
         }
-        
-        .action-btn.danger {
-            background: linear-gradient(135deg, var(--danger), #b91c1c);
+        .action-btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(201,168,76,0.35); }
+        .action-btn-warning {
+            background: linear-gradient(135deg, var(--warning), #9a6010);
+            color: var(--ink);
         }
-        
-        .action-btn.warning {
-            background: linear-gradient(135deg, var(--warning), #d97706);
-        }
-        
-        /* Login Modal */
-        .login-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(20px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-        }
-        
-        .login-overlay.hidden { display: none; }
-        
-        .login-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 48px;
-            width: 400px;
-            text-align: center;
-        }
-        
-        .login-card input {
-            width: 100%;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 14px;
-            color: white;
-            margin-bottom: 15px;
-        }
-        
-        .login-card button {
-            width: 100%;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            border: none;
-            border-radius: 12px;
-            padding: 14px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        
-        .error-msg {
+        .action-btn-warning:hover { transform:translateY(-2px); box-shadow:0 6px 20px var(--warning-glow); }
+        .action-btn-danger {
+            background: rgba(224,85,85,0.12); border: 1px solid rgba(224,85,85,0.35);
             color: var(--danger);
-            font-size: 12px;
-            margin-bottom: 10px;
         }
-        
-        /* Toast */
+        .action-btn-danger:hover { background:var(--danger); color:#fff; transform:translateY(-2px); }
+        .action-btn-ghost {
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+            color: var(--silver-dim);
+        }
+        .action-btn-ghost:hover { background:rgba(201,168,76,0.08); border-color:var(--border-strong); color:var(--silver); transform:translateY(-2px); }
+
+        /* ── Mini refresh btn ── */
+        .refresh-btn {
+            background: rgba(201,168,76,0.08); border: 1px solid var(--border);
+            border-radius: var(--pill); padding: 5px 14px;
+            color: var(--gold); font-family: 'DM Sans', sans-serif;
+            font-size: 12px; cursor: pointer; transition: all 0.2s;
+        }
+        .refresh-btn:hover { background:rgba(201,168,76,0.18); border-color:var(--border-strong); }
+
+        /* ── Login Overlay ── */
+        .login-overlay {
+            position: fixed; inset: 0;
+            background: rgba(4,3,12,0.95);
+            backdrop-filter: blur(20px);
+            display: flex; align-items:center; justify-content:center;
+            z-index: 100000;
+        }
+        .login-overlay.hidden { display: none; }
+
+        .login-card {
+            text-align: center; padding: 52px 44px;
+            width: 420px; max-width: 92vw;
+            box-shadow: 0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(201,168,76,0.08);
+            animation: modalIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes modalIn { from{opacity:0;transform:scale(0.9) translateY(20px);} to{opacity:1;transform:scale(1) translateY(0);} }
+
+        .login-glyph {
+            font-size: 64px; display:block; margin-bottom: 12px;
+            filter: drop-shadow(0 0 24px rgba(201,168,76,0.4));
+            animation: levitate 5s ease-in-out infinite;
+        }
+        .login-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 30px; font-weight: 300; color: var(--silver);
+            margin-bottom: 28px;
+        }
+        .login-title em { font-style:italic; background:linear-gradient(135deg,var(--gold-light),var(--gold)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+
+        .login-field {
+            width: 100%; padding: 13px 16px; margin-bottom: 12px;
+            background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+            border-radius: 14px; color: var(--silver);
+            font-family: 'DM Sans', sans-serif; font-size: 14px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            display: block;
+        }
+        .login-field:focus { outline:none; border-color:rgba(201,168,76,0.55); box-shadow:0 0 14px rgba(201,168,76,0.1); }
+        .login-field::placeholder { color:var(--muted); }
+
+        .login-btn {
+            width: 100%; padding: 14px;
+            background: linear-gradient(135deg, var(--gold), #8a5a1a);
+            border: none; border-radius: 14px;
+            color: var(--ink); font-family: 'DM Sans', sans-serif;
+            font-size: 15px; font-weight: 600; cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.34,1.56,0.64,1);
+            margin-top: 4px;
+        }
+        .login-btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(201,168,76,0.35); }
+
+        .error-msg { color:var(--danger); font-size:12px; margin-bottom:12px; min-height:18px; }
+
+        /* ── Toast ── */
         .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: var(--bg-card);
-            border: 1px solid var(--primary);
-            border-radius: 50px;
-            padding: 12px 24px;
-            color: white;
-            z-index: 10001;
-            transition: transform 0.3s;
+            position: fixed; bottom:32px; left:50%;
+            transform: translateX(-50%) translateY(80px);
+            background: linear-gradient(145deg, var(--ink-3), var(--ink-2));
+            border: 1px solid var(--gold); border-radius: var(--pill);
+            padding: 13px 28px; color: var(--silver);
+            font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500;
+            backdrop-filter: blur(16px); z-index: 1000000;
+            box-shadow: 0 0 24px var(--gold-glow), 0 10px 30px rgba(0,0,0,0.6);
+            transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
         }
-        
         .toast.show { transform: translateX(-50%) translateY(0); }
-        
-        @media (max-width: 1024px) {
-            .dashboard-grid { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        
-        @media (max-width: 768px) {
-            .stats-grid { grid-template-columns: 1fr; }
-            .admin-header { flex-direction: column; text-align: center; }
+        .toast.success { border-color:var(--success); box-shadow:0 0 24px var(--success-glow); }
+        .toast.error   { border-color:var(--danger);  box-shadow:0 0 24px var(--danger-glow); }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width:5px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:linear-gradient(180deg,var(--gold),#8a5a1a); border-radius:var(--pill); }
+
+        /* ── Responsive ── */
+        @media (max-width:1100px) { .dashboard-grid { grid-template-columns:1fr; } }
+        @media (max-width:640px)  {
+            .stats-grid { grid-template-columns:repeat(2,1fr); }
+            .admin-header { flex-direction:column; text-align:center; }
         }
     </style>
 </head>
 <body>
-    <div class="stars"></div>
-    
-    <div id="loginOverlay" class="login-overlay">
-        <div class="login-card">
-            <div class="logo-icon" style="font-size: 60px;">🧙</div>
-            <h2 style="margin: 20px 0;">Admin Access</h2>
-            <input type="text" id="adminUsername" placeholder="Username" value="Arnav">
-            <input type="password" id="adminPassword" placeholder="Password">
-            <div id="loginError" class="error-msg"></div>
-            <button id="loginBtn">Access Dashboard</button>
+    <div class="ambient ambient-1" aria-hidden="true"></div>
+    <div class="ambient ambient-2" aria-hidden="true"></div>
+    <div class="ambient ambient-3" aria-hidden="true"></div>
+
+    <!-- Login Overlay -->
+    <div id="loginOverlay" class="login-overlay" role="dialog" aria-modal="true" aria-label="Admin login">
+        <div class="login-card grimoire-panel">
+            <span class="login-glyph" aria-hidden="true">🧙</span>
+            <h2 class="login-title">Admin <em>Access</em></h2>
+            <input type="text" id="adminUsername" class="login-field" placeholder="Username" value="Arnav" autocomplete="username">
+            <input type="password" id="adminPassword" class="login-field" placeholder="Password" autocomplete="current-password">
+            <div id="loginError" class="error-msg" role="alert"></div>
+            <button id="loginBtn" class="login-btn">Enter the Sanctum</button>
         </div>
     </div>
-    
-    <div id="dashboard" style="display: none;">
-        <div class="admin-container">
-            <div class="admin-header">
-                <div class="logo">
-                    <span class="logo-icon">🧙</span>
-                    <span class="logo-text">Wizard.AI Admin</span>
-                    <span class="version-badge">v13.0</span>
+
+    <!-- Dashboard -->
+    <div id="dashboard" style="display:none;">
+        <div class="shell">
+
+            <!-- Header -->
+            <header class="admin-header grimoire-panel" role="banner">
+                <a href="https://wizardecosystem.dpdns.org" class="logo">
+                    <span class="logo-glyph" aria-hidden="true">🧙</span>
+                    <span class="logo-wordmark">Wizard<em>.AI</em></span>
+                    <span class="logo-badge">Admin</span>
+                </a>
+                <div class="header-right">
+                    <span class="admin-crown">👑 Arnav</span>
+                    <button id="logoutBtn" class="logout-btn" aria-label="Logout">Logout</button>
                 </div>
-                <div class="admin-user">
-                    <span>👑 Arnav</span>
-                    <button id="logoutBtn" class="logout-btn">Logout</button>
-                </div>
+            </header>
+
+            <!-- Stats -->
+            <div class="stats-grid" id="statsGrid" aria-label="System statistics">
+                <div class="stat-card grimoire-panel"><span class="stat-icon">👥</span><span class="stat-value" id="statUsers">—</span><span class="stat-label">Total Users</span></div>
+                <div class="stat-card grimoire-panel"><span class="stat-icon">💬</span><span class="stat-value" id="statMessages">—</span><span class="stat-label">Total Messages</span></div>
+                <div class="stat-card grimoire-panel"><span class="stat-icon">📧</span><span class="stat-value" id="statAliases">—</span><span class="stat-label">Email Aliases</span></div>
+                <div class="stat-card grimoire-panel"><span class="stat-icon">🔑</span><span class="stat-value" id="statApiKeys">—</span><span class="stat-label">API Keys</span></div>
+                <div class="stat-card grimoire-panel"><span class="stat-icon">📁</span><span class="stat-value" id="statFiles">—</span><span class="stat-label">Files Uploaded</span></div>
+                <div class="stat-card grimoire-panel"><span class="stat-icon">🎨</span><span class="stat-value" id="statImages">—</span><span class="stat-label">Images Generated</span></div>
+                <div class="stat-card grimoire-panel"><span class="stat-icon">💻</span><span class="stat-value" id="statCode">—</span><span class="stat-label">Code Executions</span></div>
+                <div class="stat-card grimoire-panel"><span class="stat-icon">🌐</span><span class="stat-value" id="statSearches">—</span><span class="stat-label">Web Searches</span></div>
             </div>
-            
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-value" id="statUsers">-</div><div class="stat-label">Total Users</div></div>
-                <div class="stat-card"><div class="stat-icon">💬</div><div class="stat-value" id="statMessages">-</div><div class="stat-label">Total Messages</div></div>
-                <div class="stat-card"><div class="stat-icon">📧</div><div class="stat-value" id="statAliases">-</div><div class="stat-label">Email Aliases</div></div>
-                <div class="stat-card"><div class="stat-icon">🔑</div><div class="stat-value" id="statApiKeys">-</div><div class="stat-label">API Keys</div></div>
-                <div class="stat-card"><div class="stat-icon">📁</div><div class="stat-value" id="statFiles">-</div><div class="stat-label">Files Uploaded</div></div>
-                <div class="stat-card"><div class="stat-icon">🎨</div><div class="stat-value" id="statImages">-</div><div class="stat-label">Images Generated</div></div>
-                <div class="stat-card"><div class="stat-icon">💻</div><div class="stat-value" id="statCode">-</div><div class="stat-label">Code Executions</div></div>
-                <div class="stat-card"><div class="stat-icon">🌐</div><div class="stat-value" id="statSearches">-</div><div class="stat-label">Web Searches</div></div>
-            </div>
-            
+
+            <!-- Panels -->
             <div class="dashboard-grid">
-                <div class="panel">
-                    <div class="panel-header"><h3>👥 Recent Users</h3><button id="refreshUsers" class="action-btn" style="padding: 5px 12px;">🔄</button></div>
-                    <div class="panel-content"><table class="data-table" id="usersTable"><tr><th>User</th><th>Email</th><th>Joined</th></tr><tr><td colspan="3">Loading...</td></tr></table></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>📧 Email Aliases</h3><button id="refreshAliases" class="action-btn" style="padding: 5px 12px;">🔄</button></div>
-                    <div class="panel-content"><table class="data-table" id="aliasesTable"><tr><th>Alias</th><th>Target</th><th>Status</th></tr><tr><td colspan="3">Loading...</td></tr></table></div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>📊 System Logs</h3><button id="clearLogs" class="action-btn" style="padding: 5px 12px; background: var(--danger);">🗑️ Clear</button></div>
-                    <div class="panel-content" id="logsContent" style="font-family: monospace; font-size: 12px;">Loading logs...</div>
-                </div>
-                <div class="panel">
-                    <div class="panel-header"><h3>🖥️ Server Status</h3></div>
+
+                <div class="grimoire-panel" style="overflow:hidden;">
+                    <div class="panel-header">
+                        <h3>👥 Recent Users</h3>
+                        <button id="refreshUsers" class="refresh-btn" aria-label="Refresh users">↻ Refresh</button>
+                    </div>
                     <div class="panel-content">
-                        <table class="data-table">
-                            <tr><td>Uptime:</td><td id="serverUptime">-</td></tr>
-                            <tr><td>Database Size:</td><td id="dbSize">-</td></tr>
-                            <tr><td>Memory Usage:</td><td id="memoryUsage">-</td></tr>
-                            <tr><td>Last Backup:</td><td id="lastBackup">-</td></tr>
-                            <tr><td>Maintenance Mode:</td><td id="maintenanceMode">Off</td></tr>
+                        <table class="data-table" id="usersTable">
+                            <thead><tr><th>Name</th><th>Email</th><th>Joined</th></tr></thead>
+                            <tbody><tr><td colspan="3">Loading…</td></tr></tbody>
                         </table>
                     </div>
                 </div>
+
+                <div class="grimoire-panel" style="overflow:hidden;">
+                    <div class="panel-header">
+                        <h3>📧 Email Aliases</h3>
+                        <button id="refreshAliases" class="refresh-btn" aria-label="Refresh aliases">↻ Refresh</button>
+                    </div>
+                    <div class="panel-content">
+                        <table class="data-table" id="aliasesTable">
+                            <thead><tr><th>Alias</th><th>Target</th><th>Status</th></tr></thead>
+                            <tbody><tr><td colspan="3">Loading…</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="grimoire-panel" style="overflow:hidden;">
+                    <div class="panel-header">
+                        <h3>📊 System Logs</h3>
+                        <button id="clearLogs" class="action-btn action-btn-danger" style="padding:5px 14px; font-size:12px;" aria-label="Clear logs">🗑 Clear</button>
+                    </div>
+                    <div class="panel-content" id="logsContent" style="font-family:monospace; font-size:12px;">Loading logs…</div>
+                </div>
+
+                <div class="grimoire-panel" style="overflow:hidden;">
+                    <div class="panel-header"><h3>🖥️ Server Status</h3></div>
+                    <div class="panel-content">
+                        <div class="status-row"><span>Uptime</span><span id="serverUptime">—</span></div>
+                        <div class="status-row"><span>Database Size</span><span id="dbSize">—</span></div>
+                        <div class="status-row"><span>Memory Usage</span><span id="memoryUsage">—</span></div>
+                        <div class="status-row"><span>Last Backup</span><span id="lastBackup">—</span></div>
+                        <div class="status-row"><span>Maintenance Mode</span><span id="maintenanceMode">—</span></div>
+                    </div>
+                </div>
+
             </div>
-            
-            <div class="action-buttons">
-                <button id="backupBtn" class="action-btn">💾 Backup Database</button>
-                <button id="clearCacheBtn" class="action-btn">🧹 Clear Cache</button>
-                <button id="maintenanceBtn" class="action-btn warning">⚠️ Maintenance Mode</button>
-                <button id="broadcastBtn" class="action-btn">📢 Broadcast Message</button>
-                <button id="exportStatsBtn" class="action-btn">📊 Export Stats</button>
+
+            <!-- Actions -->
+            <div class="action-buttons" role="toolbar" aria-label="Admin actions">
+                <button id="backupBtn"       class="action-btn action-btn-primary">💾 Backup Database</button>
+                <button id="clearCacheBtn"   class="action-btn action-btn-ghost">🧹 Clear Cache</button>
+                <button id="maintenanceBtn"  class="action-btn action-btn-warning">⚠️ Maintenance Mode</button>
+                <button id="broadcastBtn"    class="action-btn action-btn-ghost">📢 Broadcast Message</button>
+                <button id="exportStatsBtn"  class="action-btn action-btn-ghost">📊 Export Stats</button>
             </div>
+
         </div>
     </div>
-    
-    <div id="toast" class="toast"></div>
-    
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
     <script>
         const API_BASE = 'https://arnav0928.pythonanywhere.com';
         let adminToken = null;
-        
-        function showToast(msg, isError = false) {
-            const toast = document.getElementById('toast');
-            toast.textContent = msg;
-            toast.style.borderColor = isError ? '#ef4444' : '#8b5cf6';
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
+
+        function showToast(msg, type = 'default') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'toast show ' + type;
+            setTimeout(() => t.classList.remove('show'), 3200);
         }
-        
+
         async function adminLogin() {
             const username = document.getElementById('adminUsername').value;
             const password = document.getElementById('adminPassword').value;
-            const errorDiv = document.getElementById('loginError');
-            
+            const err = document.getElementById('loginError');
             try {
                 const res = await fetch(`${API_BASE}/admin/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
                 const data = await res.json();
@@ -413,172 +475,152 @@
                     document.getElementById('loginOverlay').classList.add('hidden');
                     document.getElementById('dashboard').style.display = 'block';
                     loadDashboard();
-                    showToast('✅ Admin access granted');
-                } else {
-                    errorDiv.textContent = data.error || 'Invalid credentials';
-                }
-            } catch(e) {
-                errorDiv.textContent = 'Connection error';
-            }
+                    showToast('✅ Admin access granted', 'success');
+                } else { err.textContent = data.error || 'Invalid credentials'; }
+            } catch(e) { err.textContent = 'Connection error'; }
         }
-        
+
         async function adminLogout() {
-            await fetch(`${API_BASE}/admin/logout`, { method: 'POST' });
+            await fetch(`${API_BASE}/admin/logout`, { method: 'POST' }).catch(() => {});
             localStorage.removeItem('admin_token');
             adminToken = null;
             document.getElementById('loginOverlay').classList.remove('hidden');
             document.getElementById('dashboard').style.display = 'none';
         }
-        
+
         async function fetchWithAuth(endpoint, options = {}) {
             const res = await fetch(`${API_BASE}${endpoint}`, {
                 ...options,
                 headers: { 'X-Admin-Token': adminToken, ...options.headers }
             });
-            if (res.status === 401) {
-                adminLogout();
-                throw new Error('Session expired');
-            }
+            if (res.status === 401) { adminLogout(); throw new Error('Session expired'); }
             return res;
         }
-        
+
         async function loadDashboard() {
-            await Promise.all([
-                loadStats(),
-                loadUsers(),
-                loadAliases(),
-                loadLogs(),
-                loadServerStatus()
-            ]);
+            await Promise.all([ loadStats(), loadUsers(), loadAliases(), loadLogs(), loadServerStatus() ]);
         }
-        
+
         async function loadStats() {
             try {
                 const res = await fetchWithAuth('/admin/stats');
-                const data = await res.json();
-                document.getElementById('statUsers').textContent = data.total_users || 0;
-                document.getElementById('statMessages').textContent = data.total_messages || 0;
-                document.getElementById('statAliases').textContent = data.total_aliases || 0;
-                document.getElementById('statApiKeys').textContent = data.total_api_keys || 0;
-                document.getElementById('statFiles').textContent = data.total_files || 0;
-                document.getElementById('statImages').textContent = data.total_images || 0;
-                document.getElementById('statCode').textContent = data.total_code || 0;
-                document.getElementById('statSearches').textContent = data.total_searches || 0;
+                const d = await res.json();
+                document.getElementById('statUsers').textContent    = d.total_users    || 0;
+                document.getElementById('statMessages').textContent = d.total_messages || 0;
+                document.getElementById('statAliases').textContent  = d.total_aliases  || 0;
+                document.getElementById('statApiKeys').textContent  = d.total_api_keys || 0;
+                document.getElementById('statFiles').textContent    = d.total_files    || 0;
+                document.getElementById('statImages').textContent   = d.total_images   || 0;
+                document.getElementById('statCode').textContent     = d.total_code     || 0;
+                document.getElementById('statSearches').textContent = d.total_searches || 0;
             } catch(e) { console.error('Stats error:', e); }
         }
-        
+
         async function loadUsers() {
             try {
                 const res = await fetchWithAuth('/admin/users');
-                const data = await res.json();
-                const users = data.users || [];
-                const tbody = document.getElementById('usersTable');
-                if (users.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3">No users</td></tr>';
-                } else {
-                    tbody.innerHTML = users.slice(0, 20).map(u => `
-                        <tr>
-                            <td>${u.first_name} ${u.last_name}</td>
-                            <td>${u.email}</td>
-                            <td>${new Date(u.created_at).toLocaleDateString()}</td>
-                        </tr>
-                    `).join('');
-                }
+                const d = await res.json();
+                const users = d.users || [];
+                const tbody = document.querySelector('#usersTable tbody');
+                tbody.innerHTML = users.length === 0
+                    ? '<tr><td colspan="3" style="color:var(--muted);">No users found</td></tr>'
+                    : users.slice(0, 20).map(u => `<tr>
+                        <td>${escHtml(u.first_name + ' ' + u.last_name)}</td>
+                        <td>${escHtml(u.email)}</td>
+                        <td>${new Date(u.created_at).toLocaleDateString()}</td>
+                    </tr>`).join('');
             } catch(e) { console.error('Users error:', e); }
         }
-        
+
         async function loadAliases() {
             try {
                 const res = await fetchWithAuth('/admin/aliases');
-                const data = await res.json();
-                const aliases = data.aliases || [];
-                const tbody = document.getElementById('aliasesTable');
-                if (aliases.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3">No aliases</td></tr>';
-                } else {
-                    tbody.innerHTML = aliases.slice(0, 20).map(a => `
-                        <tr>
-                            <td>${a.alias}</td>
-                            <td>${a.target_email}</td>
-                            <td><span style="color: #10b981;">● Active</span></td>
-                        </tr>
-                    `).join('');
-                }
+                const d = await res.json();
+                const aliases = d.aliases || [];
+                const tbody = document.querySelector('#aliasesTable tbody');
+                tbody.innerHTML = aliases.length === 0
+                    ? '<tr><td colspan="3" style="color:var(--muted);">No aliases found</td></tr>'
+                    : aliases.slice(0, 20).map(a => `<tr>
+                        <td>${escHtml(a.alias)}</td>
+                        <td>${escHtml(a.target_email)}</td>
+                        <td><span style="color:var(--success);">● Active</span></td>
+                    </tr>`).join('');
             } catch(e) { console.error('Aliases error:', e); }
         }
-        
+
         async function loadLogs() {
+            const container = document.getElementById('logsContent');
             try {
                 const res = await fetchWithAuth('/admin/logs');
-                const data = await res.json();
-                const logs = data.logs || [];
-                const container = document.getElementById('logsContent');
+                const d = await res.json();
+                const logs = d.logs || [];
                 if (logs.length === 0) {
-                    container.innerHTML = '<div style="color: #6b7280;">No logs available</div>';
+                    container.innerHTML = '<span style="color:var(--muted);">No logs available</span>';
                 } else {
                     container.innerHTML = logs.slice(-50).map(log => `
-                        <div style="padding: 5px 0; border-bottom: 1px solid rgba(139,92,246,0.1);">
-                            <span style="color: #9ca3af;">${log.timestamp}</span>
-                            <span style="color: ${log.level === 'error' ? '#ef4444' : '#10b981'};">[${log.level}]</span>
-                            <span>${log.message}</span>
+                        <div class="log-line">
+                            <span class="log-time">${escHtml(log.timestamp)}</span>
+                            <span class="${log.level === 'error' ? 'log-level-err' : 'log-level-ok'}">[${escHtml(log.level)}]</span>
+                            <span class="log-msg">${escHtml(log.message)}</span>
                         </div>
                     `).join('');
                 }
-            } catch(e) { console.error('Logs error:', e); }
+            } catch(e) { container.innerHTML = '<span style="color:var(--danger);">Failed to load logs</span>'; }
         }
-        
+
         async function loadServerStatus() {
             try {
                 const res = await fetchWithAuth('/admin/server-status');
-                const data = await res.json();
-                document.getElementById('serverUptime').textContent = data.uptime || 'N/A';
-                document.getElementById('dbSize').textContent = data.db_size || 'N/A';
-                document.getElementById('memoryUsage').textContent = data.memory_usage || 'N/A';
-                document.getElementById('lastBackup').textContent = data.last_backup || 'Never';
-                document.getElementById('maintenanceMode').innerHTML = data.maintenance_mode ? '<span style="color: #f59e0b;">🔧 Enabled</span>' : '<span style="color: #10b981;">✅ Normal</span>';
+                const d = await res.json();
+                document.getElementById('serverUptime').textContent  = d.uptime        || 'N/A';
+                document.getElementById('dbSize').textContent        = d.db_size       || 'N/A';
+                document.getElementById('memoryUsage').textContent   = d.memory_usage  || 'N/A';
+                document.getElementById('lastBackup').textContent    = d.last_backup   || 'Never';
+                document.getElementById('maintenanceMode').innerHTML = d.maintenance_mode
+                    ? '<span style="color:var(--warning);">🔧 Enabled</span>'
+                    : '<span style="color:var(--success);">✅ Normal</span>';
             } catch(e) { console.error('Server status error:', e); }
         }
-        
+
         async function backupDatabase() {
             try {
                 const res = await fetchWithAuth('/admin/backup', { method: 'POST' });
-                const data = await res.json();
-                showToast(data.message || '✅ Backup completed!');
+                const d = await res.json();
+                showToast(d.message || '✅ Backup completed!', 'success');
                 loadServerStatus();
-            } catch(e) { showToast('❌ Backup failed', true); }
+            } catch(e) { showToast('❌ Backup failed', 'error'); }
         }
-        
+
         async function clearCache() {
             try {
                 const res = await fetchWithAuth('/admin/clear-cache', { method: 'POST' });
-                const data = await res.json();
-                showToast(data.message || '✅ Cache cleared!');
-            } catch(e) { showToast('❌ Clear cache failed', true); }
+                const d = await res.json();
+                showToast(d.message || '✅ Cache cleared!', 'success');
+            } catch(e) { showToast('❌ Clear cache failed', 'error'); }
         }
-        
+
         async function toggleMaintenance() {
             try {
                 const res = await fetchWithAuth('/admin/maintenance', { method: 'POST' });
-                const data = await res.json();
-                showToast(data.message);
+                const d = await res.json();
+                showToast(d.message, 'success');
                 loadServerStatus();
-            } catch(e) { showToast('❌ Failed', true); }
+            } catch(e) { showToast('❌ Failed', 'error'); }
         }
-        
+
         async function broadcastMessage() {
-            const message = prompt('Enter broadcast message for all users:');
+            const message = prompt('Broadcast message to all users:');
             if (!message) return;
             try {
-                const res = await fetchWithAuth('/admin/broadcast', { 
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                const res = await fetchWithAuth('/admin/broadcast', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message })
                 });
-                const data = await res.json();
-                showToast(data.message || '✅ Broadcast sent!');
-            } catch(e) { showToast('❌ Failed to send', true); }
+                const d = await res.json();
+                showToast(d.message || '✅ Broadcast sent!', 'success');
+            } catch(e) { showToast('❌ Failed to send', 'error'); }
         }
-        
+
         async function exportStats() {
             try {
                 const res = await fetchWithAuth('/admin/export-stats');
@@ -590,43 +632,45 @@
                 a.download = `wizard_stats_${new Date().toISOString().split('T')[0]}.json`;
                 a.click();
                 URL.revokeObjectURL(url);
-                showToast('📊 Stats exported!');
-            } catch(e) { showToast('❌ Export failed', true); }
+                showToast('📊 Stats exported!', 'success');
+            } catch(e) { showToast('❌ Export failed', 'error'); }
         }
-        
+
         async function clearLogs() {
             if (!confirm('Clear all system logs?')) return;
             try {
-                const res = await fetchWithAuth('/admin/clear-logs', { method: 'POST' });
-                const data = await res.json();
-                showToast('✅ Logs cleared!');
+                await fetchWithAuth('/admin/clear-logs', { method: 'POST' });
+                showToast('✅ Logs cleared!', 'success');
                 loadLogs();
-            } catch(e) { showToast('❌ Failed', true); }
+            } catch(e) { showToast('❌ Failed', 'error'); }
         }
-        
-        document.getElementById('loginBtn').onclick = adminLogin;
-        document.getElementById('logoutBtn').onclick = adminLogout;
-        document.getElementById('refreshUsers').onclick = loadUsers;
-        document.getElementById('refreshAliases').onclick = loadAliases;
-        document.getElementById('clearLogs').onclick = clearLogs;
-        document.getElementById('backupBtn').onclick = backupDatabase;
-        document.getElementById('clearCacheBtn').onclick = clearCache;
-        document.getElementById('maintenanceBtn').onclick = toggleMaintenance;
-        document.getElementById('broadcastBtn').onclick = broadcastMessage;
-        document.getElementById('exportStatsBtn').onclick = exportStats;
-        
-        // Check for existing session
-        const token = localStorage.getItem('admin_token');
-        if (token) {
-            adminToken = token;
+
+        function escHtml(s) {
+            if (!s) return '';
+            const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+        }
+
+        document.getElementById('loginBtn').onclick        = adminLogin;
+        document.getElementById('logoutBtn').onclick       = adminLogout;
+        document.getElementById('refreshUsers').onclick    = loadUsers;
+        document.getElementById('refreshAliases').onclick  = loadAliases;
+        document.getElementById('clearLogs').onclick       = clearLogs;
+        document.getElementById('backupBtn').onclick       = backupDatabase;
+        document.getElementById('clearCacheBtn').onclick   = clearCache;
+        document.getElementById('maintenanceBtn').onclick  = toggleMaintenance;
+        document.getElementById('broadcastBtn').onclick    = broadcastMessage;
+        document.getElementById('exportStatsBtn').onclick  = exportStats;
+        document.getElementById('adminPassword').addEventListener('keydown', e => { if (e.key === 'Enter') adminLogin(); });
+
+        const saved = localStorage.getItem('admin_token');
+        if (saved) {
+            adminToken = saved;
             document.getElementById('loginOverlay').classList.add('hidden');
             document.getElementById('dashboard').style.display = 'block';
             loadDashboard();
         }
-        
-        setInterval(() => {
-            if (adminToken) loadStats();
-        }, 30000);
+
+        setInterval(() => { if (adminToken) loadStats(); }, 30000);
     </script>
 </body>
 </html>
