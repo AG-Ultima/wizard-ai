@@ -2393,9 +2393,8 @@ function exportChatToFile() {
         showNotification('✅ Chat exported!', 'success');
     }
 }
-
 // ============================================
-// EVENT LISTENERS SETUP
+// EVENT LISTENERS SETUP - FIXED
 // ============================================
 function setupEventListeners() {
     if (sendBtn) sendBtn.addEventListener('click', sendMessage);
@@ -2425,8 +2424,8 @@ function setupEventListeners() {
     if (resetCurrentBtn) resetCurrentBtn.addEventListener('click', resetCurrentChat);
     if (saveProfileBtn) saveProfileBtn.addEventListener('click', saveProfile);
     if (closeProfileBtn) closeProfileBtn.addEventListener('click', () => closeModal(profileModal));
-    if (closeProfile) closeProfile.addEventListener('click', () => closeModal(profileModal));
     
+    // Auth buttons
     const loginBtn = document.getElementById('show-login-btn');
     const signupBtn = document.getElementById('show-signup-btn');
     if (loginBtn) loginBtn.addEventListener('click', () => showAuthModal(true));
@@ -2436,34 +2435,41 @@ function setupEventListeners() {
     if (authSubmit) authSubmit.addEventListener('click', handleAuthSubmit);
     if (closeAuth) closeAuth.addEventListener('click', () => closeModal(authModal));
     if (resendCodeBtn) resendCodeBtn.addEventListener('click', resendVerificationCode);
-    if (closeRename) closeRename.addEventListener('click', () => closeModal(renameModal));
-    if (closeCode) closeCode.addEventListener('click', () => closeModal(codeModal));
-    if (closeImage) closeImage.addEventListener('click', () => closeModal(imageModal));
-    if (closeStats) closeStats.addEventListener('click', () => closeModal(statsModal));
-    if (closePersonalities) closePersonalities.addEventListener('click', () => closeModal(personalitiesModal));
+    
+    // Code modal
+    if (runCodeBtn) runCodeBtn.addEventListener('click', executeCode);
+    if (clearCodeBtn) clearCodeBtn.addEventListener('click', () => {
+        if (codeInput) codeInput.value = '';
+        if (codeOutput) codeOutput.textContent = '';
+    });
+    
+    // Image modal
+    if (generateImageBtn) generateImageBtn.addEventListener('click', generateImage);
+    
+    // Personality creator
+    if (toggleCreatorBtn) toggleCreatorBtn.addEventListener('click', toggleCreatorPanel);
+    if (savePersonality) savePersonality.addEventListener('click', saveCustomPersonality);
+    if (cancelPersonality) cancelPersonality.addEventListener('click', closeCreatorPanel);
+    if (closeCreator) closeCreator.addEventListener('click', closeCreatorPanel);
+    
+    // Rename modal
     if (renameSave) renameSave.addEventListener('click', saveRename);
     if (renameCancel) renameCancel.addEventListener('click', () => closeModal(renameModal));
     if (renameInput) renameInput.addEventListener('keypress', e => {
         if (e.key === 'Enter') saveRename();
     });
-    if (runCodeBtn) runCodeBtn.addEventListener('click', executeCode);
-    if (clearCodeBtn) clearCodeBtn.addEventListener('click', () => {
-        codeInput.value = '';
-        codeOutput.textContent = '';
-    });
-    if (generateImageBtn) generateImageBtn.addEventListener('click', generateImage);
-    if (toggleCreatorBtn) toggleCreatorBtn.addEventListener('click', toggleCreatorPanel);
-    if (savePersonality) savePersonality.addEventListener('click', saveCustomPersonality);
-    if (cancelPersonality) cancelPersonality.addEventListener('click', closeCreatorPanel);
-    if (closeCreator) closeCreator.addEventListener('click', closeCreatorPanel);
+    
+    // Personality tabs
     if (tabBtns.length) tabBtns.forEach(btn => {
         btn.addEventListener('click', () => switchPersonalityTab(btn.dataset.tab));
     });
     
+    // Close modals when clicking overlay
     window.addEventListener('click', e => {
         if (e.target.classList.contains('modal-overlay')) closeModal(e.target);
-        if (e.target.classList.contains('profile-tab-btn')) return; // Handled separately
     });
+    
+    // Emergency reset
     document.addEventListener('keydown', e => {
         if (e.key === 'F2') {
             e.preventDefault();
