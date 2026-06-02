@@ -165,6 +165,7 @@ const profileCompletenessText = document.getElementById('profile-completeness-te
 const saveProfileBtn = document.getElementById('save-profile');
 const closeProfileBtn = document.getElementById('close-profile');
 const profileTabBtns = document.querySelectorAll('.profile-tab-btn');
+const closeRename = document.getElementById('close-rename-modal');
 
 // ============================================
 // STATE MANAGEMENT
