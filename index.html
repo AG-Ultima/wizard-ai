@@ -186,7 +186,7 @@
                 <div class="stats-grid">
                     <div class="stat-card" title="Total messages"><span class="stat-icon">💬</span><span class="stat-value" id="stat-messages">0</span><span class="stat-label">Messages</span></div>
                     <div class="stat-card" title="Files uploaded"><span class="stat-icon">📎</span><span class="stat-value" id="stat-files">0</span><span class="stat-label">Files</span></div>
-                    <div class="stat-card" title="Memories stored"><span class="stat-icon">🧠</span><span class="stat-value" id="stat-memories">0</span><span class="stat-label">Memories</span></div>
+                    <div class="stat-card" title="Profile data"><span class="stat-icon">👤</span><span class="stat-value" id="stat-profile-completeness">0%</span><span class="stat-label">Profile</span></div>
                     <div class="stat-card" title="Images generated"><span class="stat-icon">🎨</span><span class="stat-value" id="stat-images">0</span><span class="stat-label">Images</span></div>
                     <div class="stat-card" title="Web searches"><span class="stat-icon">🌐</span><span class="stat-value" id="stat-searches">0</span><span class="stat-label">Searches</span></div>
                     <div class="stat-card" title="Avg response time"><span class="stat-icon">⚡</span><span class="stat-value" id="stat-response">0.4s</span><span class="stat-label">Avg Speed</span></div>
@@ -244,7 +244,7 @@
                 <button class="pro-btn" id="upload-btn" title="Upload File"><span class="btn-icon" aria-hidden="true">📎</span><span class="btn-text">Upload</span></button>
                 <button class="pro-btn" id="code-btn" title="Run Python Code"><span class="btn-icon" aria-hidden="true">💻</span><span class="btn-text">Code</span></button>
                 <button class="pro-btn" id="image-btn" title="Generate Image"><span class="btn-icon" aria-hidden="true">🎨</span><span class="btn-text">Generate</span></button>
-                <button class="pro-btn" id="memory-btn" title="View Memories"><span class="btn-icon" aria-hidden="true">🧠</span><span class="btn-text">Memory</span></button>
+                <button class="pro-btn" id="profile-btn" title="My Profile"><span class="btn-icon" aria-hidden="true">👤</span><span class="btn-text">Profile</span></button>
                 <button class="pro-btn" id="stats-btn" title="Detailed Stats"><span class="btn-icon" aria-hidden="true">📊</span><span class="btn-text">Stats</span></button>
                 <button class="pro-btn" id="personalities-btn" title="Community Personalities"><span class="btn-icon" aria-hidden="true">🎭</span><span class="btn-text">Personalities</span></button>
                 <button class="pro-btn" id="devhub-btn" title="Developer Hub"><span class="btn-icon" aria-hidden="true">👨‍💻</span><span class="btn-text">Dev Hub</span></button>
@@ -403,15 +403,90 @@
         </div>
     </div>
 
-    <!-- Memory Modal -->
-    <div class="modal-overlay" id="memory-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="memory-modal-title">
-        <div class="modal grimoire-modal">
+    <!-- WIZPROFILE MODAL - Replaces Memory Modal -->
+    <div class="modal-overlay" id="profile-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
+        <div class="modal grimoire-modal large-modal">
             <div class="modal-header">
-                <h3 id="memory-modal-title">🧠 Your Memories</h3>
-                <button class="close-modal" id="close-memory-modal" aria-label="Close">&times;</button>
+                <h3 id="profile-modal-title">👤 Wizard Profile</h3>
+                <button class="close-modal" id="close-profile-modal" aria-label="Close">&times;</button>
             </div>
-            <div class="modal-body">
-                <div id="memory-list" class="memory-list" role="list">Loading memories…</div>
+            <div class="modal-body profile-modal-body">
+                <div class="profile-tabs" role="tablist">
+                    <button class="profile-tab-btn active" data-tab="basic" role="tab">Basic Info</button>
+                    <button class="profile-tab-btn" data-tab="professional" role="tab">Professional</button>
+                    <button class="profile-tab-btn" data-tab="interests" role="tab">Interests</button>
+                    <button class="profile-tab-btn" data-tab="ai-preferences" role="tab">AI Preferences</button>
+                    <button class="profile-tab-btn" data-tab="goals" role="tab">Goals & Tasks</button>
+                </div>
+                
+                <!-- Basic Info Tab -->
+                <div id="profile-tab-basic" class="profile-tab-content active">
+                    <div class="profile-form-row">
+                        <div class="profile-form-group"><label>Full Name</label><input type="text" id="profile-full-name" placeholder="Your full name"></div>
+                        <div class="profile-form-group"><label>Display Name</label><input type="text" id="profile-display-name" placeholder="How you want to be addressed"></div>
+                    </div>
+                    <div class="profile-form-row">
+                        <div class="profile-form-group"><label>Birthday</label><input type="date" id="profile-birthday"></div>
+                        <div class="profile-form-group"><label>Gender</label><select id="profile-gender"><option value="">Prefer not to say</option><option value="male">Male</option><option value="female">Female</option><option value="non-binary">Non-binary</option><option value="other">Other</option></select></div>
+                    </div>
+                    <div class="profile-form-group"><label>Bio</label><textarea id="profile-bio" rows="3" placeholder="Tell me about yourself…"></textarea></div>
+                    <div class="profile-form-row">
+                        <div class="profile-form-group"><label>Phone</label><input type="tel" id="profile-phone" placeholder="Your phone number"></div>
+                        <div class="profile-form-group"><label>Website</label><input type="url" id="profile-website" placeholder="Your website"></div>
+                    </div>
+                    <div class="profile-form-group"><label>Custom Greeting</label><input type="text" id="profile-greeting" placeholder="How I should greet you"></div>
+                </div>
+                
+                <!-- Professional Tab -->
+                <div id="profile-tab-professional" class="profile-tab-content">
+                    <div class="profile-form-row">
+                        <div class="profile-form-group"><label>Occupation</label><input type="text" id="profile-occupation" placeholder="Your job title"></div>
+                        <div class="profile-form-group"><label>Company</label><input type="text" id="profile-company" placeholder="Where you work"></div>
+                    </div>
+                    <div class="profile-form-row">
+                        <div class="profile-form-group"><label>Experience Years</label><input type="number" id="profile-experience" placeholder="Years of experience"></div>
+                        <div class="profile-form-group"><label>Education</label><input type="text" id="profile-education" placeholder="Your degree/school"></div>
+                    </div>
+                    <div class="profile-form-group"><label>Skills (comma separated)</label><input type="text" id="profile-skills" placeholder="Python, JavaScript, Design, Leadership…"></div>
+                </div>
+                
+                <!-- Interests Tab -->
+                <div id="profile-tab-interests" class="profile-tab-content">
+                    <div class="profile-form-group"><label>Interests (comma separated)</label><input type="text" id="profile-interests" placeholder="Reading, Gaming, Music, Sports…"></div>
+                    <div class="profile-form-group"><label>Favorite Topics (comma separated)</label><input type="text" id="profile-fav-topics" placeholder="AI, History, Science, Art…"></div>
+                    <div class="profile-form-group"><label>Learning Interests (comma separated)</label><input type="text" id="profile-learning" placeholder="Topics you want to learn about…"></div>
+                    <div class="profile-form-group"><label>Known Topics (comma separated)</label><input type="text" id="profile-known" placeholder="Topics you already master…"></div>
+                </div>
+                
+                <!-- AI Preferences Tab -->
+                <div id="profile-tab-ai-preferences" class="profile-tab-content">
+                    <div class="profile-form-row">
+                        <div class="profile-form-group"><label>Preferred Mode</label><select id="profile-preferred-mode"><option value="JARVIS">JARVIS</option><option value="ORACLE">ORACLE</option><option value="Nerd">Nerd</option><option value="Fun">Fun</option><option value="Sarcastic">Sarcastic</option><option value="Fast">Fast</option><option value="Normal">Normal</option></select></div>
+                        <div class="profile-form-group"><label>Response Style</label><select id="profile-response-style"><option value="balanced">Balanced</option><option value="concise">Concise</option><option value="detailed">Detailed</option></select></div>
+                    </div>
+                    <div class="profile-form-row">
+                        <div class="profile-form-group"><label>Formality Level</label><select id="profile-formality"><option value="casual">Casual</option><option value="friendly">Friendly</option><option value="professional">Professional</option></select></div>
+                        <div class="profile-form-group"><label>Use Emojis</label><select id="profile-emojis"><option value="true">Yes, use emojis</option><option value="false">No, plain text</option></select></div>
+                    </div>
+                    <div class="profile-form-group"><label>Custom Instructions for AI</label><textarea id="profile-instructions" rows="3" placeholder="Tell me how you'd like me to respond, what to remember about you, etc."></textarea></div>
+                </div>
+                
+                <!-- Goals Tab -->
+                <div id="profile-tab-goals" class="profile-tab-content">
+                    <div class="profile-form-group"><label>Current Goals (one per line)</label><textarea id="profile-goals" rows="4" placeholder="Learn Python&#10;Write a book&#10;Run a marathon"></textarea></div>
+                    <div class="profile-form-group"><label>Reminders (one per line)</label><textarea id="profile-reminders" rows="3" placeholder="Call mom on Sunday&#10;Submit project by Friday"></textarea></div>
+                </div>
+                
+                <div class="profile-completeness" id="profile-completeness-display">
+                    <span>Profile Completeness</span>
+                    <div class="profile-completeness-bar"><div class="profile-completeness-fill" id="profile-completeness-fill" style="width:0%"></div></div>
+                    <span id="profile-completeness-text">0%</span>
+                </div>
+                
+                <div class="modal-actions profile-actions">
+                    <button id="save-profile" class="modal-btn-primary">💾 Save Profile</button>
+                    <button id="close-profile" class="modal-btn-ghost">Close</button>
+                </div>
             </div>
         </div>
     </div>
@@ -432,21 +507,23 @@
                         <div class="stats-row"><span>Total Chats</span><span id="stats-total-chats">0</span></div>
                     </div>
                     <div class="stats-section"><h4>📁 Content Stats</h4>
-                        <div class="stats-row"><span>Files Uploaded</span><span id="stats-files">0</span></div>
-                        <div class="stats-row"><span>Images Generated</span><span id="stats-images">0</span></div>
-                        <div class="stats-row"><span>Code Executions</span><span id="stats-code">0</span></div>
-                        <div class="stats-row"><span>Web Searches</span><span id="stats-searches">0</span></div>
+                        <div class="stats-row"><span>Files Uploaded</span><span id="stats-files-detailed">0</span></div>
+                        <div class="stats-row"><span>Images Generated</span><span id="stats-images-detailed">0</span></div>
+                        <div class="stats-row"><span>Code Executions</span><span id="stats-code-detailed">0</span></div>
+                        <div class="stats-row"><span>Web Searches</span><span id="stats-searches-detailed">0</span></div>
                     </div>
-                    <div class="stats-section"><h4>🧠 Memory Stats</h4>
-                        <div class="stats-row"><span>Memories Stored</span><span id="stats-memories">0</span></div>
-                        <div class="stats-row"><span>Documents in RAG</span><span id="stats-docs">0</span></div>
+                    <div class="stats-section"><h4>👤 Profile Stats</h4>
+                        <div class="stats-row"><span>Profile Completeness</span><span id="stats-profile-completeness">0%</span></div>
+                        <div class="stats-row"><span>Skills Tracked</span><span id="stats-skills-count">0</span></div>
+                        <div class="stats-row"><span>Interests Tracked</span><span id="stats-interests-count">0</span></div>
+                        <div class="stats-row"><span>Goals Set</span><span id="stats-goals-count">0</span></div>
                     </div>
                     <div class="stats-section"><h4>⚡ Performance</h4>
                         <div class="stats-row"><span>Avg Response Time</span><span id="stats-avg-response">0.4s</span></div>
                         <div class="stats-row"><span>Fastest Response</span><span id="stats-fastest">0.2s</span></div>
                     </div>
                     <div class="stats-section"><h4>🔑 API Usage</h4>
-                        <div class="stats-row"><span>API Keys</span><span id="stats-api-keys">0</span></div>
+                        <div class="stats-row"><span>API Keys</span><span id="stats-api-keys-detailed">0</span></div>
                     </div>
                 </div>
             </div>
@@ -483,84 +560,30 @@
             </div>
             <div class="modal-body">
                 <div class="update-timeline">
-
                     <div class="update-item current">
-                        <div class="update-version">🎨 v15.0.0 — UI Update <span class="update-badge">Current</span></div>
+                        <div class="update-version">👤 v15.1.0 — WizProfile Update <span class="update-badge">Current</span></div>
+                        <div class="update-date">June 2026</div>
+                        <div class="update-content"><ul>
+                            <li>👤 Complete WizProfile system — rich user profiles with 50+ data points</li>
+                            <li>📋 Profile tabs: Basic Info, Professional, Interests, AI Preferences, Goals</li>
+                            <li>🧠 AI learns from your profile to personalize responses</li>
+                            <li>📊 Profile completeness meter and stats</li>
+                            <li>⚙️ Custom AI instructions per user</li>
+                            <li>🎯 Goal tracking and reminders</li>
+                            <li>🔧 Skill levels and learning interests tracking</li>
+                        </ul></div>
+                    </div>
+                    <div class="update-item">
+                        <div class="update-version">🎨 v15.0.0 — UI Update</div>
                         <div class="update-date">May 2026</div>
                         <div class="update-content"><ul>
                             <li>🎨 Complete UI overhaul — unified Wizard Ecosystem visual language</li>
                             <li>✦ Cormorant Garamond display font, grimoire-panel aesthetic throughout</li>
                             <li>🌟 New ambient depth system: 4-layer atmospheric blobs + starfield</li>
                             <li>📐 Restructured sidebar hierarchy: model + turbo merged, cleaner panels</li>
-                            <li>🔗 Ecosystem link panel in chat sidebar</li>
                             <li>💫 Gold ink dividers and rune-ring section markers</li>
-                            <li>🎭 Elevated dropdown, modal, and button design language</li>
-                            <li>♿ Full ARIA labels and role attributes across all interactive elements</li>
                         </ul></div>
                     </div>
-
-                    <div class="update-item">
-                        <div class="update-version">🌐 v14.0.0 — Ecosystem Update</div>
-                        <div class="update-date">April 2026</div>
-                        <div class="update-content"><ul>
-                            <li>🌐 New Wizard Ecosystem homepage at wizardecosystem.dpdns.org</li>
-                            <li>📧 Wizard Mail — Gmail, Outlook & IMAP email client</li>
-                            <li>💬 Wizard Chat — real-time messaging between Wizard users</li>
-                            <li>📅 Wizard Calendar — event scheduling and management</li>
-                            <li>🌍 Wizard Browser — AI-powered web browsing</li>
-                            <li>🔍 Wizard Search — intelligent web search</li>
-                            <li>🔐 Unified authentication across all Ecosystem apps</li>
-                            <li>☁️ Cross-app cloud sync and session sharing</li>
-                        </ul></div>
-                    </div>
-
-                    <div class="update-item">
-                        <div class="update-version">🤖 v13.0.0 — Multi-Agent Update</div>
-                        <div class="update-date">April 3, 2026</div>
-                        <div class="update-content"><ul>
-                            <li>🤖 Multi-Agent Orchestration — chain specialized AI agents together</li>
-                            <li>🔍 Researcher, ✍️ Writer, 💻 Coder, 🎨 Designer agents</li>
-                            <li>📊 Data Analyst, ✅ Reviewer, 📝 Summarizer, 🌐 Translator agents</li>
-                            <li>🔗 Chain Studio — pre-built multi-agent workflows</li>
-                            <li>🛠️ Agent Builder — create custom agents</li>
-                            <li>🛒 Agent Marketplace — share and install community agents</li>
-                        </ul></div>
-                    </div>
-
-                    <div class="update-item">
-                        <div class="update-version">👨‍💻 v12.0.0 — Developer Hub Update</div>
-                        <div class="update-date">April 2026</div>
-                        <div class="update-content"><ul>
-                            <li>👨‍💻 Developer Hub at /devhub</li>
-                            <li>🔑 API key management UI and analytics</li>
-                            <li>📚 Full API documentation with code examples</li>
-                            <li>📱 ChatGPT-style mobile layout with hamburger menu</li>
-                        </ul></div>
-                    </div>
-
-                    <div class="update-item">
-                        <div class="update-version">👑 v11.0.0 — Admin Update</div>
-                        <div class="update-date">April 2026</div>
-                        <div class="update-content"><ul>
-                            <li>👑 Admin Dashboard with full system control</li>
-                            <li>🎨 Fixed image generation with multiple fallbacks</li>
-                            <li>🌐 Fixed web search with Tavily API</li>
-                            <li>🖥️ Desktop app released for Windows</li>
-                        </ul></div>
-                    </div>
-
-                    <div class="update-item">
-                        <div class="update-version">🚀 v9.0.0 — PRO Update</div>
-                        <div class="update-date">March 2026</div>
-                        <div class="update-content"><ul>
-                            <li>🌐 Web search with auto-detection</li>
-                            <li>📎 File upload with RAG document Q&A</li>
-                            <li>💻 Python code execution sandbox</li>
-                            <li>🎨 AI image generation</li>
-                            <li>🎭 Community personalities browser</li>
-                        </ul></div>
-                    </div>
-
                 </div>
             </div>
         </div>
