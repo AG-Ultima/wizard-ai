@@ -139,7 +139,6 @@
         .chain-select:focus, .chain-input-field:focus, .form-input:focus, .form-textarea:focus {
             outline:none; border-color:rgba(201,168,76,0.55); box-shadow:0 0 14px rgba(201,168,76,0.1);
         }
-        .chain-select::placeholder, .chain-input-field::placeholder { color:var(--muted); }
         .chain-input-field { resize:vertical; min-height:130px; }
         .form-textarea { resize:vertical; min-height:80px; }
 
@@ -153,7 +152,7 @@
         .result-label { font-family:'Cormorant Garamond',serif; font-size:19px; font-weight:400; color:var(--gold); margin:20px 0 12px; }
 
         .chains-grid, .agents-grid, .marketplace-grid {
-            display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+            display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
             gap:18px; margin-bottom:32px;
         }
         .chain-card, .agent-card, .marketplace-card {
@@ -188,11 +187,11 @@
             display:inline-block;
             margin-bottom:10px;
         }
-        .install-btn-small {
+        .install-btn-small, .publish-btn-small {
             background:linear-gradient(135deg,var(--gold),#8a5a1a);
             border:none;
             border-radius:var(--pill);
-            padding:5px 12px;
+            padding:6px 14px;
             font-size:11px;
             font-weight:600;
             color:var(--ink);
@@ -201,7 +200,7 @@
             width:100%;
             transition:all 0.2s;
         }
-        .install-btn-small:hover {
+        .install-btn-small:hover, .publish-btn-small:hover {
             transform:translateY(-1px);
             box-shadow:0 2px 8px rgba(201,168,76,0.3);
         }
@@ -209,79 +208,18 @@
             background:rgba(92,184,122,0.15);
             border:1px solid var(--success);
             border-radius:var(--pill);
-            padding:4px 12px;
+            padding:5px 12px;
             font-size:11px;
             color:var(--success);
             text-align:center;
             margin-top:12px;
         }
-        .rating-stars {
-            font-size:11px;
-            color:var(--gold);
-            margin-top:8px;
-        }
+        .rating-stars { font-size:11px; color:var(--gold); margin-top:8px; }
 
-        .chain-builder { padding:26px; }
-        .builder-steps-list { display:flex; flex-direction:column; gap:8px; }
-        .builder-step {
-            display:flex; gap:10px; align-items:center;
-            padding:10px 14px; background:rgba(0,0,0,0.25);
-            border:1px solid var(--border); border-radius:12px;
-        }
-        .agent-select {
-            flex:1; background:rgba(0,0,0,0.35);
-            border:1px solid var(--border); border-radius:10px;
-            padding:9px 12px; color:var(--silver);
-            font-family:'DM Sans',sans-serif; font-size:13px;
-        }
-        .remove-step {
-            background:rgba(224,85,85,0.1); border:1px solid rgba(224,85,85,0.3);
-            border-radius:8px; padding:7px 10px;
-            color:var(--danger); cursor:pointer; font-size:13px; transition:all 0.2s;
-        }
-        .remove-step:hover { background:var(--danger); color:#fff; }
+        .create-agent-panel { margin-bottom: 24px; }
+        .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
 
-        .form-label { display:block; font-size:10px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
-
-        .btn-primary {
-            background:linear-gradient(135deg,var(--gold),#8a5a1a);
-            border:none; border-radius:var(--pill); padding:12px 26px;
-            color:var(--ink); font-family:'DM Sans',sans-serif;
-            font-size:14px; font-weight:600; cursor:pointer; letter-spacing:0.03em;
-            transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1);
-            display:inline-flex; align-items:center; gap:8px;
-        }
-        .btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(201,168,76,0.35); }
-        .btn-primary:disabled { opacity:0.45; cursor:not-allowed; transform:none; box-shadow:none; }
-
-        .btn-ghost {
-            background:rgba(255,255,255,0.04); border:1px solid var(--border);
-            border-radius:var(--pill); padding:11px 22px;
-            color:var(--silver-dim); font-family:'DM Sans',sans-serif;
-            font-size:13px; font-weight:500; cursor:pointer;
-            transition:all 0.2s; display:inline-flex; align-items:center; gap:8px;
-        }
-        .btn-ghost:hover { background:rgba(201,168,76,0.08); border-color:var(--border-strong); color:var(--silver); }
-
-        .btn-add-step {
-            margin-top:10px; width:100%;
-            background:transparent; border:1px dashed var(--border-mid);
-            border-radius:var(--pill); padding:10px;
-            color:var(--silver-dim); font-family:'DM Sans',sans-serif;
-            font-size:12px; cursor:pointer; transition:all 0.2s;
-        }
-        .btn-add-step:hover { border-style:solid; border-color:var(--border-strong); color:var(--silver); background:rgba(201,168,76,0.06); }
-
-        .agent-output {
-            margin-bottom:16px; padding:14px 16px;
-            background:rgba(0,0,0,0.25); border-left:3px solid var(--violet);
-            border-radius:0 12px 12px 0;
-        }
-        .agent-output-name { font-size:10px; font-weight:600; letter-spacing:0.15em; text-transform:uppercase; color:var(--gold); margin-bottom:8px; }
-        .agent-output-text { font-size:13px; line-height:1.65; color:var(--silver-dim); white-space:pre-wrap; word-wrap:break-word; }
-        .final-output-block { background:rgba(92,184,122,0.06); border-left:3px solid var(--success); border-radius:0 12px 12px 0; padding:16px; white-space:pre-wrap; word-wrap:break-word; font-size:13px; line-height:1.65; }
-
-        .state-msg { text-align:center; padding:32px; color:var(--muted); font-size:14px; letter-spacing:0.04em; }
+        .state-msg { text-align:center; padding:32px; color:var(--muted); font-size:14px; }
         .state-error { color:var(--danger); background:rgba(224,85,85,0.08); border:1px solid rgba(224,85,85,0.25); border-radius:14px; padding:16px; font-size:13px; }
         .spinner {
             display:inline-block; width:18px; height:18px;
@@ -290,22 +228,12 @@
         }
         @keyframes spin { to{transform:rotate(360deg);} }
 
-        .truncation-warning {
-            background: rgba(224,85,85,0.15);
-            border-left: 3px solid var(--danger);
-            padding: 8px 12px;
-            margin-bottom: 12px;
-            font-size: 12px;
-            color: var(--danger);
-            border-radius: 8px;
-        }
-
         ::-webkit-scrollbar { width:5px; }
         ::-webkit-scrollbar-track { background:transparent; }
         ::-webkit-scrollbar-thumb { background:linear-gradient(180deg,var(--gold),#8a5a1a); border-radius:var(--pill); }
 
         @media (max-width:960px)  { .chain-runner { grid-template-columns:1fr; } }
-        @media (max-width:640px)  { .chains-grid, .agents-grid, .marketplace-grid { grid-template-columns:1fr; } .studio-tabs { gap:6px; } .tab-btn { padding:8px 14px; font-size:12px; } }
+        @media (max-width:640px)  { .chains-grid, .agents-grid, .marketplace-grid { grid-template-columns:1fr; } .studio-tabs { gap:6px; } .tab-btn { padding:8px 14px; font-size:12px; } .form-row-2 { grid-template-columns:1fr; } }
     </style>
 </head>
 <body>
@@ -328,62 +256,82 @@
             <span class="hero-glyph" aria-hidden="true">🤖</span>
             <p class="hero-eyebrow">Wizard.AI · Multi-Agent Orchestration</p>
             <h1 class="hero-title">Agent <em>Studio</em></h1>
-            <p class="hero-sub">Chain specialized AI agents together for complex, multi-step workflows</p>
+            <p class="hero-sub">Create, share, and chain specialized AI agents</p>
         </div>
 
         <div class="studio-tabs" role="tablist">
-            <button class="tab-btn active" data-tab="run"      role="tab" aria-selected="true">⚡ Run Chain</button>
-            <button class="tab-btn"         data-tab="chains"  role="tab" aria-selected="false">🔗 My Chains</button>
-            <button class="tab-btn"         data-tab="agents"  role="tab" aria-selected="false">🤖 Agents</button>
-            <button class="tab-btn"         data-tab="marketplace" role="tab" aria-selected="false">🛒 Marketplace</button>
-            <button class="tab-btn"         data-tab="builder" role="tab" aria-selected="false">🛠️ Build Chain</button>
+            <button class="tab-btn active" data-tab="run"         role="tab">⚡ Run Chain</button>
+            <button class="tab-btn"         data-tab="chains"     role="tab">🔗 My Chains</button>
+            <button class="tab-btn"         data-tab="agents"     role="tab">🤖 My Agents</button>
+            <button class="tab-btn"         data-tab="marketplace" role="tab">🛒 Marketplace</button>
+            <button class="tab-btn"         data-tab="builder"    role="tab">🛠️ Build Chain</button>
         </div>
 
+        <!-- Run Chain Tab -->
         <div id="run-tab" class="tab-content active" role="tabpanel">
             <div class="chain-runner">
                 <div class="chain-io-panel grimoire-panel">
                     <h3>📝 Input</h3>
-                    <select id="chain-select" class="chain-select" aria-label="Select chain">
+                    <select id="chain-select" class="chain-select">
                         <option value="">Select a chain…</option>
                     </select>
                     <textarea id="chain-input" class="chain-input-field"
-                        placeholder="Enter your request…&#10;&#10;Examples:&#10;· Write an essay about AI&#10;· Create a Python sorting function&#10;· Research and summarize latest tech news"
-                        aria-label="Chain input"></textarea>
+                        placeholder="Enter your request…&#10;&#10;Examples:&#10;· Write an essay about AI&#10;· Create a Python sorting function&#10;· Research and summarize latest tech news"></textarea>
                     <button id="run-chain-btn" class="btn-primary">▶ Run Chain</button>
                 </div>
 
                 <div class="chain-io-panel grimoire-panel">
                     <h3>🤖 Agent Conversation</h3>
-                    <div id="agent-conversation" class="result-area result-conversation" role="region" aria-label="Agent conversation">
+                    <div id="agent-conversation" class="result-area result-conversation">
                         <div class="state-msg">✦ Select a chain and enter your request, then click Run Chain</div>
                     </div>
                     <p class="result-label">✨ Final Output</p>
-                    <div id="final-work" class="result-area result-final" role="region" aria-label="Final output">
+                    <div id="final-work" class="result-area result-final">
                         <div class="state-msg">📝 Final output will appear here</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="chains-tab" class="tab-content" role="tabpanel">
+        <!-- My Chains Tab -->
+        <div id="chains-tab" class="tab-content">
             <div class="chains-grid" id="chains-grid">
                 <div class="state-msg">Loading chains…</div>
             </div>
         </div>
 
-        <div id="agents-tab" class="tab-content" role="tabpanel">
+        <!-- My Agents Tab (with Create Agent form) -->
+        <div id="agents-tab" class="tab-content">
+            <div class="create-agent-panel grimoire-panel">
+                <div class="panel-label"><span class="panel-label-icon">✨</span>Create Your Own Agent</div>
+                <div class="form-row-2">
+                    <input type="text" id="new-agent-name" class="form-input" placeholder="Agent name (e.g., 'Marketing Expert')">
+                    <input type="text" id="new-agent-icon" class="form-input" placeholder="Emoji icon (e.g., '📈')" maxlength="2">
+                </div>
+                <input type="text" id="new-agent-specialty" class="form-input" placeholder="Specialty (e.g., 'Creates marketing strategies and copy')">
+                <textarea id="new-agent-prompt" class="form-textarea" rows="4" placeholder="System prompt for this agent...&#10;&#10;Example:&#10;You are a marketing expert. Help users create compelling marketing copy, analyze campaigns, and develop strategies. Be creative and data-driven."></textarea>
+                <div style="display: flex; gap: 16px; margin-top: 16px; align-items: center; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="new-agent-public"> 📢 Publish to Marketplace
+                    </label>
+                    <button id="create-agent-btn" class="btn-primary" style="margin-left: auto;">✨ Create Agent</button>
+                </div>
+            </div>
+
             <div class="agents-grid" id="agents-grid">
-                <div class="state-msg">Loading agents…</div>
+                <div class="state-msg">Loading your agents…</div>
             </div>
         </div>
 
-        <div id="marketplace-tab" class="tab-content" role="tabpanel">
+        <!-- Marketplace Tab -->
+        <div id="marketplace-tab" class="tab-content">
             <div class="marketplace-grid" id="marketplace-grid">
                 <div class="state-msg">Loading marketplace…</div>
             </div>
         </div>
 
-        <div id="builder-tab" class="tab-content" role="tabpanel">
+        <!-- Build Chain Tab -->
+        <div id="builder-tab" class="tab-content">
             <div class="chain-builder grimoire-panel">
                 <div class="panel-label"><span class="panel-label-icon">🛠️</span>Create Custom Chain</div>
 
@@ -396,8 +344,8 @@
                 <label class="form-label">Steps (in order)</label>
                 <div class="builder-steps-list" id="builder-steps">
                     <div class="builder-step">
-                        <select class="agent-select" aria-label="Agent"><option value="">Select agent…</option></select>
-                        <button class="remove-step" style="display:none;" aria-label="Remove step">🗑</button>
+                        <select class="agent-select"><option value="">Select agent…</option></select>
+                        <button class="remove-step" style="display:none;">🗑</button>
                     </div>
                 </div>
                 <button id="add-step-btn" class="btn-add-step">+ Add Step</button>
@@ -410,24 +358,85 @@
 
     </div>
 
+    <div id="toast" class="toast"></div>
+
+    <style>
+        .toast {
+            position: fixed; bottom: 30px; left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, var(--gold), #8a5a1a);
+            color: var(--ink);
+            padding: 10px 24px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 10000;
+            transition: transform 0.3s ease;
+            pointer-events: none;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.error { background: linear-gradient(135deg, var(--danger), #b44); color: white; }
+
+        .builder-steps-list { display: flex; flex-direction: column; gap: 8px; }
+        .builder-step {
+            display: flex; gap: 10px; align-items: center;
+            padding: 10px 14px; background: rgba(0,0,0,0.25);
+            border: 1px solid var(--border); border-radius: 12px;
+        }
+        .agent-select {
+            flex: 1; background: rgba(0,0,0,0.35);
+            border: 1px solid var(--border); border-radius: 10px;
+            padding: 9px 12px; color: var(--silver);
+            font-size: 13px;
+        }
+        .remove-step {
+            background: rgba(224,85,85,0.1); border: 1px solid rgba(224,85,85,0.3);
+            border-radius: 8px; padding: 7px 10px;
+            color: var(--danger); cursor: pointer; font-size: 13px;
+        }
+        .remove-step:hover { background: var(--danger); color: #fff; }
+        .btn-add-step {
+            margin-top: 10px; width: 100%;
+            background: transparent; border: 1px dashed var(--border-mid);
+            border-radius: var(--pill); padding: 10px;
+            color: var(--silver-dim); font-size: 12px; cursor: pointer;
+        }
+        .btn-add-step:hover { border-style: solid; border-color: var(--border-strong); background: rgba(201,168,76,0.06); }
+        .form-label { display: block; font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--gold), #8a5a1a);
+            border: none; border-radius: var(--pill); padding: 10px 22px;
+            color: var(--ink); font-size: 13px; font-weight: 600; cursor: pointer;
+        }
+        .agent-output {
+            margin-bottom: 16px; padding: 14px 16px;
+            background: rgba(0,0,0,0.25); border-left: 3px solid var(--violet);
+            border-radius: 0 12px 12px 0;
+        }
+        .agent-output-name { font-size: 10px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+        .agent-output-text { font-size: 13px; line-height: 1.65; white-space: pre-wrap; }
+        .final-output-block { background: rgba(92,184,122,0.06); border-left: 3px solid var(--success); border-radius: 0 12px 12px 0; padding: 16px; white-space: pre-wrap; font-size: 13px; line-height: 1.65; }
+    </style>
+
     <script>
         const API_BASE_URL = 'https://arnav0928.pythonanywhere.com';
         let availableAgents = [];
         let marketplaceAgents = [];
+        let userAgents = [];
         let isRunning = false;
 
-        function escHtml(s) {
-            if (!s) return '';
-            const d = document.createElement('div'); d.textContent = s; return d.innerHTML;
+        function esc(s) { if (!s) return ''; const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+        function toast(msg, isError = false) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = `toast ${isError ? 'error' : ''}`;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        function showLoading(el, msg = 'Processing…') {
-            el.innerHTML = `<div class="state-msg">${escHtml(msg)} <span class="spinner"></span></div>`;
-        }
-
-        function showError(el, msg) {
-            el.innerHTML = `<div class="state-error">❌ ${escHtml(msg)}</div>`;
-        }
+        function showLoading(el, msg) { el.innerHTML = `<div class="state-msg">${esc(msg)} <span class="spinner"></span></div>`; }
+        function showError(el, msg) { el.innerHTML = `<div class="state-error">❌ ${esc(msg)}</div>`; }
 
         async function checkAuth() {
             try {
@@ -437,49 +446,53 @@
                     if (data.authenticated && data.user) return true;
                 }
             } catch(e) {}
-            document.getElementById('chains-grid').innerHTML =
-                '<div class="state-error">⚠️ Please <a href="/" style="color:var(--gold);">login to Wizard.AI</a> to use Agent Studio.</div>';
+            document.getElementById('chains-grid').innerHTML = '<div class="state-error">⚠️ Please <a href="/" style="color:var(--gold);">login to Wizard.AI</a> to use Agent Studio.</div>';
             return false;
         }
 
-        async function loadAgents() {
+        // Load user's own agents
+        async function loadMyAgents() {
             const container = document.getElementById('agents-grid');
-            showLoading(container, 'Summoning agents…');
+            showLoading(container, 'Loading your agents…');
             try {
                 const res = await fetch(`${API_BASE_URL}/api/agents/list`, { credentials: 'include' });
                 if (res.ok) {
                     const data = await res.json();
-                    availableAgents = data.agents || [];
+                    userAgents = data.agents || [];
                 } else {
-                    availableAgents = [
-                        { name:'researcher',  specialty:'Finds facts and information from the web',        icon:'🔍', usage_count:0 },
-                        { name:'writer',      specialty:'Creates engaging content and articles',           icon:'✍️',  usage_count:0 },
-                        { name:'coder',       specialty:'Writes and debugs code',                         icon:'💻', usage_count:0 },
-                        { name:'designer',    specialty:'Creates images and visual designs',               icon:'🎨', usage_count:0 },
-                        { name:'data_analyst',specialty:'Analyzes numbers, statistics, and trends',       icon:'📊', usage_count:0 },
-                        { name:'reviewer',    specialty:'Checks quality and provides feedback',            icon:'✅', usage_count:0 },
-                        { name:'summarizer',  specialty:'Condenses long text into key points',            icon:'📝', usage_count:0 },
-                        { name:'translator',  specialty:'Converts text between languages',                icon:'🌐', usage_count:0 },
-                        { name:'optimizer',   specialty:'Improves performance and efficiency',            icon:'⚡', usage_count:0 }
-                    ];
+                    userAgents = [];
                 }
-                container.innerHTML = availableAgents.map(a => `
-                    <div class="agent-card grimoire-panel">
-                        <span class="agent-icon">${a.icon || '🤖'}</span>
-                        <h3>${escHtml(a.name)}</h3>
-                        <p>${escHtml(a.specialty || 'General purpose agent')}</p>
-                        <div class="card-meta">
-                            <span>📊 ${a.usage_count || 0} uses</span>
-                            <span>${a.is_custom ? '✨ Custom' : '⚡ Built-in'}</span>
+                if (!userAgents.length) {
+                    container.innerHTML = '<div class="state-msg">✨ You haven\'t created any agents yet. Use the form above to create your first agent!</div>';
+                } else {
+                    container.innerHTML = userAgents.map(a => `
+                        <div class="agent-card grimoire-panel" data-agent-id="${a.id}">
+                            <span class="agent-icon">${a.icon || '🤖'}</span>
+                            <h3>${esc(a.name)}</h3>
+                            <p>${esc(a.specialty)}</p>
+                            <div class="card-meta">
+                                <span>📊 ${a.usage_count || 0} uses</span>
+                                <span>${a.is_public ? '🌍 Public' : '🔒 Private'}</span>
+                            </div>
+                            ${!a.is_public ? `<button class="publish-btn-small" data-agent-id="${a.id}" data-agent-name="${esc(a.name)}">📢 Publish to Marketplace</button>` : '<div class="installed-badge">✅ Published in Marketplace</div>'}
                         </div>
-                    </div>
-                `).join('');
-                updateAgentSelects();
-            } catch(e) {
-                showError(container, 'Error loading agents. Please refresh.');
-            }
+                    `).join('');
+                    
+                    document.querySelectorAll('.publish-btn-small').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            const agentId = btn.dataset.agentId;
+                            const agentName = btn.dataset.agentName;
+                            if (confirm(`Publish "${agentName}" to the marketplace? Others will be able to install and use it.`)) {
+                                await publishAgent(agentId, agentName);
+                            }
+                        });
+                    });
+                }
+            } catch(e) { showError(container, 'Error loading your agents.'); }
         }
 
+        // Load marketplace agents
         async function loadMarketplace() {
             const container = document.getElementById('marketplace-grid');
             showLoading(container, 'Loading marketplace…');
@@ -492,22 +505,22 @@
                     marketplaceAgents = [];
                 }
                 if (!marketplaceAgents.length) {
-                    container.innerHTML = '<div class="state-msg">No agents in marketplace yet. Be the first to publish one!</div>';
+                    container.innerHTML = '<div class="state-msg">📦 No agents in marketplace yet.<br><br>Go to the "My Agents" tab and create an agent, then click "Publish to Marketplace" to share it with the community!</div>';
                 } else {
                     container.innerHTML = marketplaceAgents.map(a => `
                         <div class="marketplace-card grimoire-panel" data-agent-id="${a.id}">
                             <div class="marketplace-badge">${a.is_installed ? '✓ Installed' : '📦 Available'}</div>
                             <span class="agent-icon">${a.icon || '🤖'}</span>
-                            <h3>${escHtml(a.name)}</h3>
-                            <p>${escHtml(a.specialty)}</p>
+                            <h3>${esc(a.name)}</h3>
+                            <p>${esc(a.specialty)}</p>
                             <div class="rating-stars">⭐ ${a.avg_rating || '—'}</div>
                             <div class="card-meta">
                                 <span>📊 ${a.usage_count || 0} uses</span>
-                                <span>👤 by ${escHtml(a.creator || 'Anonymous')}</span>
+                                <span>👤 by ${esc(a.creator || 'Anonymous')}</span>
                             </div>
                             ${!a.is_installed ? 
-                                `<button class="install-btn-small" data-agent-id="${a.id}" data-agent-name="${escHtml(a.name)}">📥 Install Agent</button>` :
-                                `<div class="installed-badge">✅ Installed · <button class="install-btn-small" style="background:rgba(224,85,85,0.2);color:var(--danger);margin-top:5px;" data-agent-id="${a.id}" data-agent-name="${escHtml(a.name)}" data-uninstall="true">🗑 Uninstall</button></div>`
+                                `<button class="install-btn-small" data-agent-id="${a.id}" data-agent-name="${esc(a.name)}">📥 Install Agent</button>` :
+                                `<div class="installed-badge">✅ Installed · <button class="install-btn-small" style="background:rgba(224,85,85,0.2);color:var(--danger);margin-top:5px;" data-agent-id="${a.id}" data-agent-name="${esc(a.name)}" data-uninstall="true">🗑 Uninstall</button></div>`
                             }
                         </div>
                     `).join('');
@@ -518,40 +531,113 @@
                             const agentId = btn.dataset.agentId;
                             const agentName = btn.dataset.agentName;
                             const isUninstall = btn.dataset.uninstall === 'true';
-                            
                             if (isUninstall) {
-                                if (confirm(`Remove "${agentName}" from your agents?`)) {
-                                    await uninstallAgent(agentId);
-                                }
+                                if (confirm(`Remove "${agentName}" from your agents?`)) await uninstallAgent(agentId);
                             } else {
                                 await installAgent(agentId, agentName);
                             }
                         });
                     });
                 }
-            } catch(e) {
-                showError(container, 'Error loading marketplace.');
+            } catch(e) { showError(container, 'Error loading marketplace.'); }
+        }
+
+        async function loadAgentsForSelect() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/agents/list`, { credentials: 'include' });
+                if (res.ok) {
+                    const data = await res.json();
+                    availableAgents = data.agents || [];
+                } else {
+                    availableAgents = [
+                        { name:'researcher', specialty:'Finds facts from the web', icon:'🔍' },
+                        { name:'writer', specialty:'Creates content', icon:'✍️' },
+                        { name:'coder', specialty:'Writes code', icon:'💻' },
+                        { name:'designer', specialty:'Creates visual designs', icon:'🎨' },
+                        { name:'data_analyst', specialty:'Analyzes numbers', icon:'📊' },
+                        { name:'reviewer', specialty:'Reviews quality', icon:'✅' },
+                        { name:'summarizer', specialty:'Condenses text', icon:'📝' },
+                        { name:'translator', specialty:'Translates languages', icon:'🌐' },
+                        { name:'optimizer', specialty:'Improves performance', icon:'⚡' }
+                    ];
+                }
+                updateAgentSelects();
+            } catch(e) {}
+        }
+
+        async function createAgent() {
+            const name = document.getElementById('new-agent-name').value.trim();
+            const icon = document.getElementById('new-agent-icon').value.trim() || '🤖';
+            const specialty = document.getElementById('new-agent-specialty').value.trim();
+            const systemPrompt = document.getElementById('new-agent-prompt').value.trim();
+            const isPublic = document.getElementById('new-agent-public').checked;
+            
+            if (!name || !specialty || !systemPrompt) {
+                toast('Please fill in all fields', true);
+                return;
             }
+            
+            const btn = document.getElementById('create-agent-btn');
+            btn.disabled = true; btn.textContent = 'Creating…';
+            
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/agents/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ name, icon, specialty, prompt: systemPrompt, is_public: isPublic })
+                });
+                
+                if (res.ok) {
+                    toast(`✅ Agent "${name}" created!`);
+                    document.getElementById('new-agent-name').value = '';
+                    document.getElementById('new-agent-icon').value = '';
+                    document.getElementById('new-agent-specialty').value = '';
+                    document.getElementById('new-agent-prompt').value = '';
+                    document.getElementById('new-agent-public').checked = false;
+                    await loadMyAgents();
+                    await loadAgentsForSelect();
+                    if (isPublic) {
+                        await loadMarketplace();
+                    }
+                } else {
+                    const err = await res.json();
+                    toast(err.error || 'Creation failed', true);
+                }
+            } catch(e) { toast('Creation failed', true); }
+            finally { btn.disabled = false; btn.textContent = '✨ Create Agent'; }
+        }
+
+        async function publishAgent(agentId, agentName) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/agents/publish/${agentId}`, {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                if (res.ok) {
+                    toast(`✅ "${agentName}" published to marketplace!`);
+                    await loadMyAgents();
+                    await loadMarketplace();
+                } else {
+                    toast('Failed to publish', true);
+                }
+            } catch(e) { toast('Failed to publish', true); }
         }
 
         async function installAgent(agentId, agentName) {
             try {
                 const res = await fetch(`${API_BASE_URL}/api/agents/install/${agentId}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
                     credentials: 'include'
                 });
                 if (res.ok) {
                     toast(`✅ "${agentName}" installed!`);
                     await loadMarketplace();
-                    await loadAgents();
+                    await loadAgentsForSelect();
                 } else {
-                    const err = await res.json();
-                    toast(err.error || 'Installation failed', 'err');
+                    toast('Installation failed', true);
                 }
-            } catch(e) {
-                toast('Installation failed', 'err');
-            }
+            } catch(e) { toast('Installation failed', true); }
         }
 
         async function uninstallAgent(agentId) {
@@ -563,26 +649,16 @@
                 if (res.ok) {
                     toast('✅ Agent removed');
                     await loadMarketplace();
-                    await loadAgents();
+                    await loadAgentsForSelect();
                 } else {
-                    toast('Removal failed', 'err');
+                    toast('Removal failed', true);
                 }
-            } catch(e) {
-                toast('Removal failed', 'err');
-            }
-        }
-
-        function toast(msg, type = 'ok') {
-            const t = document.createElement('div');
-            t.textContent = msg;
-            t.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:${type === 'err' ? 'var(--danger)' : 'linear-gradient(135deg,var(--gold),#8a5a1a)'};color:var(--ink);border-radius:100px;padding:10px 24px;z-index:10000;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,0.3);`;
-            document.body.appendChild(t);
-            setTimeout(() => t.remove(), 3000);
+            } catch(e) { toast('Removal failed', true); }
         }
 
         async function loadChains() {
             const container = document.getElementById('chains-grid');
-            const select    = document.getElementById('chain-select');
+            const select = document.getElementById('chain-select');
             showLoading(container, 'Loading chains…');
             try {
                 const res = await fetch(`${API_BASE_URL}/api/chains/list`, { credentials: 'include' });
@@ -592,26 +668,20 @@
                     chains = data.chains || [];
                 } else {
                     chains = [
-                        { name:'research_write',   description:'Research a topic and write a comprehensive essay', steps:['researcher','writer','reviewer'],    usage_count:0, is_custom:false },
-                        { name:'code_review',      description:'Write code and have it reviewed and optimized',    steps:['coder','reviewer','optimizer'],       usage_count:0, is_custom:false },
-                        { name:'data_visualize',   description:'Analyze data and create visualizations',           steps:['data_analyst','designer'],            usage_count:0, is_custom:false },
-                        { name:'translate_summarize',description:'Translate text and create a summary',            steps:['translator','summarizer'],            usage_count:0, is_custom:false }
+                        { name:'research_write', description:'Research and write an essay', steps:['researcher','writer','reviewer'], usage_count:0, is_custom:false },
+                        { name:'code_review', description:'Write and review code', steps:['coder','reviewer','optimizer'], usage_count:0, is_custom:false },
+                        { name:'data_visualize', description:'Analyze data and create visualizations', steps:['data_analyst','designer'], usage_count:0, is_custom:false }
                     ];
                 }
-                if (!chains || chains.length === 0) {
+                if (!chains.length) {
                     container.innerHTML = '<div class="state-msg">No chains yet — create one in the Build Chain tab!</div>';
                 } else {
                     container.innerHTML = chains.map(c => `
-                        <div class="chain-card grimoire-panel" data-chain-name="${escHtml(c.name)}">
-                            <h3>🔗 ${escHtml(c.name)}</h3>
-                            <p>${escHtml(c.description || 'No description')}</p>
-                            <div class="chain-steps">${(c.steps || []).map(s =>
-                                `<span class="step-badge">${escHtml(typeof s === 'string' ? s : (s.agent || s))}</span>`
-                            ).join('')}</div>
-                            <div class="card-meta">
-                                <span>📊 ${c.usage_count || 0} runs</span>
-                                <span>${c.is_custom ? '✨ Custom' : '⚡ Built-in'}</span>
-                            </div>
+                        <div class="chain-card grimoire-panel" data-chain-name="${esc(c.name)}">
+                            <h3>🔗 ${esc(c.name)}</h3>
+                            <p>${esc(c.description || '')}</p>
+                            <div class="chain-steps">${(c.steps || []).map(s => `<span class="step-badge">${esc(typeof s === 'string' ? s : (s.agent || s))}</span>`).join('')}</div>
+                            <div class="card-meta"><span>📊 ${c.usage_count || 0} runs</span><span>${c.is_custom ? '✨ Custom' : '⚡ Built-in'}</span></div>
                         </div>
                     `).join('');
                     document.querySelectorAll('.chain-card').forEach(card => {
@@ -623,11 +693,7 @@
                 }
                 if (select) {
                     select.innerHTML = '<option value="">Select a chain…</option>';
-                    chains.forEach(c => {
-                        const o = document.createElement('option');
-                        o.value = c.name; o.textContent = c.name;
-                        select.appendChild(o);
-                    });
+                    chains.forEach(c => { const o = document.createElement('option'); o.value = c.name; o.textContent = c.name; select.appendChild(o); });
                 }
             } catch(e) { showError(container, 'Error loading chains.'); }
         }
@@ -635,17 +701,17 @@
         async function runChain() {
             if (isRunning) return;
             const chainName = document.getElementById('chain-select').value;
-            const input     = document.getElementById('chain-input').value.trim();
-            const convDiv   = document.getElementById('agent-conversation');
-            const finalDiv  = document.getElementById('final-work');
+            const input = document.getElementById('chain-input').value.trim();
+            const convDiv = document.getElementById('agent-conversation');
+            const finalDiv = document.getElementById('final-work');
             if (!chainName) { showError(convDiv, 'Please select a chain'); return; }
-            if (!input)     { showError(convDiv, 'Please enter a request'); return; }
+            if (!input) { showError(convDiv, 'Please enter a request'); return; }
 
             isRunning = true;
             const btn = document.getElementById('run-chain-btn');
             btn.disabled = true; btn.textContent = '⏳ Running…';
-            showLoading(convDiv, '🤖 Running agents in sequence (this may take a moment for long outputs)…');
-            showLoading(finalDiv, '✨ Generating final output…');
+            showLoading(convDiv, '🤖 Running agents…');
+            showLoading(finalDiv, '✨ Generating output…');
 
             try {
                 const res = await fetch(`${API_BASE_URL}/api/chains/run/${encodeURIComponent(chainName)}`, {
@@ -656,57 +722,19 @@
                 if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
 
                 let convHtml = '';
-                let hasTruncation = false;
-                
                 if (data.steps && typeof data.steps === 'object') {
-                    const entries = Object.entries(data.steps);
-                    if (entries.length === 0) {
-                        convHtml = '<div class="state-msg">No agent outputs recorded</div>';
-                    } else {
-                        entries.forEach(([name, output]) => {
-                            if (output && typeof output === 'string') {
-                                if (output.length > 4000 && !output.trim().endsWith('.')) {
-                                    hasTruncation = true;
-                                }
-                                convHtml += `
-                                    <div class="agent-output">
-                                        <div class="agent-output-name">🤖 ${escHtml(name)} Agent</div>
-                                        <div class="agent-output-text">${escHtml(output)}</div>
-                                    </div>`;
-                            }
-                        });
-                    }
-                } else { convHtml = '<div class="state-msg">No agent conversation recorded</div>'; }
-
+                    Object.entries(data.steps).forEach(([name, output]) => {
+                        if (output && typeof output === 'string') {
+                            convHtml += `<div class="agent-output"><div class="agent-output-name">🤖 ${esc(name)} Agent</div><div class="agent-output-text">${esc(output)}</div></div>`;
+                        }
+                    });
+                }
                 const finalText = data.output || data.final || data.content;
-                let finalHtml = '';
-                
-                if (finalText) {
-                    if (finalText.length > 8000 && !finalText.trim().endsWith('.')) {
-                        hasTruncation = true;
-                    }
-                    finalHtml = `<div class="final-output-block">${escHtml(finalText)}</div>`;
-                } else {
-                    finalHtml = '<div class="state-msg">No final output generated</div>';
-                }
-                
-                if (hasTruncation) {
-                    const warning = `<div class="truncation-warning">⚠️ The output may be truncated due to length. Try a more specific request or break down your task.</div>`;
-                    convDiv.innerHTML = warning + (convHtml || '<div class="state-msg">Chain completed</div>');
-                    finalDiv.innerHTML = warning + finalHtml;
-                } else {
-                    convDiv.innerHTML = convHtml || '<div class="state-msg">Chain completed</div>';
-                    finalDiv.innerHTML = finalHtml;
-                }
-                
+                convDiv.innerHTML = convHtml || '<div class="state-msg">Chain completed</div>';
+                finalDiv.innerHTML = finalText ? `<div class="final-output-block">${esc(finalText)}</div>` : '<div class="state-msg">No final output generated</div>';
                 await loadChains();
-            } catch(e) {
-                showError(convDiv, e.message);
-                showError(finalDiv, 'Chain execution failed. Please try again.');
-            } finally {
-                isRunning = false;
-                btn.disabled = false; btn.innerHTML = '▶ Run Chain';
-            }
+            } catch(e) { showError(convDiv, e.message); showError(finalDiv, 'Execution failed.'); }
+            finally { isRunning = false; btn.disabled = false; btn.innerHTML = '▶ Run Chain'; }
         }
 
         function updateAgentSelects() {
@@ -714,7 +742,7 @@
                 const val = sel.value;
                 sel.innerHTML = '<option value="">Select agent…</option>';
                 availableAgents.forEach(a => {
-                    sel.innerHTML += `<option value="${escHtml(a.name.toLowerCase())}">${a.icon || '🤖'} ${escHtml(a.name)}</option>`;
+                    sel.innerHTML += `<option value="${esc(a.name.toLowerCase())}">${a.icon || '🤖'} ${esc(a.name)}</option>`;
                 });
                 if (val) sel.value = val;
             });
@@ -724,10 +752,7 @@
             const list = document.getElementById('builder-steps');
             const div = document.createElement('div');
             div.className = 'builder-step';
-            div.innerHTML = `
-                <select class="agent-select" aria-label="Agent"><option value="">Select agent…</option></select>
-                <button class="remove-step" aria-label="Remove step">🗑</button>
-            `;
+            div.innerHTML = `<select class="agent-select"></select><button class="remove-step">🗑</button>`;
             list.appendChild(div);
             updateAgentSelects();
             div.querySelector('.remove-step').addEventListener('click', () => div.remove());
@@ -740,42 +765,35 @@
             document.querySelectorAll('.builder-step .agent-select').forEach(sel => {
                 if (sel.value) steps.push({ agent: sel.value, input_key: 'query', output_key: sel.value });
             });
-            if (!name || steps.length === 0) { alert('Please enter a name and at least one step.'); return; }
+            if (!name || !steps.length) { toast('Please enter a name and at least one step.', true); return; }
             const btn = document.getElementById('save-chain-btn');
             btn.disabled = true; btn.textContent = 'Saving…';
             try {
                 const res = await fetch(`${API_BASE_URL}/api/chains/create`, {
-                    method:'POST', headers:{'Content-Type':'application/json'},
-                    credentials:'include',
+                    method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
                     body: JSON.stringify({ name, description: desc, steps })
                 });
                 if (res.ok) {
                     toast('✅ Chain saved!');
                     document.getElementById('chain-name').value = '';
                     document.getElementById('chain-desc').value = '';
-                    document.getElementById('builder-steps').innerHTML = `
-                        <div class="builder-step">
-                            <select class="agent-select" aria-label="Agent"><option value="">Select agent…</option></select>
-                            <button class="remove-step" style="display:none;" aria-label="Remove step">🗑</button>
-                        </div>`;
+                    document.getElementById('builder-steps').innerHTML = `<div class="builder-step"><select class="agent-select"></select><button class="remove-step" style="display:none;">🗑</button></div>`;
                     updateAgentSelects();
                     await loadChains();
-                } else {
-                    const err = await res.json();
-                    toast('Failed: ' + (err.error || 'Unknown error'), 'err');
-                }
-            } catch(e) { toast('Error: ' + e.message, 'err'); }
+                } else { const err = await res.json(); toast(err.error || 'Save failed', true); }
+            } catch(e) { toast('Error saving chain', true); }
             finally { btn.disabled = false; btn.innerHTML = '💾 Save Chain'; }
         }
 
+        // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                 document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-                btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+                btn.classList.add('active');
                 document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
-                if (btn.dataset.tab === 'chains')  loadChains();
-                if (btn.dataset.tab === 'agents')  loadAgents();
+                if (btn.dataset.tab === 'chains') loadChains();
+                if (btn.dataset.tab === 'agents') loadMyAgents();
                 if (btn.dataset.tab === 'marketplace') loadMarketplace();
                 if (btn.dataset.tab === 'builder') updateAgentSelects();
             });
@@ -784,13 +802,16 @@
         document.getElementById('run-chain-btn').addEventListener('click', runChain);
         document.getElementById('add-step-btn').addEventListener('click', addBuilderStep);
         document.getElementById('save-chain-btn').addEventListener('click', saveChain);
+        document.getElementById('create-agent-btn').addEventListener('click', createAgent);
         document.getElementById('chain-input').addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') runChain(); });
 
         async function init() {
             await checkAuth();
-            await loadAgents();
+            await loadAgentsForSelect();
+            await loadMyAgents();
             await loadChains();
             await loadMarketplace();
+            updateAgentSelects();
         }
         init();
     </script>
