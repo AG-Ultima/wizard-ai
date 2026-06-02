@@ -351,17 +351,19 @@
     </div>
 
     <!-- Rename Chat Modal -->
-    <div class="modal-overlay" id="rename-modal-overlay" role="dialog" aria-modal="true" aria-label="Rename chat">
-        <div class="modal grimoire-modal">
+<div class="modal-overlay" id="rename-modal-overlay" role="dialog" aria-modal="true" aria-label="Rename chat">
+    <div class="modal grimoire-modal">
+        <div class="modal-header">
             <h3 class="modal-simple-title">Rename Chat</h3>
-            <input type="text" id="rename-input" placeholder="Enter new name…" maxlength="30" aria-label="New chat name">
-            <div class="modal-buttons">
-                <button id="modal-save" class="modal-btn-primary">Save</button>
-                <button id="modal-cancel" class="modal-btn-ghost">Cancel</button>
-            </div>
+            <button class="close-modal" id="close-rename-modal" aria-label="Close">&times;</button>
+        </div>
+        <input type="text" id="rename-input" placeholder="Enter new name…" maxlength="30" aria-label="New chat name">
+        <div class="modal-buttons">
+            <button id="modal-save" class="modal-btn-primary">Save</button>
+            <button id="modal-cancel" class="modal-btn-ghost">Cancel</button>
         </div>
     </div>
-
+</div>
     <!-- Code Modal -->
     <div class="modal-overlay" id="code-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="code-modal-title">
         <div class="modal grimoire-modal large-modal">
