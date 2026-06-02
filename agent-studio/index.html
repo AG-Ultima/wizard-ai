@@ -147,31 +147,28 @@
             background:rgba(0,0,0,0.35); border:1px solid var(--border); border-radius:14px;
             padding:18px; overflow-y:auto; font-size:13px; line-height:1.65;
         }
-        .result-conversation { 
-            height: 400px; 
-            max-height: 50vh;
-            overflow-y: auto;
-        }
-        .result-final { 
-            height: 450px; 
-            max-height: 55vh;
-            overflow-y: auto;
-            border-left:3px solid var(--success);
-        }
+        .result-conversation { height: 400px; max-height: 50vh; overflow-y: auto; }
+        .result-final { height: 450px; max-height: 55vh; overflow-y: auto; border-left:3px solid var(--success); }
 
         .result-label { font-family:'Cormorant Garamond',serif; font-size:19px; font-weight:400; color:var(--gold); margin:20px 0 12px; }
 
-        .chains-grid, .agents-grid {
+        .chains-grid, .agents-grid, .marketplace-grid {
             display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
             gap:18px; margin-bottom:32px;
         }
-        .chain-card, .agent-card {
+        .chain-card, .agent-card, .marketplace-card {
             padding:24px; cursor:pointer;
             transition:all 0.25s;
         }
-        .chain-card:hover, .agent-card:hover { transform:translateY(-4px); border-color:var(--border-strong); }
-        .chain-card h3, .agent-card h3 { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600; color:var(--silver); margin-bottom:8px; }
-        .chain-card p,  .agent-card p  { font-size:13px; color:var(--muted); margin-bottom:14px; line-height:1.5; }
+        .chain-card:hover, .agent-card:hover, .marketplace-card:hover {
+            transform:translateY(-4px); border-color:var(--border-strong);
+        }
+        .chain-card h3, .agent-card h3, .marketplace-card h3 {
+            font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600; color:var(--silver); margin-bottom:8px;
+        }
+        .chain-card p, .agent-card p, .marketplace-card p {
+            font-size:13px; color:var(--muted); margin-bottom:14px; line-height:1.5;
+        }
         .chain-steps { display:flex; gap:6px; flex-wrap:wrap; }
         .step-badge {
             background:rgba(201,168,76,0.12); border:1px solid var(--border);
@@ -180,6 +177,49 @@
         }
         .agent-icon { font-size:44px; display:block; margin-bottom:10px; }
         .card-meta { display:flex; gap:14px; margin-top:12px; font-size:11px; color:var(--muted); }
+
+        .marketplace-badge {
+            background:rgba(124,92,191,0.2);
+            border:1px solid rgba(124,92,191,0.3);
+            border-radius:var(--pill);
+            padding:3px 10px;
+            font-size:10px;
+            color:var(--violet);
+            display:inline-block;
+            margin-bottom:10px;
+        }
+        .install-btn-small {
+            background:linear-gradient(135deg,var(--gold),#8a5a1a);
+            border:none;
+            border-radius:var(--pill);
+            padding:5px 12px;
+            font-size:11px;
+            font-weight:600;
+            color:var(--ink);
+            cursor:pointer;
+            margin-top:12px;
+            width:100%;
+            transition:all 0.2s;
+        }
+        .install-btn-small:hover {
+            transform:translateY(-1px);
+            box-shadow:0 2px 8px rgba(201,168,76,0.3);
+        }
+        .installed-badge {
+            background:rgba(92,184,122,0.15);
+            border:1px solid var(--success);
+            border-radius:var(--pill);
+            padding:4px 12px;
+            font-size:11px;
+            color:var(--success);
+            text-align:center;
+            margin-top:12px;
+        }
+        .rating-stars {
+            font-size:11px;
+            color:var(--gold);
+            margin-top:8px;
+        }
 
         .chain-builder { padding:26px; }
         .builder-steps-list { display:flex; flex-direction:column; gap:8px; }
@@ -265,7 +305,7 @@
         ::-webkit-scrollbar-thumb { background:linear-gradient(180deg,var(--gold),#8a5a1a); border-radius:var(--pill); }
 
         @media (max-width:960px)  { .chain-runner { grid-template-columns:1fr; } }
-        @media (max-width:640px)  { .chains-grid, .agents-grid { grid-template-columns:1fr; } .studio-tabs { gap:6px; } .tab-btn { padding:8px 14px; font-size:12px; } }
+        @media (max-width:640px)  { .chains-grid, .agents-grid, .marketplace-grid { grid-template-columns:1fr; } .studio-tabs { gap:6px; } .tab-btn { padding:8px 14px; font-size:12px; } }
     </style>
 </head>
 <body>
@@ -292,9 +332,10 @@
         </div>
 
         <div class="studio-tabs" role="tablist">
-            <button class="tab-btn active" data-tab="run"     role="tab" aria-selected="true">⚡ Run Chain</button>
+            <button class="tab-btn active" data-tab="run"      role="tab" aria-selected="true">⚡ Run Chain</button>
             <button class="tab-btn"         data-tab="chains"  role="tab" aria-selected="false">🔗 My Chains</button>
             <button class="tab-btn"         data-tab="agents"  role="tab" aria-selected="false">🤖 Agents</button>
+            <button class="tab-btn"         data-tab="marketplace" role="tab" aria-selected="false">🛒 Marketplace</button>
             <button class="tab-btn"         data-tab="builder" role="tab" aria-selected="false">🛠️ Build Chain</button>
         </div>
 
@@ -336,6 +377,12 @@
             </div>
         </div>
 
+        <div id="marketplace-tab" class="tab-content" role="tabpanel">
+            <div class="marketplace-grid" id="marketplace-grid">
+                <div class="state-msg">Loading marketplace…</div>
+            </div>
+        </div>
+
         <div id="builder-tab" class="tab-content" role="tabpanel">
             <div class="chain-builder grimoire-panel">
                 <div class="panel-label"><span class="panel-label-icon">🛠️</span>Create Custom Chain</div>
@@ -366,6 +413,7 @@
     <script>
         const API_BASE_URL = 'https://arnav0928.pythonanywhere.com';
         let availableAgents = [];
+        let marketplaceAgents = [];
         let isRunning = false;
 
         function escHtml(s) {
@@ -430,6 +478,106 @@
             } catch(e) {
                 showError(container, 'Error loading agents. Please refresh.');
             }
+        }
+
+        async function loadMarketplace() {
+            const container = document.getElementById('marketplace-grid');
+            showLoading(container, 'Loading marketplace…');
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/agents/marketplace`, { credentials: 'include' });
+                if (res.ok) {
+                    const data = await res.json();
+                    marketplaceAgents = data.agents || [];
+                } else {
+                    marketplaceAgents = [];
+                }
+                if (!marketplaceAgents.length) {
+                    container.innerHTML = '<div class="state-msg">No agents in marketplace yet. Be the first to publish one!</div>';
+                } else {
+                    container.innerHTML = marketplaceAgents.map(a => `
+                        <div class="marketplace-card grimoire-panel" data-agent-id="${a.id}">
+                            <div class="marketplace-badge">${a.is_installed ? '✓ Installed' : '📦 Available'}</div>
+                            <span class="agent-icon">${a.icon || '🤖'}</span>
+                            <h3>${escHtml(a.name)}</h3>
+                            <p>${escHtml(a.specialty)}</p>
+                            <div class="rating-stars">⭐ ${a.avg_rating || '—'}</div>
+                            <div class="card-meta">
+                                <span>📊 ${a.usage_count || 0} uses</span>
+                                <span>👤 by ${escHtml(a.creator || 'Anonymous')}</span>
+                            </div>
+                            ${!a.is_installed ? 
+                                `<button class="install-btn-small" data-agent-id="${a.id}" data-agent-name="${escHtml(a.name)}">📥 Install Agent</button>` :
+                                `<div class="installed-badge">✅ Installed · <button class="install-btn-small" style="background:rgba(224,85,85,0.2);color:var(--danger);margin-top:5px;" data-agent-id="${a.id}" data-agent-name="${escHtml(a.name)}" data-uninstall="true">🗑 Uninstall</button></div>`
+                            }
+                        </div>
+                    `).join('');
+                    
+                    document.querySelectorAll('.install-btn-small').forEach(btn => {
+                        btn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            const agentId = btn.dataset.agentId;
+                            const agentName = btn.dataset.agentName;
+                            const isUninstall = btn.dataset.uninstall === 'true';
+                            
+                            if (isUninstall) {
+                                if (confirm(`Remove "${agentName}" from your agents?`)) {
+                                    await uninstallAgent(agentId);
+                                }
+                            } else {
+                                await installAgent(agentId, agentName);
+                            }
+                        });
+                    });
+                }
+            } catch(e) {
+                showError(container, 'Error loading marketplace.');
+            }
+        }
+
+        async function installAgent(agentId, agentName) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/agents/install/${agentId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                });
+                if (res.ok) {
+                    toast(`✅ "${agentName}" installed!`);
+                    await loadMarketplace();
+                    await loadAgents();
+                } else {
+                    const err = await res.json();
+                    toast(err.error || 'Installation failed', 'err');
+                }
+            } catch(e) {
+                toast('Installation failed', 'err');
+            }
+        }
+
+        async function uninstallAgent(agentId) {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/agents/uninstall/${agentId}`, {
+                    method: 'DELETE',
+                    credentials: 'include'
+                });
+                if (res.ok) {
+                    toast('✅ Agent removed');
+                    await loadMarketplace();
+                    await loadAgents();
+                } else {
+                    toast('Removal failed', 'err');
+                }
+            } catch(e) {
+                toast('Removal failed', 'err');
+            }
+        }
+
+        function toast(msg, type = 'ok') {
+            const t = document.createElement('div');
+            t.textContent = msg;
+            t.style.cssText = `position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:${type === 'err' ? 'var(--danger)' : 'linear-gradient(135deg,var(--gold),#8a5a1a)'};color:var(--ink);border-radius:100px;padding:10px 24px;z-index:10000;font-weight:500;box-shadow:0 4px 16px rgba(0,0,0,0.3);`;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
         }
 
         async function loadChains() {
@@ -517,7 +665,6 @@
                     } else {
                         entries.forEach(([name, output]) => {
                             if (output && typeof output === 'string') {
-                                // Check if output might be truncated
                                 if (output.length > 4000 && !output.trim().endsWith('.')) {
                                     hasTruncation = true;
                                 }
@@ -535,7 +682,6 @@
                 let finalHtml = '';
                 
                 if (finalText) {
-                    // Check if final output might be truncated
                     if (finalText.length > 8000 && !finalText.trim().endsWith('.')) {
                         hasTruncation = true;
                     }
@@ -604,7 +750,7 @@
                     body: JSON.stringify({ name, description: desc, steps })
                 });
                 if (res.ok) {
-                    alert('✅ Chain saved!');
+                    toast('✅ Chain saved!');
                     document.getElementById('chain-name').value = '';
                     document.getElementById('chain-desc').value = '';
                     document.getElementById('builder-steps').innerHTML = `
@@ -616,9 +762,9 @@
                     await loadChains();
                 } else {
                     const err = await res.json();
-                    alert('Failed: ' + (err.error || 'Unknown error'));
+                    toast('Failed: ' + (err.error || 'Unknown error'), 'err');
                 }
-            } catch(e) { alert('Error: ' + e.message); }
+            } catch(e) { toast('Error: ' + e.message, 'err'); }
             finally { btn.disabled = false; btn.innerHTML = '💾 Save Chain'; }
         }
 
@@ -630,6 +776,7 @@
                 document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
                 if (btn.dataset.tab === 'chains')  loadChains();
                 if (btn.dataset.tab === 'agents')  loadAgents();
+                if (btn.dataset.tab === 'marketplace') loadMarketplace();
                 if (btn.dataset.tab === 'builder') updateAgentSelects();
             });
         });
@@ -643,6 +790,7 @@
             await checkAuth();
             await loadAgents();
             await loadChains();
+            await loadMarketplace();
         }
         init();
     </script>
