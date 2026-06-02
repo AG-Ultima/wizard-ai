@@ -1,6 +1,6 @@
 // ============================================
-// WIZARD.AI PRO v13.0.0 - COMPLETE FRONTEND CONTROLLER
-// Multi-Agent Update - Full Rewrite
+// WIZARD.AI PRO v15.1.0 - WIZPROFILE UPDATE
+// Complete Frontend Controller with Profile System
 // Created by Arnav Gupta
 // ============================================
 
@@ -31,7 +31,7 @@ const resetCurrentBtn = document.getElementById('reset-current-btn');
 const updateHistoryBtn = document.getElementById('update-history-btn');
 const statMessages = document.getElementById('stat-messages');
 const statFiles = document.getElementById('stat-files');
-const statMemories = document.getElementById('stat-memories');
+const statProfile = document.getElementById('stat-profile-completeness');
 const statImages = document.getElementById('stat-images');
 const statSearches = document.getElementById('stat-searches');
 const statResponse = document.getElementById('stat-response');
@@ -41,7 +41,7 @@ const searchBtn = document.getElementById('search-btn');
 const uploadBtn = document.getElementById('upload-btn');
 const codeBtn = document.getElementById('code-btn');
 const imageBtn = document.getElementById('image-btn');
-const memoryBtn = document.getElementById('memory-btn');
+const profileBtn = document.getElementById('profile-btn');
 const statsBtn = document.getElementById('stats-btn');
 const personalitiesBtn = document.getElementById('personalities-btn');
 const devHubBtn = document.getElementById('devhub-btn');
@@ -56,15 +56,14 @@ const authModal = document.getElementById('auth-modal-overlay');
 const renameModal = document.getElementById('rename-modal-overlay');
 const codeModal = document.getElementById('code-modal-overlay');
 const imageModal = document.getElementById('image-modal-overlay');
-const memoryModal = document.getElementById('memory-modal-overlay');
+const profileModal = document.getElementById('profile-modal-overlay');
 const statsModal = document.getElementById('stats-modal-overlay');
 const personalitiesModal = document.getElementById('personalities-modal-overlay');
 const updateModal = document.getElementById('update-modal-overlay');
 const closeAuth = document.getElementById('close-auth-modal');
-const closeRename = document.getElementById('close-rename-modal');
 const closeCode = document.getElementById('close-code-modal');
 const closeImage = document.getElementById('close-image-modal');
-const closeMemory = document.getElementById('close-memory-modal');
+const closeProfile = document.getElementById('close-profile-modal');
 const closeStats = document.getElementById('close-stats-modal');
 const closePersonalities = document.getElementById('close-personalities-modal');
 const closeUpdate = document.getElementById('close-update-modal');
@@ -112,26 +111,60 @@ const imagePrompt = document.getElementById('image-prompt');
 const imageSize = document.getElementById('image-size');
 const generateImageBtn = document.getElementById('generate-image');
 const imageResult = document.getElementById('image-result');
-const memoryList = document.getElementById('memory-list');
 const statsCreated = document.getElementById('stats-created');
 const statsLast = document.getElementById('stats-last');
 const statsTotalMsgs = document.getElementById('stats-total-msgs');
 const statsTotalChats = document.getElementById('stats-total-chats');
-const statsFiles = document.getElementById('stats-files');
-const statsImages = document.getElementById('stats-images');
-const statsCode = document.getElementById('stats-code');
-const statsSearches = document.getElementById('stats-searches');
+const statsFilesDetailed = document.getElementById('stats-files-detailed');
+const statsImagesDetailed = document.getElementById('stats-images-detailed');
+const statsCodeDetailed = document.getElementById('stats-code-detailed');
+const statsSearchesDetailed = document.getElementById('stats-searches-detailed');
 const statsMemories = document.getElementById('stats-memories');
 const statsDocs = document.getElementById('stats-docs');
 const statsAvgResponse = document.getElementById('stats-avg-response');
 const statsFastest = document.getElementById('stats-fastest');
-const statsApiKeys = document.getElementById('stats-api-keys');
+const statsApiKeysDetailed = document.getElementById('stats-api-keys-detailed');
+const statsProfileCompleteness = document.getElementById('stats-profile-completeness');
+const statsSkillsCount = document.getElementById('stats-skills-count');
+const statsInterestsCount = document.getElementById('stats-interests-count');
+const statsGoalsCount = document.getElementById('stats-goals-count');
 const renameInput = document.getElementById('rename-input');
 const renameSave = document.getElementById('modal-save');
 const renameCancel = document.getElementById('modal-cancel');
 const notificationToast = document.getElementById('notification-toast');
 const turboBtn = document.getElementById('turbo-btn');
 const turboStatus = document.getElementById('turbo-status');
+
+// Profile Modal Elements
+const profileFullName = document.getElementById('profile-full-name');
+const profileDisplayName = document.getElementById('profile-display-name');
+const profileBirthday = document.getElementById('profile-birthday');
+const profileGender = document.getElementById('profile-gender');
+const profileBio = document.getElementById('profile-bio');
+const profilePhone = document.getElementById('profile-phone');
+const profileWebsite = document.getElementById('profile-website');
+const profileGreeting = document.getElementById('profile-greeting');
+const profileOccupation = document.getElementById('profile-occupation');
+const profileCompany = document.getElementById('profile-company');
+const profileExperience = document.getElementById('profile-experience');
+const profileEducation = document.getElementById('profile-education');
+const profileSkills = document.getElementById('profile-skills');
+const profileInterests = document.getElementById('profile-interests');
+const profileFavTopics = document.getElementById('profile-fav-topics');
+const profileLearning = document.getElementById('profile-learning');
+const profileKnown = document.getElementById('profile-known');
+const profilePreferredMode = document.getElementById('profile-preferred-mode');
+const profileResponseStyle = document.getElementById('profile-response-style');
+const profileFormality = document.getElementById('profile-formality');
+const profileEmojis = document.getElementById('profile-emojis');
+const profileInstructions = document.getElementById('profile-instructions');
+const profileGoals = document.getElementById('profile-goals');
+const profileReminders = document.getElementById('profile-reminders');
+const profileCompletenessFill = document.getElementById('profile-completeness-fill');
+const profileCompletenessText = document.getElementById('profile-completeness-text');
+const saveProfileBtn = document.getElementById('save-profile');
+const closeProfileBtn = document.getElementById('close-profile');
+const profileTabBtns = document.querySelectorAll('.profile-tab-btn');
 
 // ============================================
 // STATE MANAGEMENT
@@ -145,7 +178,6 @@ let currentUser = null;
 let activeChatId = 'default';
 let chats = {};
 let chatIds = ['default'];
-let memories = [];
 let customPersonalities = [];
 let publicPersonalities = [];
 let isLoginMode = true;
@@ -154,6 +186,7 @@ let sessionCheckInterval = null;
 let voiceRecognition = null;
 let isVoiceListening = false;
 let chatToRename = null;
+let userProfile = null;
 let userStats = {
     messages: 0, files: 0, memories: 0, images: 0, searches: 0,
     codeExecutions: 0, responseTimes: [], todayMessages: 0
@@ -190,7 +223,6 @@ async function detectAndSaveTimezone() {
     console.log(`🌐 Detected timezone: ${timezone}`);
     
     try {
-        // Save to memory system
         await fetch(`${API_BASE_URL}/api/memory/save`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -202,7 +234,6 @@ async function detectAndSaveTimezone() {
             })
         });
         
-        // Also save to user location_timezone field
         await fetch(`${API_BASE_URL}/api/user/timezone`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -217,10 +248,170 @@ async function detectAndSaveTimezone() {
 }
 
 // ============================================
+// PROFILE FUNCTIONS
+// ============================================
+
+async function loadProfile() {
+    if (!currentUser) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/profile`, {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            userProfile = data.profile;
+            updateProfileForm();
+            updateProfileCompleteness();
+            console.log('✅ Profile loaded:', userProfile);
+        }
+    } catch (error) {
+        console.error('Error loading profile:', error);
+    }
+}
+
+function updateProfileForm() {
+    if (!userProfile) return;
+    
+    // Basic Info
+    if (profileFullName) profileFullName.value = userProfile.full_name || '';
+    if (profileDisplayName) profileDisplayName.value = userProfile.display_name || '';
+    if (profileBirthday) profileBirthday.value = userProfile.birthday || '';
+    if (profileGender) profileGender.value = userProfile.gender || '';
+    if (profileBio) profileBio.value = userProfile.bio || '';
+    if (profilePhone) profilePhone.value = userProfile.phone || '';
+    if (profileWebsite) profileWebsite.value = userProfile.website || '';
+    if (profileGreeting) profileGreeting.value = userProfile.custom_greeting || '';
+    
+    // Professional
+    if (profileOccupation) profileOccupation.value = userProfile.occupation || '';
+    if (profileCompany) profileCompany.value = userProfile.company || '';
+    if (profileExperience) profileExperience.value = userProfile.experience_years || '';
+    if (profileEducation) profileEducation.value = Array.isArray(userProfile.education) ? userProfile.education.join(', ') : '';
+    if (profileSkills) profileSkills.value = Array.isArray(userProfile.skills) ? userProfile.skills.join(', ') : '';
+    
+    // Interests
+    if (profileInterests) profileInterests.value = Array.isArray(userProfile.interests) ? userProfile.interests.join(', ') : '';
+    if (profileFavTopics) profileFavTopics.value = Array.isArray(userProfile.favorite_topics) ? userProfile.favorite_topics.join(', ') : '';
+    if (profileLearning) profileLearning.value = Array.isArray(userProfile.learning_interests) ? userProfile.learning_interests.join(', ') : '';
+    if (profileKnown) profileKnown.value = Array.isArray(userProfile.known_topics) ? userProfile.known_topics.join(', ') : '';
+    
+    // AI Preferences
+    if (profilePreferredMode) profilePreferredMode.value = userProfile.preferred_mode || 'JARVIS';
+    if (profileResponseStyle) profileResponseStyle.value = userProfile.response_style || 'balanced';
+    if (profileFormality) profileFormality.value = userProfile.formality_level || 'casual';
+    if (profileEmojis) profileEmojis.value = userProfile.emoji_preference !== false ? 'true' : 'false';
+    if (profileInstructions) profileInstructions.value = userProfile.custom_instructions || '';
+    
+    // Goals
+    if (profileGoals) profileGoals.value = Array.isArray(userProfile.goals) ? userProfile.goals.map(g => typeof g === 'object' ? g.text : g).join('\n') : '';
+    if (profileReminders) profileReminders.value = Array.isArray(userProfile.reminders) ? userProfile.reminders.join('\n') : '';
+}
+
+function updateProfileCompleteness() {
+    if (userProfile && userProfile.profile_completeness) {
+        const completeness = userProfile.profile_completeness;
+        if (profileCompletenessFill) profileCompletenessFill.style.width = `${completeness}%`;
+        if (profileCompletenessText) profileCompletenessText.textContent = `${completeness}%`;
+        if (statProfile) statProfile.textContent = `${completeness}%`;
+    }
+}
+
+async function saveProfile() {
+    if (!currentUser) {
+        showNotification('Please login to save profile', 'error');
+        return;
+    }
+    
+    const profileData = {
+        full_name: profileFullName?.value || null,
+        display_name: profileDisplayName?.value || null,
+        birthday: profileBirthday?.value || null,
+        gender: profileGender?.value || null,
+        bio: profileBio?.value || null,
+        phone: profilePhone?.value || null,
+        website: profileWebsite?.value || null,
+        custom_greeting: profileGreeting?.value || null,
+        occupation: profileOccupation?.value || null,
+        company: profileCompany?.value || null,
+        experience_years: profileExperience?.value ? parseInt(profileExperience.value) : null,
+        education: profileEducation?.value ? profileEducation.value.split(',').map(s => s.trim()).filter(s => s) : [],
+        skills: profileSkills?.value ? profileSkills.value.split(',').map(s => s.trim()).filter(s => s) : [],
+        interests: profileInterests?.value ? profileInterests.value.split(',').map(s => s.trim()).filter(s => s) : [],
+        favorite_topics: profileFavTopics?.value ? profileFavTopics.value.split(',').map(s => s.trim()).filter(s => s) : [],
+        learning_interests: profileLearning?.value ? profileLearning.value.split(',').map(s => s.trim()).filter(s => s) : [],
+        known_topics: profileKnown?.value ? profileKnown.value.split(',').map(s => s.trim()).filter(s => s) : [],
+        preferred_mode: profilePreferredMode?.value || 'JARVIS',
+        response_style: profileResponseStyle?.value || 'balanced',
+        formality_level: profileFormality?.value || 'casual',
+        emoji_preference: profileEmojis?.value === 'true',
+        custom_instructions: profileInstructions?.value || null,
+        goals: profileGoals?.value ? profileGoals.value.split('\n').filter(s => s.trim()) : [],
+        reminders: profileReminders?.value ? profileReminders.value.split('\n').filter(s => s.trim()) : []
+    };
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/profile/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(profileData)
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            userProfile = data.profile;
+            updateProfileCompleteness();
+            showNotification('✅ Profile saved successfully!', 'success');
+            closeModal(profileModal);
+        } else {
+            const error = await response.json();
+            showNotification(error.error || 'Failed to save profile', 'error');
+        }
+    } catch (error) {
+        console.error('Save profile error:', error);
+        showNotification('Error saving profile', 'error');
+    }
+}
+
+async function openProfileModal() {
+    if (!currentUser) {
+        showNotification('Please login to view profile', 'error');
+        showAuthModal(true);
+        return;
+    }
+    
+    await loadProfile();
+    openModal(profileModal);
+}
+
+function initProfileTabs() {
+    if (!profileTabBtns.length) return;
+    
+    profileTabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.dataset.tab;
+            
+            // Update active tab button
+            profileTabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Update active tab content
+            document.querySelectorAll('.profile-tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            const activeContent = document.getElementById(`profile-tab-${tabId}`);
+            if (activeContent) activeContent.classList.add('active');
+        });
+    });
+}
+
+// ============================================
 // INITIALIZATION
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🚀 Initializing Wizard.AI v13.0.0...');
+    console.log('🚀 Initializing Wizard.AI v15.1.0...');
     console.log('📱 Mobile device:', isMobile);
     
     showNotification('🧙 Summoning the Wizard...', 'info', 2000);
@@ -229,6 +420,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupDropdown();
     setupModals();
     initVoiceRecognition();
+    initProfileTabs();
     
     if (isMobile) {
         initMobileLayout();
@@ -238,7 +430,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     await checkAuth();
     if (currentUser) {
         startSessionCheck();
-        await detectAndSaveTimezone(); // Auto-detect timezone on login
+        await detectAndSaveTimezone();
+        await loadProfile();
     }
     loadCustomPersonalities();
     loadChats();
@@ -253,7 +446,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setInterval(checkBackendStatus, 30000);
     setupPWAInstallPrompt();
     
-    console.log('✅ Wizard.AI v13.0.0 ready!');
+    console.log('✅ Wizard.AI v15.1.0 ready!');
 });
 
 function registerServiceWorker() {
@@ -276,7 +469,7 @@ function setupAgentStudioButton() {
 }
 
 // ============================================
-// MOBILE LAYOUT - CHATGPT STYLE
+// MOBILE LAYOUT
 // ============================================
 function initMobileLayout() {
     const leftSidebar = document.querySelector('.sidebar');
@@ -886,71 +1079,6 @@ function setupApiKeysButton() {
 }
 
 // ============================================
-// MEMORY FUNCTIONS
-// ============================================
-function extractUserInfo(message) {
-    const facts = [];
-    
-    const namePatterns = [
-        /(?:my name is|i'm|i am) ([A-Z][a-z]+)(?:\s+[A-Z][a-z]+)?/i,
-        /call me ([A-Z][a-z]+)/i,
-        /i (?:go by|am called) ([A-Z][a-z]+)/i
-    ];
-    
-    for (const pattern of namePatterns) {
-        const match = message.match(pattern);
-        if (match) {
-            facts.push({ key: 'name', value: match[1], category: 'personal' });
-            break;
-        }
-    }
-    
-    const ageMatch = message.match(/(?:i am|i'm) (\d+)(?:\s+years?)?\s+old/i);
-    if (ageMatch) {
-        facts.push({ key: 'age', value: ageMatch[1], category: 'personal' });
-    }
-    
-    const locationMatch = message.match(/i (?:live in|am from|stay in) ([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)/i);
-    if (locationMatch) {
-        facts.push({ key: 'location', value: locationMatch[1], category: 'personal' });
-    }
-    
-    return facts;
-}
-
-async function saveMemoryToServer(key, value, category = 'personal') {
-    if (!currentUser) return false;
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/memory/save`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ key, value, category })
-        });
-        
-        if (response.ok) {
-            console.log(`✅ Memory saved: ${key} = ${value}`);
-            return true;
-        }
-    } catch (error) {
-        console.error('Failed to save memory:', error);
-    }
-    return false;
-}
-
-async function processUserMemories(userMessage) {
-    const facts = extractUserInfo(userMessage);
-    
-    for (const fact of facts) {
-        await saveMemoryToServer(fact.key, fact.value, fact.category);
-        showNotification(`🧠 I'll remember that ${fact.key} is ${fact.value}!`, 'info', 2000);
-    }
-    
-    return facts;
-}
-
-// ============================================
 // CHAT MANAGEMENT
 // ============================================
 function createMessageElement(sender, text, mode = null) {
@@ -1099,8 +1227,6 @@ async function sendMessage() {
             trackSearch();
             console.log("✅ Search tracked for user");
         }
-        
-        await processUserMemories(text);
         
     } catch (error) {
         console.error('Stream error:', error);
@@ -1360,7 +1486,6 @@ function trackCode() {
 function updateStatsDisplay() {
     if (statMessages) statMessages.textContent = userStats.messages;
     if (statFiles) statFiles.textContent = userStats.files;
-    if (statMemories) statMemories.textContent = userStats.memories;
     if (statImages) statImages.textContent = userStats.images;
     if (statSearches) statSearches.textContent = userStats.searches;
     const avg = userStats.responseTimes.length ? (userStats.responseTimes.reduce((a,b)=>a+b,0)/userStats.responseTimes.length).toFixed(1) : '0.4';
@@ -1385,15 +1510,26 @@ async function loadStats() {
                 if (statsLast) statsLast.textContent = data.last_login || '-';
                 if (statsTotalMsgs) statsTotalMsgs.textContent = data.messages || 0;
                 if (statsTotalChats) statsTotalChats.textContent = data.chats || 0;
-                if (statsFiles) statsFiles.textContent = data.files || 0;
-                if (statsImages) statsImages.textContent = data.images || 0;
-                if (statsCode) statsCode.textContent = data.code || 0;
-                if (statsSearches) statsSearches.textContent = data.searches || 0;
+                if (statsFilesDetailed) statsFilesDetailed.textContent = data.files || 0;
+                if (statsImagesDetailed) statsImagesDetailed.textContent = data.images || 0;
+                if (statsCodeDetailed) statsCodeDetailed.textContent = data.code || 0;
+                if (statsSearchesDetailed) statsSearchesDetailed.textContent = data.searches || 0;
                 if (statsMemories) statsMemories.textContent = data.memories || 0;
                 if (statsDocs) statsDocs.textContent = data.documents || 0;
                 if (statsAvgResponse) statsAvgResponse.textContent = (data.avg_response_time || 0.4) + 's';
                 if (statsFastest) statsFastest.textContent = (data.fastest_response || 0.2) + 's';
-                if (statsApiKeys) statsApiKeys.textContent = data.api_keys || 0;
+                if (statsApiKeysDetailed) statsApiKeysDetailed.textContent = data.api_keys || 0;
+                if (statsProfileCompleteness) statsProfileCompleteness.textContent = (userProfile?.profile_completeness || 0) + '%';
+                
+                // Calculate derived stats
+                if (userProfile) {
+                    const skills = Array.isArray(userProfile.skills) ? userProfile.skills : [];
+                    const interests = Array.isArray(userProfile.interests) ? userProfile.interests : [];
+                    const goals = Array.isArray(userProfile.goals) ? userProfile.goals : [];
+                    if (statsSkillsCount) statsSkillsCount.textContent = skills.length;
+                    if (statsInterestsCount) statsInterestsCount.textContent = interests.length;
+                    if (statsGoalsCount) statsGoalsCount.textContent = goals.length;
+                }
             }
         } catch (error) {
             loadStatsFromStorage();
@@ -1428,7 +1564,7 @@ function saveStatsToStorage() {
 }
 
 // ============================================
-// AUTHENTICATION FUNCTIONS - FIXED FOR MOBILE
+// AUTHENTICATION FUNCTIONS
 // ============================================
 async function checkAuth() {
     try {
@@ -1449,8 +1585,8 @@ async function checkAuth() {
             loadUserPersonalitiesFromServer();
             localStorage.setItem('auth_time', Date.now().toString());
             
-            // Auto-detect timezone after successful login
             detectAndSaveTimezone();
+            await loadProfile();
         } else {
             updateUIForAuth();
             const authTime = localStorage.getItem('auth_time');
@@ -1567,8 +1703,8 @@ async function handleLogin() {
             await loadUserApiKeys();
             closeModal(authModal);
             
-            // Detect timezone after login
             detectAndSaveTimezone();
+            await loadProfile();
             
             showNotification(`Welcome back, ${currentUser.first_name || ''}!`, 'success');
         } else {
@@ -1667,8 +1803,8 @@ async function handleVerify() {
             renderMessages();
             closeModal(authModal);
             
-            // Detect timezone after verification
             detectAndSaveTimezone();
+            await loadProfile();
             
             showNotification('Account verified! Welcome!', 'success');
         } else {
@@ -1717,6 +1853,7 @@ async function handleLogout() {
     localStorage.removeItem('wizard_pending_id');
     localStorage.removeItem('auth_time');
     currentUser = null;
+    userProfile = null;
     updateUIForAuth();
     loadGuestData();
     showNotification('Logged out', 'success');
@@ -1741,6 +1878,7 @@ function startSessionCheck() {
                 const response = await fetch(`${API_BASE_URL}/api/check-auth`, { credentials: 'include' });
                 if (response.status === 401) {
                     currentUser = null;
+                    userProfile = null;
                     updateUIForAuth();
                     showNotification('Your session has expired. Please log in again.', 'warning');
                     setTimeout(() => showAuthModal(true), 1000);
@@ -1754,46 +1892,6 @@ function stopSessionCheck() {
     if (sessionCheckInterval) {
         clearInterval(sessionCheckInterval);
         sessionCheckInterval = null;
-    }
-}
-
-// ============================================
-// MEMORY MODAL
-// ============================================
-async function loadMemories() {
-    if (!currentUser) {
-        showNotification('Login to view memories', 'error');
-        return;
-    }
-    openModal(memoryModal);
-    memoryList.innerHTML = '<div class="loading">Loading memories...</div>';
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/memory`, { credentials: 'include' });
-        if (response.ok) {
-            const data = await response.json();
-            const memoriesData = data.memories || [];
-            userStats.memories = memoriesData.length;
-            updateStatsDisplay();
-            
-            if (memoriesData.length === 0) {
-                memoryList.innerHTML = '<div class="empty-state">📭 No memories yet.<br>Tell me things like "My name is Arnav" or "I live in New York" and I\'ll remember!</div>';
-            } else {
-                let html = '';
-                memoriesData.forEach(m => {
-                    html += `<div class="memory-item">
-                        <div class="memory-key">🧠 ${escapeHtml(m.key)}</div>
-                        <div class="memory-value">${escapeHtml(m.value)}</div>
-                        <span class="memory-category">${escapeHtml(m.category)}</span>
-                        <div class="memory-meta">🕐 Last accessed: ${new Date(m.last_accessed).toLocaleDateString()}</div>
-                    </div>`;
-                });
-                memoryList.innerHTML = html;
-            }
-        } else {
-            memoryList.innerHTML = '<div class="error">Failed to load memories</div>';
-        }
-    } catch (error) {
-        memoryList.innerHTML = '<div class="error">Error loading memories</div>';
     }
 }
 
@@ -2076,26 +2174,17 @@ async function loadDetailedStats() {
         return;
     }
     openModal(statsModal);
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/stats`, { credentials: 'include' });
-        if (response.ok) {
-            const data = await response.json();
-            if (statsCreated) statsCreated.textContent = data.account_created || '-';
-            if (statsLast) statsLast.textContent = data.last_login || '-';
-            if (statsTotalMsgs) statsTotalMsgs.textContent = data.messages || 0;
-            if (statsTotalChats) statsTotalChats.textContent = data.chats || 0;
-            if (statsFiles) statsFiles.textContent = data.files || 0;
-            if (statsImages) statsImages.textContent = data.images || 0;
-            if (statsCode) statsCode.textContent = data.code || 0;
-            if (statsSearches) statsSearches.textContent = data.searches || 0;
-            if (statsMemories) statsMemories.textContent = data.memories || 0;
-            if (statsDocs) statsDocs.textContent = data.documents || 0;
-            if (statsAvgResponse) statsAvgResponse.textContent = (data.avg_response_time || 0.4) + 's';
-            if (statsFastest) statsFastest.textContent = (data.fastest_response || 0.2) + 's';
-            if (statsApiKeys) statsApiKeys.textContent = data.api_keys || 0;
-        }
-    } catch (error) {
-        showNotification('Failed to load stats', 'error');
+    await loadStats();
+    
+    // Update profile stats in modal
+    if (userProfile) {
+        const skills = Array.isArray(userProfile.skills) ? userProfile.skills : [];
+        const interests = Array.isArray(userProfile.interests) ? userProfile.interests : [];
+        const goals = Array.isArray(userProfile.goals) ? userProfile.goals : [];
+        if (statsSkillsCount) statsSkillsCount.textContent = skills.length;
+        if (statsInterestsCount) statsInterestsCount.textContent = interests.length;
+        if (statsGoalsCount) statsGoalsCount.textContent = goals.length;
+        if (statsProfileCompleteness) statsProfileCompleteness.textContent = (userProfile.profile_completeness || 0) + '%';
     }
 }
 
@@ -2107,7 +2196,7 @@ function showUpdateHistory() {
 }
 
 // ============================================
-// DESKTOP APP MENU INTEGRATION - COMPLETE
+// DESKTOP APP MENU INTEGRATION
 // ============================================
 const isElectron = navigator.userAgent.includes('Electron');
 
@@ -2161,10 +2250,10 @@ if (isElectron && window.electronAPI) {
         }
     });
 
-    window.electronAPI.onViewMemories(() => {
-        console.log('🧠 Menu: View Memories');
-        if (!safeClick('memory-btn')) {
-            if (typeof loadMemories === 'function') loadMemories();
+    window.electronAPI.onViewProfile(() => {
+        console.log('👤 Menu: View Profile');
+        if (!safeClick('profile-btn')) {
+            if (typeof openProfileModal === 'function') openProfileModal();
         }
     });
 
@@ -2322,7 +2411,7 @@ function setupEventListeners() {
     if (uploadBtn) uploadBtn.addEventListener('click', () => fileUpload.click());
     if (codeBtn) codeBtn.addEventListener('click', () => openModal(codeModal));
     if (imageBtn) imageBtn.addEventListener('click', () => openModal(imageModal));
-    if (memoryBtn) memoryBtn.addEventListener('click', loadMemories);
+    if (profileBtn) profileBtn.addEventListener('click', openProfileModal);
     if (statsBtn) statsBtn.addEventListener('click', loadDetailedStats);
     if (personalitiesBtn) personalitiesBtn.addEventListener('click', openPersonalitiesBrowser);
     if (devHubBtn) devHubBtn.addEventListener('click', () => window.open('/devhub/', '_blank'));
@@ -2334,6 +2423,9 @@ function setupEventListeners() {
     if (renameChatBtn) renameChatBtn.addEventListener('click', () => openRenameModal(activeChatId));
     if (deleteChatBtn) deleteChatBtn.addEventListener('click', () => deleteChat(activeChatId));
     if (resetCurrentBtn) resetCurrentBtn.addEventListener('click', resetCurrentChat);
+    if (saveProfileBtn) saveProfileBtn.addEventListener('click', saveProfile);
+    if (closeProfileBtn) closeProfileBtn.addEventListener('click', () => closeModal(profileModal));
+    if (closeProfile) closeProfile.addEventListener('click', () => closeModal(profileModal));
     
     const loginBtn = document.getElementById('show-login-btn');
     const signupBtn = document.getElementById('show-signup-btn');
@@ -2347,7 +2439,6 @@ function setupEventListeners() {
     if (closeRename) closeRename.addEventListener('click', () => closeModal(renameModal));
     if (closeCode) closeCode.addEventListener('click', () => closeModal(codeModal));
     if (closeImage) closeImage.addEventListener('click', () => closeModal(imageModal));
-    if (closeMemory) closeMemory.addEventListener('click', () => closeModal(memoryModal));
     if (closeStats) closeStats.addEventListener('click', () => closeModal(statsModal));
     if (closePersonalities) closePersonalities.addEventListener('click', () => closeModal(personalitiesModal));
     if (renameSave) renameSave.addEventListener('click', saveRename);
@@ -2371,6 +2462,7 @@ function setupEventListeners() {
     
     window.addEventListener('click', e => {
         if (e.target.classList.contains('modal-overlay')) closeModal(e.target);
+        if (e.target.classList.contains('profile-tab-btn')) return; // Handled separately
     });
     document.addEventListener('keydown', e => {
         if (e.key === 'F2') {
@@ -2393,4 +2485,4 @@ if (sendBtn && 'vibrate' in navigator) {
     });
 }
 
-console.log('✅ Wizard.AI v13.0.0 fully loaded!');
+console.log('✅ Wizard.AI v15.1.0 fully loaded!');
