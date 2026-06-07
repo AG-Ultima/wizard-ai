@@ -1,474 +1,189 @@
- // ============================================
+// ============================================
 // WIZARD.AI PRO v15.1.0 - WIZPROFILE UPDATE
-// Complete Frontend Controller with Profile System
+// Complete Frontend Controller
 // Created by Arnav Gupta
 // ============================================
 
 const API_BASE_URL = 'https://arnav0928.pythonanywhere.com';
-const SITE_URL = 'https://www.wizardai.dpdns.org';
 
 // ============================================
-// MARKDOWN RENDERING FUNCTION
+// STARFIELD (matching ecosystem)
 // ============================================
+(function () {
+    const canvas = document.getElementById('starfield');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const N = 200;
+    const stars = [];
 
+    function resize() {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    for (let i = 0; i < N; i++) {
+        stars.push({
+            x: Math.random(),
+            y: Math.random(),
+            r: Math.random() * 1.3 + 0.2,
+            a: Math.random(),
+            speed: Math.random() * 0.0006 + 0.0002,
+        });
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const t = Date.now() / 1000;
+        stars.forEach(s => {
+            const alpha = 0.25 + 0.5 * Math.sin(t * s.speed * 6000 + s.a * 100);
+            ctx.beginPath();
+            ctx.arc(s.x * canvas.width, s.y * canvas.height, s.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(212,208,232,${alpha})`;
+            ctx.fill();
+        });
+        requestAnimationFrame(draw);
+    }
+    draw();
+})();
+
+// ============================================
+// MARKDOWN RENDERER
+// ============================================
 function renderMarkdown(text) {
     if (!text) return '';
-    
     let html = text;
-    
-    // Headers
-    html = html.replace(/^### (.*$)/gm, '<h3 class="md-h3">$1</h3>');
-    html = html.replace(/^## (.*$)/gm, '<h2 class="md-h2">$1</h2>');
-    html = html.replace(/^# (.*$)/gm, '<h1 class="md-h1">$1</h1>');
-    
-    // Bold and Italic combined
+
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
+        `<pre><code class="language-${lang}">${escapeHtml(code)}</code></pre>`);
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.*$)/gm,  '<h2>$1</h2>');
+    html = html.replace(/^# (.*$)/gm,   '<h1>$1</h1>');
     html = html.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
     html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    
-    // Code blocks
-    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>');
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-    
-    // Lists
-    html = html.replace(/^\s*-\s+(.*$)/gm, '<li>$1</li>');
-    html = html.replace(/^\s*\d+\.\s+(.*$)/gm, '<li class="ordered">$1</li>');
-    
-    // Wrap consecutive list items
-    html = html.replace(/(<li>.*?<\/li>\n?)+/g, '<ul>$&</ul>');
-    html = html.replace(/<ul>(<li class="ordered">.*?<\/li>\n?)+<\/ul>/g, function(match) {
-        return match.replace(/<ul>/, '<ol>').replace(/<\/ul>/, '</ol>').replace(/<li class="ordered">/g, '<li>');
-    });
-    
-    // Blockquotes
+    html = html.replace(/^\s*[-*]\s+(.*$)/gm, '<li>$1</li>');
+    html = html.replace(/^\s*\d+\.\s+(.*$)/gm, '<li class="ol">$1</li>');
+    html = html.replace(/(<li>(?!.*class="ol")[\s\S]*?<\/li>\n?)+/g, '<ul>$&</ul>');
+    html = html.replace(/(<li class="ol">[\s\S]*?<\/li>\n?)+/g, m =>
+        '<ol>' + m.replace(/class="ol"/g, '') + '</ol>');
     html = html.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
-    html = html.replace(/<\/blockquote>\n<blockquote>/g, '<br>');
-    
-    // Horizontal rule
+    html = html.replace(/<\/blockquote>\n<blockquote>/g, '\n');
     html = html.replace(/^---$/gm, '<hr>');
-    
-    // Links
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-    
-    // Line breaks
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g,
+        '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
     html = html.replace(/\n/g, '<br>');
-    
-    // Clean up extra paragraph spacing
-    html = html.replace(/<br><br>/g, '</p><p>');
-    html = '<p>' + html + '</p>';
+    html = '<p>' + html.replace(/<br><br>/g, '</p><p>') + '</p>';
     html = html.replace(/<p><\/p>/g, '');
-    
     return html;
 }
 
 // ============================================
-// DOM ELEMENTS
+// UTILS
 // ============================================
+function escapeHtml(s) {
+    if (!s) return '';
+    return String(s)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
 
-const chatHistory = document.getElementById('chat-history');
-const chatInput = document.getElementById('chat-input');
-const sendBtn = document.getElementById('send-btn');
-const voiceBtn = document.getElementById('voice-input-btn');
-const statusText = document.getElementById('status-text');
-const statusDot = document.querySelector('.status-dot');
-const dropdown = document.getElementById('mode-dropdown');
-const dropdownBtn = document.getElementById('dropdown-btn');
-const dropdownContent = document.getElementById('dropdown-content');
-const selectedDisplay = document.getElementById('selected-mode-display');
-const chatsList = document.getElementById('chats-list');
-const newChatBtn = document.getElementById('new-chat-btn');
-const currentChatName = document.getElementById('current-chat-name');
-const currentChatEmoji = document.getElementById('current-chat-emoji');
-const renameChatBtn = document.getElementById('rename-chat-btn');
-const deleteChatBtn = document.getElementById('delete-chat-btn');
-const resetCurrentBtn = document.getElementById('reset-current-btn');
-const updateHistoryBtn = document.getElementById('update-history-btn');
-const statMessages = document.getElementById('stat-messages');
-const statFiles = document.getElementById('stat-files');
-const statProfile = document.getElementById('stat-profile-completeness');
-const statImages = document.getElementById('stat-images');
-const statSearches = document.getElementById('stat-searches');
-const statResponse = document.getElementById('stat-response');
-const quickToday = document.getElementById('quick-today');
-const quickTotal = document.getElementById('quick-total');
-const searchBtn = document.getElementById('search-btn');
-const uploadBtn = document.getElementById('upload-btn');
-const codeBtn = document.getElementById('code-btn');
-const imageBtn = document.getElementById('image-btn');
-const profileBtn = document.getElementById('profile-btn');
-const statsBtn = document.getElementById('stats-btn');
-const personalitiesBtn = document.getElementById('personalities-btn');
-const devHubBtn = document.getElementById('devhub-btn');
-const agentStudioBtn = document.getElementById('agent-studio-btn');
-const searchIndicator = document.getElementById('search-indicator');
-const inputSearchIndicator = document.getElementById('input-search-indicator');
-const typingIndicator = document.getElementById('typing-indicator');
-const uploadProgress = document.getElementById('upload-progress');
-const progressBarFill = document.getElementById('progress-bar-fill');
-const progressText = document.getElementById('progress-text');
-const authModal = document.getElementById('auth-modal-overlay');
-const renameModal = document.getElementById('rename-modal-overlay');
-const codeModal = document.getElementById('code-modal-overlay');
-const imageModal = document.getElementById('image-modal-overlay');
-const profileModal = document.getElementById('profile-modal-overlay');
-const statsModal = document.getElementById('stats-modal-overlay');
-const personalitiesModal = document.getElementById('personalities-modal-overlay');
-const updateModal = document.getElementById('update-modal-overlay');
-const closeAuth = document.getElementById('close-auth-modal');
-const closeCode = document.getElementById('close-code-modal');
-const closeImage = document.getElementById('close-image-modal');
-const closeProfile = document.getElementById('close-profile-modal');
-const closeStats = document.getElementById('close-stats-modal');
-const closePersonalities = document.getElementById('close-personalities-modal');
-const closeUpdate = document.getElementById('close-update-modal');
-const authEmail = document.getElementById('auth-email');
-const authPassword = document.getElementById('auth-password');
-const authConfirm = document.getElementById('auth-confirm');
-const authError = document.getElementById('auth-error');
-const authSubmit = document.getElementById('auth-submit');
-const authSwitchBtn = document.getElementById('auth-switch-btn');
-const authSwitchText = document.getElementById('auth-switch-text');
-const authModalTitle = document.getElementById('auth-modal-title');
-const firstNameGroup = document.getElementById('first-name-group');
-const lastNameGroup = document.getElementById('last-name-group');
-const firstNameInput = document.getElementById('first-name');
-const lastNameInput = document.getElementById('last-name');
-const verificationGroup = document.getElementById('verification-group');
-const verificationInput = document.getElementById('verification-code');
-const resendCodeBtn = document.getElementById('resend-code-btn');
-const confirmPasswordGroup = document.getElementById('confirm-password-group');
-const userInfo = document.getElementById('user-info');
-const authButtons = document.getElementById('auth-buttons');
-const userEmail = document.getElementById('user-email');
-const userName = document.getElementById('user-name');
-const userAvatar = document.getElementById('user-avatar');
-const logoutBtn = document.getElementById('logout-btn');
-const toggleCreatorBtn = document.getElementById('toggle-creator-btn');
-const creatorPanel = document.getElementById('creator-panel');
-const customName = document.getElementById('custom-name');
-const customEmoji = document.getElementById('custom-emoji');
-const customPrompt = document.getElementById('custom-prompt');
-const customGreeting = document.getElementById('custom-greeting');
-const customPublic = document.getElementById('custom-public');
-const savePersonality = document.getElementById('save-personality');
-const cancelPersonality = document.getElementById('cancel-personality');
-const closeCreator = document.getElementById('close-creator');
-const personalitiesList = document.getElementById('personalities-list');
-const personalitiesGrid = document.getElementById('personalities-grid');
-const tabBtns = document.querySelectorAll('.tab-btn');
-const fileUpload = document.getElementById('file-upload');
-const codeInput = document.getElementById('code-input');
-const codeOutput = document.getElementById('code-output');
-const runCodeBtn = document.getElementById('run-code');
-const clearCodeBtn = document.getElementById('clear-code');
-const imagePrompt = document.getElementById('image-prompt');
-const imageSize = document.getElementById('image-size');
-const generateImageBtn = document.getElementById('generate-image');
-const imageResult = document.getElementById('image-result');
-const statsCreated = document.getElementById('stats-created');
-const statsLast = document.getElementById('stats-last');
-const statsTotalMsgs = document.getElementById('stats-total-msgs');
-const statsTotalChats = document.getElementById('stats-total-chats');
-const statsFilesDetailed = document.getElementById('stats-files-detailed');
-const statsImagesDetailed = document.getElementById('stats-images-detailed');
-const statsCodeDetailed = document.getElementById('stats-code-detailed');
-const statsSearchesDetailed = document.getElementById('stats-searches-detailed');
-const statsMemories = document.getElementById('stats-memories');
-const statsDocs = document.getElementById('stats-docs');
-const statsAvgResponse = document.getElementById('stats-avg-response');
-const statsFastest = document.getElementById('stats-fastest');
-const statsApiKeysDetailed = document.getElementById('stats-api-keys-detailed');
-const statsProfileCompleteness = document.getElementById('stats-profile-completeness');
-const statsSkillsCount = document.getElementById('stats-skills-count');
-const statsInterestsCount = document.getElementById('stats-interests-count');
-const statsGoalsCount = document.getElementById('stats-goals-count');
-const renameInput = document.getElementById('rename-input');
-const renameSave = document.getElementById('modal-save');
-const renameCancel = document.getElementById('modal-cancel');
-const notificationToast = document.getElementById('notification-toast');
-const turboBtn = document.getElementById('turbo-btn');
-const turboStatus = document.getElementById('turbo-status');
+function $(id) { return document.getElementById(id); }
 
-// Profile Modal Elements
-const profileFullName = document.getElementById('profile-full-name');
-const profileDisplayName = document.getElementById('profile-display-name');
-const profileBirthday = document.getElementById('profile-birthday');
-const profileGender = document.getElementById('profile-gender');
-const profileBio = document.getElementById('profile-bio');
-const profilePhone = document.getElementById('profile-phone');
-const profileWebsite = document.getElementById('profile-website');
-const profileGreeting = document.getElementById('profile-greeting');
-const profileOccupation = document.getElementById('profile-occupation');
-const profileCompany = document.getElementById('profile-company');
-const profileExperience = document.getElementById('profile-experience');
-const profileEducation = document.getElementById('profile-education');
-const profileSkills = document.getElementById('profile-skills');
-const profileInterests = document.getElementById('profile-interests');
-const profileFavTopics = document.getElementById('profile-fav-topics');
-const profileLearning = document.getElementById('profile-learning');
-const profileKnown = document.getElementById('profile-known');
-const profilePreferredMode = document.getElementById('profile-preferred-mode');
-const profileResponseStyle = document.getElementById('profile-response-style');
-const profileFormality = document.getElementById('profile-formality');
-const profileEmojis = document.getElementById('profile-emojis');
-const profileInstructions = document.getElementById('profile-instructions');
-const profileGoals = document.getElementById('profile-goals');
-const profileReminders = document.getElementById('profile-reminders');
-const profileCompletenessFill = document.getElementById('profile-completeness-fill');
-const profileCompletenessText = document.getElementById('profile-completeness-text');
-const saveProfileBtn = document.getElementById('save-profile');
-const closeProfileBtn = document.getElementById('close-profile');
-const profileTabBtns = document.querySelectorAll('.profile-tab-btn');
+function openModal(modal) {
+    if (!modal) return;
+    modal.classList.add('active');
+    // Trap focus (accessibility)
+    const focusable = modal.querySelectorAll('input, button, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (focusable.length) focusable[0].focus();
+}
+
+function closeModal(modal) {
+    if (!modal) return;
+    modal.classList.remove('active');
+}
+
+// Close all open modals
+function closeAllModals() {
+    document.querySelectorAll('.modal-overlay.active').forEach(m => closeModal(m));
+}
+
+function showNotification(message, type = 'info', duration = 3000) {
+    const toast = $('notification-toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.className = 'notification-toast show';
+    if (type === 'error')   toast.classList.add('error');
+    if (type === 'success') toast.classList.add('success');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => toast.classList.remove('show'), duration);
+}
 
 // ============================================
-// STATE MANAGEMENT
+// STATE
 // ============================================
-let messages = [];
-let isThinking = false;
-let currentMode = 'JARVIS';
-let turboMode = false;
-let searchMode = false;
-let currentUser = null;
-let activeChatId = 'default';
-let chats = {};
-let chatIds = ['default'];
+let messages         = [];
+let isThinking       = false;
+let currentMode      = 'JARVIS';
+let turboMode        = false;
+let searchMode       = false;
+let currentUser      = null;
+let activeChatId     = 'default';
+let chats            = {};
+let chatIds          = ['default'];
 let customPersonalities = [];
 let publicPersonalities = [];
-let isLoginMode = true;
-let signupEmail = '';
-let sessionCheckInterval = null;
+let isLoginMode      = true;
+let signupEmail      = '';
+let chatToRename     = null;
+let userProfile      = null;
 let voiceRecognition = null;
 let isVoiceListening = false;
-let chatToRename = null;
-let userProfile = null;
+let sessionCheckInterval = null;
+let pwaDeferredPrompt    = null;
+
 let userStats = {
     messages: 0, files: 0, memories: 0, images: 0, searches: 0,
     codeExecutions: 0, responseTimes: [], todayMessages: 0
 };
-let pwaDeferredPrompt = null;
 
-// Mobile detection
 const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
-let sidebarOpen = false;
+let sidebarState = { left: false, right: false };
 
 // ============================================
 // MODE DATA
 // ============================================
 const modeData = {
-    'Fast': { emoji: '⚡', name: 'Fast Mode', desc: 'Lightning quick responses.', model: 'Llama 4 Scout', color: '#10b981' },
-    'Normal': { emoji: '✨', name: 'Normal Mode', desc: 'Balanced conversation.', model: 'Llama 4 Scout', color: '#10b981' },
-    'Fun': { emoji: '🎉', name: 'Fun Mode', desc: 'Playful and energetic!', model: 'Llama 4 Scout', color: '#8b5cf6' },
-    'Sarcastic': { emoji: '😏', name: 'Sarcastic Mode', desc: 'Witty and sarcastic.', model: 'Llama 4 Scout', color: '#10b981' },
-    'Nerd': { emoji: '🧠', name: 'Nerd Mode', desc: 'Detailed and academic.', model: 'Llama 4 Scout', color: '#8b5cf6' },
-    'JARVIS': { emoji: '🎩', name: 'JARVIS Mode', desc: 'Sophisticated AI assistant.', model: 'Llama 4 Scout', color: '#00aaff' },
-    'ORACLE': { emoji: '🔮', name: 'ORACLE Mode', desc: 'Mystical and all-knowing.', model: 'Llama 4 Scout', color: '#8b5cf6' }
+    'Fast':      { emoji: '⚡', name: 'Fast Mode',      desc: 'Lightning quick responses.',      model: 'Llama 4 Scout', color: '#10b981' },
+    'Normal':    { emoji: '✨', name: 'Normal Mode',    desc: 'Balanced conversation.',           model: 'Llama 4 Scout', color: '#10b981' },
+    'Fun':       { emoji: '🎉', name: 'Fun Mode',       desc: 'Playful and energetic!',           model: 'Llama 4 Scout', color: '#8b5cf6' },
+    'Sarcastic': { emoji: '😏', name: 'Sarcastic Mode', desc: 'Witty and sarcastic.',             model: 'Llama 4 Scout', color: '#10b981' },
+    'Nerd':      { emoji: '🧠', name: 'Nerd Mode',      desc: 'Detailed and academic.',           model: 'Llama 4 Scout', color: '#8b5cf6' },
+    'JARVIS':    { emoji: '🎩', name: 'JARVIS Mode',    desc: 'Sophisticated AI assistant.',      model: 'Llama 4 Scout', color: '#00aaff' },
+    'ORACLE':    { emoji: '🔮', name: 'ORACLE Mode',    desc: 'Mystical and all-knowing.',        model: 'Llama 4 Scout', color: '#8b5cf6' }
 };
 
 // ============================================
-// TIMEZONE DETECTION & SAVING
-// ============================================
-
-async function detectAndSaveTimezone() {
-    if (!currentUser) return;
-    
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    if (!timezone) return;
-    
-    console.log(`🌐 Detected timezone: ${timezone}`);
-    
-    try {
-        await fetch(`${API_BASE_URL}/api/memory/save`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ 
-                key: 'preferred_timezone', 
-                value: timezone, 
-                category: 'preference' 
-            })
-        });
-        
-        await fetch(`${API_BASE_URL}/api/user/timezone`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ timezone: timezone })
-        });
-        
-        console.log(`✅ Timezone saved: ${timezone}`);
-    } catch (error) {
-        console.error('Failed to save timezone:', error);
-    }
-}
-
-// ============================================
-// PROFILE FUNCTIONS
-// ============================================
-
-async function loadProfile() {
-    if (!currentUser) return;
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/profile`, {
-            credentials: 'include'
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            userProfile = data.profile;
-            updateProfileForm();
-            updateProfileCompleteness();
-            console.log('✅ Profile loaded:', userProfile);
-        }
-    } catch (error) {
-        console.error('Error loading profile:', error);
-    }
-}
-
-function updateProfileForm() {
-    if (!userProfile) return;
-    
-    if (profileFullName) profileFullName.value = userProfile.full_name || '';
-    if (profileDisplayName) profileDisplayName.value = userProfile.display_name || '';
-    if (profileBirthday) profileBirthday.value = userProfile.birthday || '';
-    if (profileGender) profileGender.value = userProfile.gender || '';
-    if (profileBio) profileBio.value = userProfile.bio || '';
-    if (profilePhone) profilePhone.value = userProfile.phone || '';
-    if (profileWebsite) profileWebsite.value = userProfile.website || '';
-    if (profileGreeting) profileGreeting.value = userProfile.custom_greeting || '';
-    if (profileOccupation) profileOccupation.value = userProfile.occupation || '';
-    if (profileCompany) profileCompany.value = userProfile.company || '';
-    if (profileExperience) profileExperience.value = userProfile.experience_years || '';
-    if (profileEducation) profileEducation.value = Array.isArray(userProfile.education) ? userProfile.education.join(', ') : '';
-    if (profileSkills) profileSkills.value = Array.isArray(userProfile.skills) ? userProfile.skills.join(', ') : '';
-    if (profileInterests) profileInterests.value = Array.isArray(userProfile.interests) ? userProfile.interests.join(', ') : '';
-    if (profileFavTopics) profileFavTopics.value = Array.isArray(userProfile.favorite_topics) ? userProfile.favorite_topics.join(', ') : '';
-    if (profileLearning) profileLearning.value = Array.isArray(userProfile.learning_interests) ? userProfile.learning_interests.join(', ') : '';
-    if (profileKnown) profileKnown.value = Array.isArray(userProfile.known_topics) ? userProfile.known_topics.join(', ') : '';
-    if (profilePreferredMode) profilePreferredMode.value = userProfile.preferred_mode || 'JARVIS';
-    if (profileResponseStyle) profileResponseStyle.value = userProfile.response_style || 'balanced';
-    if (profileFormality) profileFormality.value = userProfile.formality_level || 'casual';
-    if (profileEmojis) profileEmojis.value = userProfile.emoji_preference !== false ? 'true' : 'false';
-    if (profileInstructions) profileInstructions.value = userProfile.custom_instructions || '';
-    if (profileGoals) profileGoals.value = Array.isArray(userProfile.goals) ? userProfile.goals.map(g => typeof g === 'object' ? g.text : g).join('\n') : '';
-    if (profileReminders) profileReminders.value = Array.isArray(userProfile.reminders) ? userProfile.reminders.join('\n') : '';
-}
-
-function updateProfileCompleteness() {
-    if (userProfile && userProfile.profile_completeness) {
-        const completeness = userProfile.profile_completeness;
-        if (profileCompletenessFill) profileCompletenessFill.style.width = `${completeness}%`;
-        if (profileCompletenessText) profileCompletenessText.textContent = `${completeness}%`;
-        if (statProfile) statProfile.textContent = `${completeness}%`;
-    }
-}
-
-async function saveProfile() {
-    if (!currentUser) {
-        showNotification('Please login to save profile', 'error');
-        return;
-    }
-    
-    const profileData = {
-        full_name: profileFullName?.value || null,
-        display_name: profileDisplayName?.value || null,
-        birthday: profileBirthday?.value || null,
-        gender: profileGender?.value || null,
-        bio: profileBio?.value || null,
-        phone: profilePhone?.value || null,
-        website: profileWebsite?.value || null,
-        custom_greeting: profileGreeting?.value || null,
-        occupation: profileOccupation?.value || null,
-        company: profileCompany?.value || null,
-        experience_years: profileExperience?.value ? parseInt(profileExperience.value) : null,
-        education: profileEducation?.value ? profileEducation.value.split(',').map(s => s.trim()).filter(s => s) : [],
-        skills: profileSkills?.value ? profileSkills.value.split(',').map(s => s.trim()).filter(s => s) : [],
-        interests: profileInterests?.value ? profileInterests.value.split(',').map(s => s.trim()).filter(s => s) : [],
-        favorite_topics: profileFavTopics?.value ? profileFavTopics.value.split(',').map(s => s.trim()).filter(s => s) : [],
-        learning_interests: profileLearning?.value ? profileLearning.value.split(',').map(s => s.trim()).filter(s => s) : [],
-        known_topics: profileKnown?.value ? profileKnown.value.split(',').map(s => s.trim()).filter(s => s) : [],
-        preferred_mode: profilePreferredMode?.value || 'JARVIS',
-        response_style: profileResponseStyle?.value || 'balanced',
-        formality_level: profileFormality?.value || 'casual',
-        emoji_preference: profileEmojis?.value === 'true',
-        custom_instructions: profileInstructions?.value || null,
-        goals: profileGoals?.value ? profileGoals.value.split('\n').filter(s => s.trim()) : [],
-        reminders: profileReminders?.value ? profileReminders.value.split('\n').filter(s => s.trim()) : []
-    };
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/profile/update`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify(profileData)
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            userProfile = data.profile;
-            updateProfileCompleteness();
-            showNotification('✅ Profile saved successfully!', 'success');
-            closeModal(profileModal);
-        } else {
-            const error = await response.json();
-            showNotification(error.error || 'Failed to save profile', 'error');
-        }
-    } catch (error) {
-        console.error('Save profile error:', error);
-        showNotification('Error saving profile', 'error');
-    }
-}
-
-async function openProfileModal() {
-    if (!currentUser) {
-        showNotification('Please login to view profile', 'error');
-        showAuthModal(true);
-        return;
-    }
-    
-    await loadProfile();
-    openModal(profileModal);
-}
-
-function initProfileTabs() {
-    if (!profileTabBtns.length) return;
-    
-    profileTabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tabId = btn.dataset.tab;
-            
-            profileTabBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            
-            document.querySelectorAll('.profile-tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
-            const activeContent = document.getElementById(`profile-tab-${tabId}`);
-            if (activeContent) activeContent.classList.add('active');
-        });
-    });
-}
-
-// ============================================
-// INITIALIZATION
+// INIT
 // ============================================
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🚀 Initializing Wizard.AI v15.1.0...');
-    console.log('📱 Mobile device:', isMobile);
-    
-    showNotification('🧙 Summoning the Wizard...', 'info', 2000);
-    registerServiceWorker();
-    setupEventListeners();
+    console.log('🚀 Wizard.AI v15.1.0 initializing…');
+    showNotification('🧙 Summoning the Wizard…', 'info', 2000);
+
+    setupMobileSidebars();
     setupDropdown();
-    setupModals();
-    initVoiceRecognition();
+    setupModalCloseButtons();   // ← X buttons on every modal
+    setupBackdropClose();
+    setupKeyboardShortcuts();
     initProfileTabs();
-    
-    if (isMobile) {
-        initMobileLayout();
-    }
-    
+    initPersonalityTabs();
+    initVoiceRecognition();
+    setupEventListeners();
+    setupPWAInstallPrompt();
+    registerServiceWorker();
+
     loadGuestData();
     await checkAuth();
     if (currentUser) {
@@ -481,339 +196,162 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadStats();
     await loadUserApiKeys();
     loadPublicPersonalities();
-    setupDevHubButton();
-    setupAgentStudioButton();
-    setupApiKeysButton();
-    setInterval(updateStatsDisplay, 30000);
     checkBackendStatus();
     setInterval(checkBackendStatus, 30000);
-    setupPWAInstallPrompt();
-    
+    setInterval(updateStatsDisplay, 30000);
+
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+        document.body.classList.add('pwa-installed');
+    }
+
     console.log('✅ Wizard.AI v15.1.0 ready!');
 });
 
+// ============================================
+// SERVICE WORKER
+// ============================================
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/service-worker.js')
-            .then(reg => console.log('✅ Service Worker registered'))
-            .catch(err => console.log('❌ Service Worker error:', err));
+            .then(() => console.log('✅ SW registered'))
+            .catch(err => console.log('❌ SW error:', err));
     }
 }
 
 // ============================================
-// AGENT STUDIO BUTTON
+// MOBILE SIDEBARS
 // ============================================
-function setupAgentStudioButton() {
-    if (agentStudioBtn) {
-        agentStudioBtn.addEventListener('click', () => {
-            window.open('/agent-studio/', '_blank');
-        });
-    }
-}
+function setupMobileSidebars() {
+    const sidebar      = $('sidebar');
+    const chatsSidebar = $('chats-sidebar');
+    const hamburger    = $('hamburger-btn');
+    const overlay      = $('mobile-overlay');
 
-// ============================================
-// MOBILE LAYOUT
-// ============================================
-function initMobileLayout() {
-    const leftSidebar = document.querySelector('.sidebar');
-    const rightSidebar = document.querySelector('.chats-sidebar');
-    const appContainer = document.querySelector('.app-container');
-    
-    if (leftSidebar) leftSidebar.style.display = 'none';
-    if (rightSidebar) rightSidebar.style.display = 'none';
-    if (appContainer) appContainer.style.flexDirection = 'column';
-    
-    const hamburgerBtn = document.createElement('button');
-    hamburgerBtn.innerHTML = '☰';
-    hamburgerBtn.className = 'hamburger-menu';
-    hamburgerBtn.style.cssText = `
-        position: fixed;
-        top: 15px;
-        left: 15px;
-        z-index: 10000;
-        background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-        border: none;
-        border-radius: 50%;
-        width: 45px;
-        height: 45px;
-        font-size: 24px;
-        color: white;
-        cursor: pointer;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        transition: all 0.3s ease;
-    `;
-    document.body.appendChild(hamburgerBtn);
-    
-    const overlay = document.createElement('div');
-    overlay.className = 'mobile-sidebar-overlay';
-    overlay.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.7);
-        z-index: 10001;
-        display: none;
-        backdrop-filter: blur(5px);
-    `;
-    document.body.appendChild(overlay);
-    
-    const mobilePanel = document.createElement('div');
-    mobilePanel.className = 'mobile-sidebar-panel';
-    mobilePanel.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: -280px;
-        width: 280px;
-        height: 100%;
-        background: linear-gradient(135deg, #0a0f1a, #030614);
-        z-index: 10002;
-        transition: left 0.3s ease;
-        overflow-y: auto;
-        padding: 20px;
-        box-shadow: 2px 0 20px rgba(0,0,0,0.5);
-    `;
-    
-    if (leftSidebar) {
-        const leftSidebarClone = leftSidebar.cloneNode(true);
-        leftSidebarClone.style.display = 'block';
-        leftSidebarClone.style.width = '100%';
-        leftSidebarClone.style.background = 'transparent';
-        leftSidebarClone.style.border = 'none';
-        mobilePanel.appendChild(leftSidebarClone);
+    function openLeft() {
+        sidebar?.classList.add('open');
+        overlay?.classList.add('active');
+        sidebarState.left = true;
     }
-    
-    const closeBtn = document.createElement('button');
-    closeBtn.innerHTML = '✕';
-    closeBtn.style.cssText = `
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        background: rgba(255,255,255,0.1);
-        border: none;
-        border-radius: 50%;
-        width: 35px;
-        height: 35px;
-        font-size: 18px;
-        color: white;
-        cursor: pointer;
-    `;
-    mobilePanel.appendChild(closeBtn);
-    document.body.appendChild(mobilePanel);
-    
-    function toggleSidebar() {
-        sidebarOpen = !sidebarOpen;
-        if (sidebarOpen) {
-            mobilePanel.style.left = '0';
-            overlay.style.display = 'block';
-            hamburgerBtn.innerHTML = '✕';
-        } else {
-            mobilePanel.style.left = '-280px';
-            overlay.style.display = 'none';
-            hamburgerBtn.innerHTML = '☰';
-        }
+    function closeLeft() {
+        sidebar?.classList.remove('open');
+        if (!sidebarState.right) overlay?.classList.remove('active');
+        sidebarState.left = false;
     }
-    
-    hamburgerBtn.addEventListener('click', toggleSidebar);
-    overlay.addEventListener('click', toggleSidebar);
-    closeBtn.addEventListener('click', toggleSidebar);
-    
-    const chatArea = document.querySelector('.chat-area');
-    if (chatArea) {
-        chatArea.style.margin = '0';
-        chatArea.style.borderRadius = '0';
+    function toggleLeft() {
+        sidebarState.left ? closeLeft() : openLeft();
     }
-    
-    const chatHistoryEl = document.querySelector('.chat-history');
-    if (chatHistoryEl) {
-        chatHistoryEl.style.maxHeight = 'calc(100vh - 160px)';
-        chatHistoryEl.style.padding = '15px';
-    }
-    
-    const style = document.createElement('style');
-    style.textContent = `
-        @media (max-width: 768px) {
-            .message.user .message-content { max-width: 85% !important; }
-            .pro-toolbar { overflow-x: auto; justify-content: flex-start; gap: 8px; padding: 10px; }
-            .pro-btn { flex-shrink: 0; }
-            .input-area { margin: 10px; padding: 10px; }
-            .chat-header { margin: 10px; padding: 12px; }
-            #chat-input { font-size: 16px; }
-            .hamburger-menu { display: flex; align-items: center; justify-content: center; }
-        }
-    `;
-    document.head.appendChild(style);
+
+    if (hamburger) hamburger.addEventListener('click', toggleLeft);
+    if (overlay)   overlay.addEventListener('click', () => { closeLeft(); });
+
+    // Also expose so we can call from chat item clicks on mobile
+    window._closeLeftSidebar = closeLeft;
 }
 
 // ============================================
 // BACKEND STATUS
 // ============================================
 async function checkBackendStatus() {
-    const statusTextEl = document.getElementById('status-text');
-    const statusDotEl = document.querySelector('.status-dot');
-    
-    if (!statusTextEl || !statusDotEl) return;
-    
+    const statusTxt = $('status-text');
+    const statusDot = document.querySelector('.status-dot');
+    if (!statusTxt || !statusDot) return;
     try {
-        const response = await fetch(`${API_BASE_URL}/status`, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' },
-            mode: 'cors',
-            credentials: 'omit'
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            if (data.maintenance === true) {
-                statusTextEl.textContent = 'Maintenance Mode';
-                statusDotEl.style.background = '#f59e0b';
-                statusDotEl.style.boxShadow = '0 0 15px #f59e0b';
+        const res = await fetch(`${API_BASE_URL}/status`, { mode: 'cors', credentials: 'omit' });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.maintenance) {
+                statusTxt.textContent = 'Maintenance';
+                statusDot.style.background = '#f59e0b';
+                statusDot.style.boxShadow = '0 0 8px #f59e0b';
             } else {
-                statusTextEl.textContent = 'Connected';
-                statusDotEl.style.background = '#10b981';
-                statusDotEl.style.boxShadow = '0 0 15px #10b981';
+                statusTxt.textContent = 'Connected';
+                statusDot.style.background = '#10b981';
+                statusDot.style.boxShadow = '0 0 8px #10b981';
             }
-            statusDotEl.classList.remove('offline');
         } else {
-            statusTextEl.textContent = 'Maintenance in Progress';
-            statusDotEl.style.background = '#f59e0b';
-            statusDotEl.classList.remove('offline');
+            statusTxt.textContent = 'Degraded';
+            statusDot.style.background = '#f59e0b';
         }
-    } catch (error) {
-        statusTextEl.textContent = 'Offline';
-        statusDotEl.style.background = '#ef4444';
-        statusDotEl.classList.add('offline');
+    } catch {
+        statusTxt.textContent = 'Offline';
+        statusDot.style.background = '#ef4444';
+        statusDot.style.boxShadow = '0 0 8px #ef4444';
     }
 }
 
 // ============================================
-// DEV HUB BUTTON
+// MODAL CLOSE BUTTONS — the key feature!
+// Every modal-close button closes its parent modal-overlay
 // ============================================
-function setupDevHubButton() {
-    if (devHubBtn) {
-        devHubBtn.addEventListener('click', () => {
-            window.open('/devhub/', '_blank');
+function setupModalCloseButtons() {
+    // All .modal-close buttons anywhere on the page
+    document.querySelectorAll('.modal-close').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const overlay = btn.closest('.modal-overlay');
+            if (overlay) closeModal(overlay);
         });
-    }
+    });
 }
 
-// ============================================
-// UTILITY FUNCTIONS
-// ============================================
-function escapeHtml(s) {
-    if (!s) return '';
-    return String(s)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+// Close modal on backdrop click
+function setupBackdropClose() {
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) closeModal(overlay);
+        });
+    });
 }
 
-function openModal(modal) {
-    if (modal) modal.classList.add('active');
-}
-
-function closeModal(modal) {
-    if (modal) modal.classList.remove('active');
-}
-
-function showNotification(message, type = 'info', duration = 3000) {
-    if (!notificationToast) return;
-    notificationToast.textContent = message;
-    notificationToast.className = 'notification-toast show';
-    if (type === 'success') notificationToast.classList.add('success');
-    if (type === 'error') notificationToast.classList.add('error');
-    if (type === 'warning') notificationToast.style.borderColor = '#f59e0b';
-    setTimeout(() => notificationToast.classList.remove('show'), duration);
+// Keyboard shortcuts
+function setupKeyboardShortcuts() {
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeAllModals();
+        if (e.key === 'F2') emergencyReset();
+    });
 }
 
 function emergencyReset() {
     isThinking = false;
-    if (sendBtn) {
-        sendBtn.disabled = false;
-        sendBtn.classList.remove('loading');
-    }
+    const sendBtn = $('send-btn');
+    if (sendBtn) { sendBtn.disabled = false; sendBtn.classList.remove('loading'); }
+    const typingIndicator = $('typing-indicator');
     if (typingIndicator) typingIndicator.style.display = 'none';
-    if (chatInput) chatInput.disabled = false;
-    if (chatInput) chatInput.focus();
-    if (inputSearchIndicator) inputSearchIndicator.style.display = 'none';
-    showNotification('⚠️ Emergency reset activated', 'warning', 3000);
-}
-
-function setupModals() {
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') {
-            document.querySelectorAll('.modal-overlay.active').forEach(modal => {
-                closeModal(modal);
-            });
-        }
-    });
-}
-
-// ============================================
-// PWA INSTALL PROMPT
-// ============================================
-function setupPWAInstallPrompt() {
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        pwaDeferredPrompt = e;
-        const installPromptDiv = document.getElementById('install-prompt');
-        if (installPromptDiv && !localStorage.getItem('installDismissed')) {
-            installPromptDiv.style.display = 'flex';
-        }
-    });
-    
-    const installBtn = document.getElementById('install-btn');
-    const closeInstallBtn = document.getElementById('close-install');
-    
-    if (installBtn) {
-        installBtn.addEventListener('click', async () => {
-            if (pwaDeferredPrompt) {
-                pwaDeferredPrompt.prompt();
-                const { outcome } = await pwaDeferredPrompt.userChoice;
-                console.log(`User response: ${outcome}`);
-                pwaDeferredPrompt = null;
-                const installPromptDiv = document.getElementById('install-prompt');
-                if (installPromptDiv) installPromptDiv.style.display = 'none';
-                if (outcome === 'accepted') {
-                    showNotification('✅ Wizard.AI added to your home screen!', 'success');
-                }
-            }
-        });
-    }
-    
-    if (closeInstallBtn) {
-        closeInstallBtn.addEventListener('click', () => {
-            const installPromptDiv = document.getElementById('install-prompt');
-            if (installPromptDiv) installPromptDiv.style.display = 'none';
-            localStorage.setItem('installDismissed', 'true');
-            setTimeout(() => {
-                localStorage.removeItem('installDismissed');
-            }, 86400000);
-        });
-    }
+    const chatInput = $('chat-input');
+    if (chatInput) { chatInput.disabled = false; chatInput.focus(); }
+    showNotification('⚠️ Emergency reset', 'warning');
 }
 
 // ============================================
 // DROPDOWN SETUP
 // ============================================
 function setupDropdown() {
+    const dropdown       = $('mode-dropdown');
+    const dropdownBtn    = $('dropdown-btn');
+    const dropdownContent = $('dropdown-content');
+
     if (!dropdownContent) return;
+
     dropdownContent.innerHTML = '';
     Object.keys(modeData).forEach(mode => {
         dropdownContent.appendChild(createDropdownItem(mode, modeData[mode].emoji, false));
     });
     updateCustomPersonalitiesDropdown();
+
     if (dropdownBtn) {
         dropdownBtn.addEventListener('click', e => {
             e.stopPropagation();
             dropdown.classList.toggle('open');
         });
+        dropdownBtn.addEventListener('keydown', e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                dropdown.classList.toggle('open');
+            }
+        });
     }
+
     document.addEventListener('click', e => {
-        if (!dropdown.contains(e.target)) dropdown.classList.remove('open');
+        if (dropdown && !dropdown.contains(e.target)) dropdown.classList.remove('open');
     });
 }
 
@@ -821,9 +359,8 @@ function createDropdownItem(mode, emoji, isCustom = false) {
     const item = document.createElement('div');
     item.className = `dropdown-item ${mode === currentMode ? 'selected' : ''} ${isCustom ? 'custom' : ''}`;
     item.setAttribute('data-mode', mode);
-    item.innerHTML = `<span style="font-size: 18px;">${emoji}</span><span>${mode}</span>`;
-    item.addEventListener('mouseenter', e => showTooltip(mode, e));
-    item.addEventListener('mouseleave', hideTooltip);
+    item.setAttribute('role', 'option');
+    item.innerHTML = `<span style="font-size:17px">${emoji}</span><span>${mode}</span>`;
     item.addEventListener('click', () => selectMode(mode));
     return item;
 }
@@ -831,48 +368,20 @@ function createDropdownItem(mode, emoji, isCustom = false) {
 function selectMode(mode) {
     currentMode = mode;
     updateModeDisplay();
+    const dropdown = $('mode-dropdown');
     if (dropdown) dropdown.classList.remove('open');
-    hideTooltip();
     if (chats[activeChatId]) chats[activeChatId].mode = mode;
     saveChats();
     showNotification(`Switched to ${mode} mode`, 'info');
 }
 
 function updateModeDisplay() {
-    const mode = modeData[currentMode] || customPersonalities.find(p => p.name === currentMode) || { emoji: '🎩', name: currentMode };
-    if (selectedDisplay) selectedDisplay.innerHTML = `${mode.emoji || '🤖'} ${currentMode}`;
+    const mode = modeData[currentMode] || customPersonalities.find(p => p.name === currentMode) || { emoji: '🤖' };
+    const display = $('selected-mode-display');
+    if (display) display.innerHTML = `${mode.emoji || '🤖'} ${currentMode}`;
     document.querySelectorAll('.dropdown-item').forEach(el => {
         el.classList.toggle('selected', el.dataset.mode === currentMode);
     });
-}
-
-// ============================================
-// TOOLTIP SYSTEM
-// ============================================
-let tooltipEl = null;
-
-function createTooltip() {
-    if (tooltipEl) return;
-    tooltipEl = document.createElement('div');
-    tooltipEl.style.cssText = `position:fixed; display:none; z-index:10000; background:linear-gradient(135deg,#1a1035,#0d0a1f); border:2px solid #8b5cf6; border-radius:12px; padding:12px 16px; max-width:280px; box-shadow:0 0 30px rgba(139,92,246,0.5); backdrop-filter:blur(10px); color:white; font-size:13px; pointer-events:none; border-left:4px solid #8b5cf6;`;
-    document.body.appendChild(tooltipEl);
-}
-
-function showTooltip(modeKey, event) {
-    if (!tooltipEl) createTooltip();
-    const mode = modeData[modeKey] || customPersonalities.find(p => p.name === modeKey);
-    if (!mode) return;
-    tooltipEl.innerHTML = `<div style="display:flex; gap:12px;"><div style="font-size:32px;">${mode.emoji || '🤖'}</div><div><div style="font-weight:bold; color:${mode.color || '#8b5cf6'}; font-size:15px;">${mode.name || modeKey}</div><div style="color:#e0e7ff; font-size:12px; margin-top:4px;">${mode.desc || (mode.system_prompt ? mode.system_prompt.substring(0,100)+'...' : 'Custom personality')}</div><div style="color:#9ca3af; font-size:11px; margin-top:8px;">🧠 ${mode.model || 'Custom'}</div></div></div>`;
-    const rect = event.target.getBoundingClientRect();
-    tooltipEl.style.display = 'block';
-    tooltipEl.style.left = `${rect.right + 15}px`;
-    tooltipEl.style.top = `${rect.top}px`;
-    const tooltipRect = tooltipEl.getBoundingClientRect();
-    if (tooltipRect.right > window.innerWidth) tooltipEl.style.left = `${rect.left - tooltipRect.width - 15}px`;
-}
-
-function hideTooltip() {
-    if (tooltipEl) tooltipEl.style.display = 'none';
 }
 
 // ============================================
@@ -884,7 +393,7 @@ function loadCustomPersonalities() {
         try {
             customPersonalities = JSON.parse(saved);
             updateCustomPersonalitiesDropdown();
-        } catch (e) {}
+        } catch (e) { /* ignore */ }
     }
 }
 
@@ -893,13 +402,13 @@ function saveCustomPersonalitiesToStorage() {
 }
 
 function updateCustomPersonalitiesDropdown() {
+    const dropdownContent = $('dropdown-content');
     if (!dropdownContent) return;
-    document.querySelectorAll('.dropdown-item.custom, .dropdown-separator').forEach(el => el.remove());
+    dropdownContent.querySelectorAll('.custom, .dropdown-separator').forEach(el => el.remove());
     if (customPersonalities.length > 0) {
         const sep = document.createElement('div');
         sep.className = 'dropdown-separator';
-        sep.style.cssText = 'padding:8px 15px; color:#9ca3af; font-size:11px; text-transform:uppercase; letter-spacing:1px; border-top:1px solid rgba(139,92,246,0.3); border-bottom:1px solid rgba(139,92,246,0.3); background:rgba(0,0,0,0.2);';
-        sep.textContent = '✨ CUSTOM PERSONALITIES';
+        sep.textContent = '✨ Custom Personalities';
         dropdownContent.appendChild(sep);
         customPersonalities.forEach(p => {
             dropdownContent.appendChild(createDropdownItem(p.name, p.emoji || '🤖', true));
@@ -908,30 +417,29 @@ function updateCustomPersonalitiesDropdown() {
 }
 
 function toggleCreatorPanel() {
-    if (!creatorPanel) return;
-    creatorPanel.style.display = creatorPanel.style.display === 'none' ? 'block' : 'none';
-    if (toggleCreatorBtn) {
-        const span = toggleCreatorBtn.querySelector('.btn-icon');
-        if (span) span.textContent = creatorPanel.style.display === 'block' ? '➖' : '➕';
-    }
+    const panel = $('creator-panel');
+    const icon  = $('creator-toggle-icon');
+    if (!panel) return;
+    const isOpen = panel.style.display !== 'none' && panel.style.display !== '';
+    panel.style.display = isOpen ? 'none' : 'block';
+    if (icon) icon.textContent = isOpen ? '➕' : '➖';
 }
 
 function closeCreatorPanel() {
-    if (!creatorPanel) return;
-    creatorPanel.style.display = 'none';
-    if (toggleCreatorBtn) {
-        const span = toggleCreatorBtn.querySelector('.btn-icon');
-        if (span) span.textContent = '➕';
-    }
+    const panel = $('creator-panel');
+    const icon  = $('creator-toggle-icon');
+    if (panel) panel.style.display = 'none';
+    if (icon)  icon.textContent = '➕';
     clearCreatorForm();
 }
 
 function clearCreatorForm() {
-    if (customName) customName.value = '';
-    if (customEmoji) customEmoji.value = '';
-    if (customPrompt) customPrompt.value = '';
-    if (customGreeting) customGreeting.value = '';
-    if (customPublic) customPublic.checked = true;
+    ['custom-name','custom-emoji','custom-prompt','custom-greeting'].forEach(id => {
+        const el = $(id);
+        if (el) el.value = '';
+    });
+    const pub = $('custom-public');
+    if (pub) pub.checked = true;
 }
 
 async function saveCustomPersonality() {
@@ -939,61 +447,230 @@ async function saveCustomPersonality() {
         showNotification('Please login to create personalities', 'error');
         return;
     }
-    const name = customName.value.trim();
-    const emoji = customEmoji.value.trim() || '🤖';
-    const prompt = customPrompt.value.trim();
-    const greeting = customGreeting.value.trim() || `Hello! I'm ${name}.`;
-    const isPublic = customPublic.checked;
+    const name     = $('custom-name')?.value.trim();
+    const emoji    = $('custom-emoji')?.value.trim() || '🤖';
+    const prompt   = $('custom-prompt')?.value.trim();
+    const greeting = $('custom-greeting')?.value.trim() || `Hello! I'm ${name}.`;
+    const isPublic = $('custom-public')?.checked ?? true;
+
     if (!name || !prompt) {
         showNotification('Name and prompt are required', 'error');
         return;
     }
     try {
-        const response = await fetch(`${API_BASE_URL}/api/personalities`, {
+        const res = await fetch(`${API_BASE_URL}/api/personalities`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({ name, emoji, prompt, greeting, is_public: isPublic })
         });
-        if (response.ok) {
-            const personality = await response.json();
-            customPersonalities.push({
-                name: personality.name,
-                emoji: personality.emoji,
-                system_prompt: personality.system_prompt,
-                greeting: personality.greeting,
-                id: personality.id
-            });
+        if (res.ok) {
+            const p = await res.json();
+            customPersonalities.push({ name: p.name, emoji: p.emoji, system_prompt: p.system_prompt, greeting: p.greeting, id: p.id });
             saveCustomPersonalitiesToStorage();
             updateCustomPersonalitiesDropdown();
             showNotification('Personality created!', 'success');
             closeCreatorPanel();
         } else {
-            const error = await response.json();
-            showNotification(error.error || 'Failed to create personality', 'error');
+            const err = await res.json();
+            showNotification(err.error || 'Failed to create personality', 'error');
         }
-    } catch (error) {
-        showNotification('Error creating personality', 'error');
+    } catch { showNotification('Error creating personality', 'error'); }
+}
+
+// ============================================
+// PROFILE TAB SYSTEM
+// ============================================
+function initProfileTabs() {
+    document.querySelectorAll('.profile-tabs .tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tab = btn.dataset.tab;
+            document.querySelectorAll('.profile-tabs .tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+            document.querySelectorAll('#profile-modal-overlay .tab-pane').forEach(pane => {
+                pane.classList.toggle('active', pane.id === `profile-tab-${tab}`);
+            });
+        });
+    });
+}
+
+// ============================================
+// PERSONALITIES TAB SYSTEM
+// ============================================
+function initPersonalityTabs() {
+    document.querySelectorAll('.persona-tabs .tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.persona-tabs .tab-btn').forEach(b => b.classList.toggle('active', b === btn));
+            loadPersonalitiesGrid(btn.dataset.tab);
+        });
+    });
+}
+
+// ============================================
+// TIMEZONE
+// ============================================
+async function detectAndSaveTimezone() {
+    if (!currentUser) return;
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!tz) return;
+    try {
+        await fetch(`${API_BASE_URL}/api/user/timezone`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ timezone: tz })
+        });
+    } catch { /* ignore */ }
+}
+
+// ============================================
+// PROFILE
+// ============================================
+async function loadProfile() {
+    if (!currentUser) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/profile`, { credentials: 'include' });
+        if (res.ok) {
+            const data = await res.json();
+            userProfile = data.profile;
+            updateProfileForm();
+            updateProfileCompleteness();
+        }
+    } catch { /* ignore */ }
+}
+
+function updateProfileForm() {
+    if (!userProfile) return;
+    const set = (id, val) => { const el = $(id); if (el) el.value = val || ''; };
+    set('profile-full-name',   userProfile.full_name);
+    set('profile-display-name', userProfile.display_name);
+    set('profile-birthday',    userProfile.birthday);
+    set('profile-bio',         userProfile.bio);
+    set('profile-phone',       userProfile.phone);
+    set('profile-website',     userProfile.website);
+    set('profile-greeting',    userProfile.custom_greeting);
+    set('profile-occupation',  userProfile.occupation);
+    set('profile-company',     userProfile.company);
+    set('profile-experience',  userProfile.experience_years);
+    const arrToComma = arr => Array.isArray(arr) ? arr.join(', ') : '';
+    set('profile-education',   arrToComma(userProfile.education));
+    set('profile-skills',      arrToComma(userProfile.skills));
+    set('profile-interests',   arrToComma(userProfile.interests));
+    set('profile-fav-topics',  arrToComma(userProfile.favorite_topics));
+    set('profile-learning',    arrToComma(userProfile.learning_interests));
+    set('profile-known',       arrToComma(userProfile.known_topics));
+    set('profile-instructions', userProfile.custom_instructions);
+    set('profile-goals',       Array.isArray(userProfile.goals) ? userProfile.goals.map(g => typeof g === 'object' ? g.text : g).join('\n') : '');
+    set('profile-reminders',   Array.isArray(userProfile.reminders) ? userProfile.reminders.join('\n') : '');
+
+    const gender = $('profile-gender');
+    if (gender && userProfile.gender) gender.value = userProfile.gender;
+    const pMode = $('profile-preferred-mode');
+    if (pMode && userProfile.preferred_mode) pMode.value = userProfile.preferred_mode;
+    const rStyle = $('profile-response-style');
+    if (rStyle && userProfile.response_style) rStyle.value = userProfile.response_style;
+    const formality = $('profile-formality');
+    if (formality && userProfile.formality_level) formality.value = userProfile.formality_level;
+    const emojis = $('profile-emojis');
+    if (emojis) emojis.value = userProfile.emoji_preference !== false ? 'true' : 'false';
+}
+
+function updateProfileCompleteness() {
+    const pct = userProfile?.profile_completeness || 0;
+    const fill = $('profile-completeness-fill');
+    const text = $('profile-completeness-text');
+    const stat  = $('stat-profile-completeness');
+    if (fill) fill.style.width = `${pct}%`;
+    if (text) text.textContent = `${pct}%`;
+    if (stat) stat.textContent = `${pct}%`;
+}
+
+async function saveProfile() {
+    if (!currentUser) {
+        showNotification('Please login to save profile', 'error');
+        return;
     }
+    const commaToArr = id => {
+        const el = $(id);
+        return el?.value ? el.value.split(',').map(s => s.trim()).filter(Boolean) : [];
+    };
+    const val = id => $(id)?.value || null;
+
+    const profileData = {
+        full_name:          val('profile-full-name'),
+        display_name:       val('profile-display-name'),
+        birthday:           val('profile-birthday'),
+        gender:             val('profile-gender'),
+        bio:                val('profile-bio'),
+        phone:              val('profile-phone'),
+        website:            val('profile-website'),
+        custom_greeting:    val('profile-greeting'),
+        occupation:         val('profile-occupation'),
+        company:            val('profile-company'),
+        experience_years:   $('profile-experience')?.value ? parseInt($('profile-experience').value) : null,
+        education:          commaToArr('profile-education'),
+        skills:             commaToArr('profile-skills'),
+        interests:          commaToArr('profile-interests'),
+        favorite_topics:    commaToArr('profile-fav-topics'),
+        learning_interests: commaToArr('profile-learning'),
+        known_topics:       commaToArr('profile-known'),
+        preferred_mode:     val('profile-preferred-mode') || 'JARVIS',
+        response_style:     val('profile-response-style') || 'balanced',
+        formality_level:    val('profile-formality') || 'casual',
+        emoji_preference:   $('profile-emojis')?.value === 'true',
+        custom_instructions: val('profile-instructions'),
+        goals:              $('profile-goals')?.value ? $('profile-goals').value.split('\n').filter(s => s.trim()) : [],
+        reminders:          $('profile-reminders')?.value ? $('profile-reminders').value.split('\n').filter(s => s.trim()) : []
+    };
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/profile/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(profileData)
+        });
+        if (res.ok) {
+            const data = await res.json();
+            userProfile = data.profile;
+            updateProfileCompleteness();
+            showNotification('✅ Profile saved!', 'success');
+            closeModal($('profile-modal-overlay'));
+        } else {
+            const err = await res.json();
+            showNotification(err.error || 'Failed to save', 'error');
+        }
+    } catch {
+        showNotification('Error saving profile', 'error');
+    }
+}
+
+async function openProfileModal() {
+    if (!currentUser) {
+        showNotification('Please login to view profile', 'error');
+        showAuthModal(true);
+        return;
+    }
+    await loadProfile();
+    openModal($('profile-modal-overlay'));
 }
 
 // ============================================
 // VOICE RECOGNITION
 // ============================================
 function initVoiceRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-        if (voiceBtn) voiceBtn.style.display = 'none';
-        return;
-    }
-    voiceRecognition = new SpeechRecognition();
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const voiceBtn = $('voice-input-btn');
+    if (!SpeechRec) { if (voiceBtn) voiceBtn.style.display = 'none'; return; }
+
+    voiceRecognition = new SpeechRec();
     voiceRecognition.continuous = false;
     voiceRecognition.interimResults = false;
     voiceRecognition.lang = 'en-US';
+
     voiceRecognition.onstart = () => {
         isVoiceListening = true;
         if (voiceBtn) voiceBtn.classList.add('listening');
-        showNotification('🎤 Listening...', 'info');
+        showNotification('🎤 Listening…', 'info');
     };
     voiceRecognition.onend = () => {
         isVoiceListening = false;
@@ -1001,6 +678,7 @@ function initVoiceRecognition() {
     };
     voiceRecognition.onresult = e => {
         const transcript = e.results[0][0].transcript;
+        const chatInput = $('chat-input');
         if (chatInput) chatInput.value = transcript;
         showNotification(`🎤 "${transcript}"`, 'success');
         setTimeout(() => sendMessage(), 500);
@@ -1013,10 +691,7 @@ function initVoiceRecognition() {
 }
 
 function toggleVoiceInput() {
-    if (!voiceRecognition) {
-        initVoiceRecognition();
-        if (!voiceRecognition) return;
-    }
+    if (!voiceRecognition) { initVoiceRecognition(); if (!voiceRecognition) return; }
     if (isVoiceListening) voiceRecognition.stop();
     else voiceRecognition.start();
 }
@@ -1026,298 +701,163 @@ function toggleVoiceInput() {
 // ============================================
 function toggleTurboMode() {
     turboMode = !turboMode;
-    if (turboBtn) turboBtn.classList.toggle('active', turboMode);
-    if (turboStatus) turboStatus.textContent = turboMode ? 'ON' : 'OFF';
-    showNotification(`Turbo mode ${turboMode ? 'activated' : 'deactivated'}`, 'info');
+    const btn = $('turbo-btn');
+    const status = $('turbo-status');
+    if (btn) btn.classList.toggle('active', turboMode);
+    if (status) status.textContent = turboMode ? 'ON' : 'OFF';
+    showNotification(`Turbo mode ${turboMode ? 'ON ⚡' : 'off'}`, 'info');
 }
 
 function toggleSearchMode() {
     searchMode = !searchMode;
-    if (searchBtn) {
-        searchBtn.classList.toggle('active', searchMode);
-        const btnText = searchBtn.querySelector('.btn-text');
-        if (btnText) {
-            btnText.textContent = searchMode ? 'Search ON' : 'Search';
-        }
+    const btn = $('search-btn');
+    if (btn) {
+        btn.classList.toggle('active', searchMode);
+        const span = btn.querySelector('span:last-child');
+        if (span) span.textContent = searchMode ? 'Search ON' : 'Search';
     }
-    showNotification(`Web search ${searchMode ? 'enabled' : 'disabled'}`, 'info');
+    showNotification(`Web search ${searchMode ? 'enabled 🌐' : 'disabled'}`, 'info');
 }
 
 function shouldAutoSearch(text) {
-    const triggers = [
-        'latest', 'news', 'current', 'today', 'now', 
-        '2024', '2025', '2026', 'recent', 'update', 
-        'weather', 'stock', 'price', 'score', 'results', 
-        'who is', 'what is', 'tell me about', 'find', 'search',
-        'ww3', 'war', 'conflict', 'election', 'president',
-        'breaking', 'live', 'trending', 'forecast', 'prediction'
-    ];
-    const lowerText = text.toLowerCase();
-    return triggers.some(t => lowerText.includes(t));
+    const triggers = ['latest','news','current','today','now','2024','2025','2026','recent',
+        'update','weather','stock','price','score','results','who is','what is','tell me about',
+        'find','search','ww3','war','conflict','election','president','breaking','live','trending'];
+    const lower = text.toLowerCase();
+    return triggers.some(t => lower.includes(t));
 }
 
 // ============================================
-// API KEYS MANAGEMENT
+// SEND MESSAGE (streaming)
 // ============================================
-async function loadUserApiKeys() {
-    const apiKeysList = document.getElementById('api-keys-list');
-    if (!apiKeysList) return;
-    
-    if (!currentUser) {
-        apiKeysList.innerHTML = '<div class="no-keys-message">🔐 Login to view your API keys</div>';
-        return;
+async function sendMessage() {
+    if (isThinking) return;
+    const chatInput = $('chat-input');
+    const sendBtn   = $('send-btn');
+    const typingIndicator = $('typing-indicator');
+    const inputSearchIndicator = $('input-search-indicator');
+
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    addMessage('user', text);
+    chatInput.value = '';
+    chatInput.focus();
+
+    isThinking = true;
+    if (sendBtn) { sendBtn.disabled = true; sendBtn.classList.add('loading'); }
+    if (typingIndicator) typingIndicator.style.display = 'flex';
+
+    const doSearch = searchMode || shouldAutoSearch(text);
+    if (doSearch && inputSearchIndicator) inputSearchIndicator.style.display = 'inline';
+
+    // Create streaming message element
+    const streamId = 'stream-' + Date.now();
+    const msgDiv   = document.createElement('div');
+    msgDiv.id = streamId;
+    msgDiv.className = 'message assistant streaming';
+    msgDiv.innerHTML = `<div class="message-content"><div class="message-text" id="st-${streamId}"></div><div class="message-time">${new Date().toLocaleTimeString()}</div></div>`;
+
+    const chatHistory = $('chat-history');
+    if (chatHistory) {
+        chatHistory.appendChild(msgDiv);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
     }
-    
+
+    const respEl = $(`st-${streamId}`);
+    let fullResponse = '';
+
     try {
-        const response = await fetch(`${API_BASE_URL}/api/keys`, {
-            credentials: 'include'
+        const start = Date.now();
+        const res = await fetch(`${API_BASE_URL}/api/chat/stream`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+                prompt: text, mode: currentMode, turbo: turboMode,
+                search: doSearch, chat_id: activeChatId
+            })
         });
-        
-        if (response.ok) {
-            const keys = await response.json();
-            
-            if (!keys || keys.length === 0) {
-                apiKeysList.innerHTML = '<div class="no-keys-message">✨ No API keys yet. Visit the <a href="/devhub/">Developer Hub</a> to create one!</div>';
-            } else {
-                let html = '';
-                keys.forEach(key => {
-                    const maskedKey = key.key.substring(0, 15) + '...' + key.key.substring(key.key.length - 8);
-                    html += `
-                        <div class="api-key-item">
-                            <div class="api-key-name">${escapeHtml(key.name)}</div>
-                            <div class="api-key-value">${maskedKey}</div>
-                            <div class="api-key-stats">
-                                📊 ${key.requests || 0} requests
-                                ${key.is_active ? '✅ Active' : '❌ Revoked'}
-                            </div>
-                        </div>
-                    `;
-                });
-                apiKeysList.innerHTML = html;
-            }
-        } else if (response.status === 401) {
-            apiKeysList.innerHTML = '<div class="no-keys-message">🔐 Please login to view your API keys</div>';
-        } else {
-            apiKeysList.innerHTML = '<div class="no-keys-message">⚠️ Failed to load API keys</div>';
-        }
-    } catch (error) {
-        console.error('Error loading API keys:', error);
-        apiKeysList.innerHTML = '<div class="no-keys-message">⚠️ Error loading keys</div>';
-    }
-}
 
-function setupApiKeysButton() {
-    const sidebarKeyBtn = document.getElementById('create-api-key-sidebar');
-    
-    if (sidebarKeyBtn) {
-        sidebarKeyBtn.addEventListener('click', () => {
-            if (!currentUser) {
-                showNotification('Please login to manage API keys', 'error');
-                showAuthModal(true);
-                return;
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const reader  = res.body.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value);
+            for (const line of chunk.split('\n\n')) {
+                if (!line.startsWith('data: ')) continue;
+                const raw = line.slice(6);
+                if (raw === '[DONE]') continue;
+                try {
+                    const parsed = JSON.parse(raw);
+                    if (parsed.token) {
+                        fullResponse += parsed.token;
+                        if (respEl) respEl.innerHTML = renderMarkdown(fullResponse);
+                        if (chatHistory) chatHistory.scrollTop = chatHistory.scrollHeight;
+                    } else if (parsed.error) {
+                        fullResponse = 'Error: ' + parsed.error;
+                        if (respEl) respEl.innerHTML = renderMarkdown(fullResponse);
+                    }
+                } catch { /* partial JSON */ }
             }
-            window.open('/devhub/', '_blank');
-        });
+        }
+
+        const elapsed = (Date.now() - start) / 1000;
+        msgDiv.classList.remove('streaming');
+        messages.push({ sender: 'assistant', text: fullResponse, mode: currentMode, timestamp: new Date().toISOString() });
+        if (chats[activeChatId]) { chats[activeChatId].messages = [...messages]; saveChats(); }
+        trackMessage(elapsed);
+        if (doSearch) trackSearch();
+
+    } catch (err) {
+        console.error('Stream error:', err);
+        const errMsg = 'Error getting response. Please try again.';
+        if (respEl) respEl.innerHTML = errMsg;
+        msgDiv.classList.remove('streaming');
+        messages.push({ sender: 'assistant', text: errMsg, mode: currentMode, timestamp: new Date().toISOString() });
+        if (chats[activeChatId]) { chats[activeChatId].messages = [...messages]; saveChats(); }
+    } finally {
+        isThinking = false;
+        if (sendBtn) { sendBtn.disabled = false; sendBtn.classList.remove('loading'); }
+        if (typingIndicator) typingIndicator.style.display = 'none';
+        if (inputSearchIndicator) inputSearchIndicator.style.display = 'none';
     }
 }
 
 // ============================================
 // CHAT MANAGEMENT
 // ============================================
-
-// MARKDOWN RENDER FUNCTION FOR MESSAGES
-function renderMessageContent(sender, text) {
-    if (sender === 'user') {
-        return escapeHtml(text);
-    } else {
-        return renderMarkdown(text);
-    }
-}
-
-function createMessageElement(sender, text, mode = null, isStreaming = false) {
-    const msg = document.createElement('div');
-    msg.className = `message ${sender}`;
-    if (isStreaming) msg.classList.add('streaming');
-    
-    const icon = sender === 'user' ? '👤' : (modeData[mode]?.emoji || '🧙');
-    const renderedContent = renderMessageContent(sender, text);
-    
-    if (sender === 'user') {
-        msg.innerHTML = `
-            <div class="message-content">
-                <div class="message-text">${renderedContent}</div>
-                <div class="message-time">${new Date().toLocaleTimeString()}</div>
-            </div>
-        `;
-    } else {
-        msg.innerHTML = `
-            <div class="message-content">
-                <div class="message-text">${renderedContent}</div>
-                <div class="message-time">${new Date().toLocaleTimeString()}</div>
-            </div>
-        `;
-    }
-    return msg;
-}
-
 function addMessage(sender, text, mode = null) {
+    const chatHistory = $('chat-history');
     if (!chatHistory) return;
-    const msgElement = createMessageElement(sender, text, mode);
-    chatHistory.appendChild(msgElement);
-    messages.push({
-        sender: sender,
-        text: text,
-        mode: mode,
-        timestamp: new Date().toISOString()
-    });
-    if (chats[activeChatId]) {
-        chats[activeChatId].messages = [...messages];
-        saveChats();
-    }
+
+    const msgEl = document.createElement('div');
+    msgEl.className = `message ${sender}`;
+    const content = sender === 'user' ? escapeHtml(text) : renderMarkdown(text);
+    msgEl.innerHTML = `<div class="message-content"><div class="message-text">${content}</div><div class="message-time">${new Date().toLocaleTimeString()}</div></div>`;
+    chatHistory.appendChild(msgEl);
+
+    messages.push({ sender, text, mode, timestamp: new Date().toISOString() });
+    if (chats[activeChatId]) { chats[activeChatId].messages = [...messages]; saveChats(); }
     chatHistory.scrollTop = chatHistory.scrollHeight;
 }
 
 function renderMessages() {
+    const chatHistory = $('chat-history');
     if (!chatHistory) return;
     chatHistory.innerHTML = '';
-    if (messages && messages.length > 0) {
-        messages.forEach(msg => {
-            const msgElement = createMessageElement(msg.sender, msg.text, msg.mode);
-            chatHistory.appendChild(msgElement);
-        });
-    }
+    messages.forEach(msg => {
+        const msgEl = document.createElement('div');
+        msgEl.className = `message ${msg.sender}`;
+        const content = msg.sender === 'user' ? escapeHtml(msg.text) : renderMarkdown(msg.text);
+        msgEl.innerHTML = `<div class="message-content"><div class="message-text">${content}</div><div class="message-time">${msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString() : ''}</div></div>`;
+        chatHistory.appendChild(msgEl);
+    });
     chatHistory.scrollTop = chatHistory.scrollHeight;
-}
-
-async function sendMessage() {
-    if (isThinking) return;
-    const text = chatInput.value.trim();
-    if (!text) return;
-    
-    addMessage('user', text);
-    chatInput.value = '';
-    
-    isThinking = true;
-    sendBtn.disabled = true;
-    sendBtn.classList.add('loading');
-    if (typingIndicator) typingIndicator.style.display = 'flex';
-    
-    const shouldSearch = searchMode || shouldAutoSearch(text);
-    
-    if (shouldSearch && inputSearchIndicator) {
-        inputSearchIndicator.style.display = 'inline';
-        inputSearchIndicator.title = 'Web search will be performed for this query';
-        console.log("🔍 Search triggered for:", text);
-    } else if (inputSearchIndicator) {
-        inputSearchIndicator.style.display = 'none';
-    }
-    
-    const streamingMsgId = 'streaming-' + Date.now();
-    const msgDiv = document.createElement('div');
-    msgDiv.id = streamingMsgId;
-    msgDiv.className = 'message assistant streaming';
-    msgDiv.innerHTML = `
-        <div class="message-content">
-            <div class="message-text" id="streaming-text-${streamingMsgId}"></div>
-            <div class="message-time">${new Date().toLocaleTimeString()}</div>
-        </div>
-    `;
-    chatHistory.appendChild(msgDiv);
-    
-    const respSpan = document.getElementById(`streaming-text-${streamingMsgId}`);
-    let fullResponse = '';
-    
-    try {
-        const start = Date.now();
-        const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({
-                prompt: text,
-                mode: currentMode,
-                turbo: turboMode,
-                search: shouldSearch,
-                chat_id: activeChatId
-            })
-        });
-        
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n\n');
-            for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                    const data = line.slice(6);
-                    if (data === '[DONE]') continue;
-                    try {
-                        const parsed = JSON.parse(data);
-                        if (parsed.token) {
-                            fullResponse += parsed.token;
-                            if (respSpan) {
-                                // Render markdown for streaming content
-                                respSpan.innerHTML = renderMarkdown(fullResponse);
-                            }
-                            chatHistory.scrollTop = chatHistory.scrollHeight;
-                        } else if (parsed.error) {
-                            fullResponse = 'Error: ' + parsed.error;
-                            if (respSpan) respSpan.innerHTML = renderMarkdown(fullResponse);
-                        }
-                    } catch (e) {}
-                }
-            }
-        }
-        
-        const elapsed = (Date.now() - start) / 1000;
-        msgDiv.classList.remove('streaming');
-        
-        messages.push({
-            sender: 'assistant',
-            text: fullResponse,
-            mode: currentMode,
-            timestamp: new Date().toISOString()
-        });
-        
-        if (chats[activeChatId]) {
-            chats[activeChatId].messages = [...messages];
-            saveChats();
-        }
-        
-        trackMessage(elapsed);
-        if (shouldSearch) {
-            trackSearch();
-            console.log("✅ Search tracked for user");
-        }
-        
-    } catch (error) {
-        console.error('Stream error:', error);
-        if (respSpan) respSpan.innerHTML = 'Error getting response. Please try again.';
-        msgDiv.classList.remove('streaming');
-        messages.push({
-            sender: 'assistant',
-            text: 'Error getting response. Please try again.',
-            mode: currentMode,
-            timestamp: new Date().toISOString()
-        });
-        if (chats[activeChatId]) {
-            chats[activeChatId].messages = [...messages];
-            saveChats();
-        }
-    } finally {
-        isThinking = false;
-        sendBtn.disabled = false;
-        sendBtn.classList.remove('loading');
-        if (typingIndicator) typingIndicator.style.display = 'none';
-        if (inputSearchIndicator) {
-            inputSearchIndicator.style.display = 'none';
-        }
-    }
 }
 
 function loadChats() {
@@ -1325,136 +865,92 @@ function loadChats() {
     if (saved) {
         try {
             const data = JSON.parse(saved);
-            chats = data.chats || {};
-            chatIds = data.chatIds || ['default'];
+            chats     = data.chats     || {};
+            chatIds   = data.chatIds   || ['default'];
             activeChatId = data.activeChatId || 'default';
-            if (chats[activeChatId]) {
-                messages = chats[activeChatId].messages || [];
-            } else {
-                messages = [];
-            }
-            if (!chats['default']) {
-                chats['default'] = {
-                    chat_id: 'default',
-                    name: 'Main Chat',
-                    emoji: '🧙',
-                    mode: 'JARVIS',
-                    messages: []
-                };
-            }
-            renderChatsList();
-            renderMessages();
-        } catch (e) {
-            console.error('Error loading chats:', e);
-            createDefaultChat();
-        }
+            messages  = chats[activeChatId]?.messages || [];
+            if (!chats['default']) createDefaultChatObj();
+        } catch { createDefaultChatObj(); }
     } else {
-        createDefaultChat();
+        createDefaultChatObj();
     }
+    renderChatsList();
+    renderMessages();
+    updateActiveChatHeader();
 }
 
-function createDefaultChat() {
-    chats = {
-        'default': {
-            chat_id: 'default',
-            name: 'Main Chat',
-            emoji: '🧙',
-            mode: 'JARVIS',
-            messages: []
-        }
-    };
+function createDefaultChatObj() {
+    chats = { default: { chat_id: 'default', name: 'Main Chat', emoji: '🧙', mode: 'JARVIS', messages: [] } };
     chatIds = ['default'];
     activeChatId = 'default';
     messages = [];
-    renderChatsList();
-    renderMessages();
 }
 
 function renderChatsList() {
+    const chatsList = $('chats-list');
     if (!chatsList) return;
-    let html = '';
+    chatsList.innerHTML = '';
     chatIds.forEach(id => {
         const chat = chats[id];
         if (!chat) return;
-        html += `<div class="chat-item ${id === activeChatId ? 'active' : ''}" data-chat-id="${id}">
-            <span class="chat-emoji">${chat.emoji}</span>
+        const item = document.createElement('div');
+        item.className = `chat-item ${id === activeChatId ? 'active' : ''}`;
+        item.dataset.chatId = id;
+        item.innerHTML = `
+            <span class="chat-emoji">${chat.emoji || '💬'}</span>
             <span class="chat-name">${escapeHtml(chat.name)}</span>
             <div class="chat-item-actions">
-                <button class="rename-chat-item" data-chat-id="${id}" title="Rename">✏️</button>
-                ${id !== 'default' ? `<button class="delete-chat-item" data-chat-id="${id}" title="Delete">🗑️</button>` : ''}
-            </div>
-        </div>`;
-    });
-    chatsList.innerHTML = html;
-    
-    document.querySelectorAll('.chat-item').forEach(el => {
-        el.addEventListener('click', e => {
-            if (!e.target.closest('button')) switchChat(el.dataset.chatId);
-        });
-    });
-    document.querySelectorAll('.rename-chat-item').forEach(btn => {
-        btn.addEventListener('click', e => {
-            e.stopPropagation();
-            openRenameModal(btn.dataset.chatId);
-        });
-    });
-    document.querySelectorAll('.delete-chat-item').forEach(btn => {
-        btn.addEventListener('click', e => {
-            e.stopPropagation();
-            deleteChat(btn.dataset.chatId);
-        });
+                <button class="rename-chat-item" data-id="${id}" title="Rename">✏️</button>
+                ${id !== 'default' ? `<button class="delete-chat-item" data-id="${id}" title="Delete">🗑️</button>` : ''}
+            </div>`;
+        item.querySelector('.chat-emoji, .chat-name').addEventListener?.('click', () => switchChat(id));
+        item.addEventListener('click', e => { if (!e.target.closest('button')) switchChat(id); });
+        item.querySelector('.rename-chat-item').addEventListener('click', e => { e.stopPropagation(); openRenameModal(id); });
+        if (id !== 'default') {
+            item.querySelector('.delete-chat-item').addEventListener('click', e => { e.stopPropagation(); deleteChat(id); });
+        }
+        chatsList.appendChild(item);
     });
 }
 
 function switchChat(id) {
-    if (chats[activeChatId]) {
-        chats[activeChatId].messages = [...messages];
-    }
+    if (chats[activeChatId]) chats[activeChatId].messages = [...messages];
     activeChatId = id;
-    if (chats[id]) {
-        messages = chats[id].messages ? [...chats[id].messages] : [];
-        currentMode = chats[id].mode || 'JARVIS';
-        updateModeDisplay();
-    } else {
-        messages = [];
-        currentMode = 'JARVIS';
-    }
+    messages     = chats[id]?.messages ? [...chats[id].messages] : [];
+    currentMode  = chats[id]?.mode || 'JARVIS';
+    updateModeDisplay();
     renderMessages();
     renderChatsList();
-    if (currentChatName) currentChatName.textContent = chats[id]?.name || 'Chat';
-    if (currentChatEmoji) currentChatEmoji.textContent = chats[id]?.emoji || '💬';
+    updateActiveChatHeader();
     saveChats();
+    if (isMobile && window._closeLeftSidebar) window._closeLeftSidebar();
+}
+
+function updateActiveChatHeader() {
+    const chat = chats[activeChatId];
+    const nameEl  = $('current-chat-name');
+    const emojiEl = $('current-chat-emoji');
+    if (nameEl)  nameEl.textContent  = chat?.name  || 'Chat';
+    if (emojiEl) emojiEl.textContent = chat?.emoji || '🧙';
 }
 
 function createNewChat() {
-    const id = 'chat_' + Date.now();
-    const name = `Chat ${chatIds.length + 1}`;
-    const emojis = ['💬', '🤖', '🌟', '⭐', '✨', '🎯', '🎲'];
-    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
-    chats[id] = {
-        chat_id: id,
-        name: name,
-        emoji: emoji,
-        mode: 'JARVIS',
-        messages: []
-    };
+    const id    = 'chat_' + Date.now();
+    const emojis = ['💬','🤖','🌟','⭐','✨','🎯','🔮','🧙'];
+    chats[id] = { chat_id: id, name: `Chat ${chatIds.length + 1}`, emoji: emojis[Math.floor(Math.random() * emojis.length)], mode: 'JARVIS', messages: [] };
     chatIds.push(id);
     saveChats();
     renderChatsList();
     switchChat(id);
+    showNotification('New chat created', 'success');
 }
 
 function deleteChat(id) {
-    if (id === 'default') {
-        showNotification('Cannot delete default chat', 'error');
-        return;
-    }
+    if (id === 'default') { showNotification('Cannot delete default chat', 'error'); return; }
     if (!confirm('Delete this chat?')) return;
     delete chats[id];
     chatIds = chatIds.filter(i => i !== id);
-    if (activeChatId === id) {
-        switchChat('default');
-    }
+    if (activeChatId === id) switchChat('default');
     saveChats();
     renderChatsList();
     showNotification('Chat deleted', 'success');
@@ -1462,144 +958,108 @@ function deleteChat(id) {
 
 function openRenameModal(id) {
     chatToRename = id;
-    renameInput.value = chats[id]?.name || '';
-    openModal(renameModal);
+    const input = $('rename-input');
+    if (input) input.value = chats[id]?.name || '';
+    openModal($('rename-modal-overlay'));
+    setTimeout(() => input?.focus(), 100);
 }
 
 function saveRename() {
-    const newName = renameInput.value.trim();
+    const input = $('rename-input');
+    const newName = input?.value.trim();
     if (newName && chatToRename && chats[chatToRename]) {
         chats[chatToRename].name = newName;
         saveChats();
         renderChatsList();
-        if (chatToRename === activeChatId && currentChatName) {
-            currentChatName.textContent = newName;
-        }
+        updateActiveChatHeader();
         showNotification('Chat renamed', 'success');
     }
-    closeModal(renameModal);
+    closeModal($('rename-modal-overlay'));
 }
 
 function resetCurrentChat() {
-    if (confirm('Clear all messages in this chat?')) {
-        messages = [];
-        if (chats[activeChatId]) {
-            chats[activeChatId].messages = [];
-        }
-        renderMessages();
-        saveChats();
-        showNotification('Chat cleared', 'success');
-    }
+    if (!confirm('Clear all messages in this chat?')) return;
+    messages = [];
+    if (chats[activeChatId]) chats[activeChatId].messages = [];
+    renderMessages();
+    saveChats();
+    showNotification('Chat cleared', 'success');
 }
 
 function saveChats() {
-    localStorage.setItem('wizard_chats', JSON.stringify({
-        chats,
-        chatIds,
-        activeChatId,
-        messages
-    }));
+    localStorage.setItem('wizard_chats', JSON.stringify({ chats, chatIds, activeChatId, messages }));
     if (currentUser) {
         fetch(`${API_BASE_URL}/api/save-chats`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({
-                chats: Object.values(chats),
-                chat_order: chatIds
-            })
-        }).catch(e => console.error('Failed to save chats to server:', e));
+            body: JSON.stringify({ chats: Object.values(chats), chat_order: chatIds })
+        }).catch(() => {});
     }
 }
 
 // ============================================
-// STATS FUNCTIONS
+// STATS
 // ============================================
 function trackMessage(rt) {
     userStats.messages++;
     userStats.todayMessages++;
-    if (rt) {
-        userStats.responseTimes.push(rt);
-        if (userStats.responseTimes.length > 100) userStats.responseTimes.shift();
-    }
+    if (rt) { userStats.responseTimes.push(rt); if (userStats.responseTimes.length > 100) userStats.responseTimes.shift(); }
     updateStatsDisplay();
     saveStatsToStorage();
 }
-
-function trackFile() {
-    userStats.files++;
-    updateStatsDisplay();
-    saveStatsToStorage();
-}
-
-function trackImage() {
-    userStats.images++;
-    updateStatsDisplay();
-    saveStatsToStorage();
-}
-
-function trackSearch() {
-    userStats.searches++;
-    updateStatsDisplay();
-    saveStatsToStorage();
-}
-
-function trackCode() {
-    userStats.codeExecutions++;
-    updateStatsDisplay();
-    saveStatsToStorage();
-}
+function trackFile()   { userStats.files++;   updateStatsDisplay(); saveStatsToStorage(); }
+function trackImage()  { userStats.images++;  updateStatsDisplay(); saveStatsToStorage(); }
+function trackSearch() { userStats.searches++; updateStatsDisplay(); saveStatsToStorage(); }
+function trackCode()   { userStats.codeExecutions++; updateStatsDisplay(); saveStatsToStorage(); }
 
 function updateStatsDisplay() {
-    if (statMessages) statMessages.textContent = userStats.messages;
-    if (statFiles) statFiles.textContent = userStats.files;
-    if (statImages) statImages.textContent = userStats.images;
-    if (statSearches) statSearches.textContent = userStats.searches;
-    const avg = userStats.responseTimes.length ? (userStats.responseTimes.reduce((a,b)=>a+b,0)/userStats.responseTimes.length).toFixed(1) : '0.4';
-    if (statResponse) statResponse.textContent = avg + 's';
-    if (quickToday) quickToday.textContent = userStats.todayMessages + ' msgs';
-    if (quickTotal) quickTotal.textContent = userStats.messages + ' msgs';
+    const set = (id, val) => { const el = $(id); if (el) el.textContent = val; };
+    set('stat-messages',  userStats.messages);
+    set('stat-files',     userStats.files);
+    set('stat-images',    userStats.images);
+    set('stat-searches',  userStats.searches);
+    const avg = userStats.responseTimes.length
+        ? (userStats.responseTimes.reduce((a,b) => a+b, 0) / userStats.responseTimes.length).toFixed(1)
+        : '0.4';
+    set('stat-response',  avg + 's');
+    set('quick-today',    userStats.todayMessages + ' msgs');
+    set('quick-total',    userStats.messages + ' msgs');
 }
 
 async function loadStats() {
     if (currentUser) {
         try {
-            const response = await fetch(`${API_BASE_URL}/api/stats`, { credentials: 'include' });
-            if (response.ok) {
-                const data = await response.json();
-                userStats.messages = data.messages || 0;
-                userStats.files = data.files || 0;
-                userStats.memories = data.memories || 0;
-                userStats.images = data.images || 0;
-                userStats.searches = data.searches || 0;
-                userStats.codeExecutions = data.code || 0;
-                if (statsCreated) statsCreated.textContent = data.account_created || '-';
-                if (statsLast) statsLast.textContent = data.last_login || '-';
-                if (statsTotalMsgs) statsTotalMsgs.textContent = data.messages || 0;
-                if (statsTotalChats) statsTotalChats.textContent = data.chats || 0;
-                if (statsFilesDetailed) statsFilesDetailed.textContent = data.files || 0;
-                if (statsImagesDetailed) statsImagesDetailed.textContent = data.images || 0;
-                if (statsCodeDetailed) statsCodeDetailed.textContent = data.code || 0;
-                if (statsSearchesDetailed) statsSearchesDetailed.textContent = data.searches || 0;
-                if (statsMemories) statsMemories.textContent = data.memories || 0;
-                if (statsDocs) statsDocs.textContent = data.documents || 0;
-                if (statsAvgResponse) statsAvgResponse.textContent = (data.avg_response_time || 0.4) + 's';
-                if (statsFastest) statsFastest.textContent = (data.fastest_response || 0.2) + 's';
-                if (statsApiKeysDetailed) statsApiKeysDetailed.textContent = data.api_keys || 0;
-                if (statsProfileCompleteness) statsProfileCompleteness.textContent = (userProfile?.profile_completeness || 0) + '%';
-                
+            const res = await fetch(`${API_BASE_URL}/api/stats`, { credentials: 'include' });
+            if (res.ok) {
+                const data = await res.json();
+                userStats.messages        = data.messages      || 0;
+                userStats.files           = data.files         || 0;
+                userStats.images          = data.images        || 0;
+                userStats.searches        = data.searches      || 0;
+                userStats.codeExecutions  = data.code          || 0;
+
+                const s = (id, val) => { const el = $(id); if (el) el.textContent = val; };
+                s('stats-created',         data.account_created || '—');
+                s('stats-last',            data.last_login      || '—');
+                s('stats-total-msgs',      data.messages        || 0);
+                s('stats-total-chats',     data.chats           || 0);
+                s('stats-files-detailed',  data.files           || 0);
+                s('stats-images-detailed', data.images          || 0);
+                s('stats-code-detailed',   data.code            || 0);
+                s('stats-searches-detailed', data.searches      || 0);
+                s('stats-avg-response',    (data.avg_response_time || 0.4) + 's');
+                s('stats-fastest',         (data.fastest_response  || 0.2) + 's');
+                s('stats-api-keys-detailed', data.api_keys        || 0);
+
                 if (userProfile) {
-                    const skills = Array.isArray(userProfile.skills) ? userProfile.skills : [];
-                    const interests = Array.isArray(userProfile.interests) ? userProfile.interests : [];
-                    const goals = Array.isArray(userProfile.goals) ? userProfile.goals : [];
-                    if (statsSkillsCount) statsSkillsCount.textContent = skills.length;
-                    if (statsInterestsCount) statsInterestsCount.textContent = interests.length;
-                    if (statsGoalsCount) statsGoalsCount.textContent = goals.length;
+                    s('stats-profile-completeness', (userProfile.profile_completeness || 0) + '%');
+                    s('stats-skills-count',    (userProfile.skills?.length     || 0));
+                    s('stats-interests-count', (userProfile.interests?.length  || 0));
+                    s('stats-goals-count',     (userProfile.goals?.length      || 0));
                 }
             }
-        } catch (error) {
-            loadStatsFromStorage();
-        }
+        } catch { loadStatsFromStorage(); }
     } else {
         loadStatsFromStorage();
     }
@@ -1608,151 +1068,135 @@ async function loadStats() {
 
 function loadStatsFromStorage() {
     const saved = localStorage.getItem('wizard_stats');
-    if (saved) {
-        try {
-            const data = JSON.parse(saved);
-            userStats = { ...userStats, ...data };
-        } catch (e) {}
-    }
+    if (saved) { try { userStats = { ...userStats, ...JSON.parse(saved) }; } catch { /* ignore */ } }
 }
 
 function saveStatsToStorage() {
     if (!currentUser) {
         localStorage.setItem('wizard_stats', JSON.stringify({
-            messages: userStats.messages,
-            files: userStats.files,
-            memories: userStats.memories,
-            images: userStats.images,
-            searches: userStats.searches,
+            messages: userStats.messages, files: userStats.files,
+            images: userStats.images, searches: userStats.searches,
             codeExecutions: userStats.codeExecutions
         }));
     }
 }
 
 // ============================================
-// AUTHENTICATION FUNCTIONS
+// AUTHENTICATION
 // ============================================
 async function checkAuth() {
     try {
-        const url = `${API_BASE_URL}/api/check-auth?_=${Date.now()}`;
-        const response = await fetch(url, { 
+        const res = await fetch(`${API_BASE_URL}/api/check-auth?_=${Date.now()}`, {
             credentials: 'include',
-            headers: {
-                'Cache-Control': 'no-cache',
-                'Pragma': 'no-cache'
-            }
+            headers: { 'Cache-Control': 'no-cache' }
         });
-        
-        if (response.ok) {
-            const data = await response.json();
+        if (res.ok) {
+            const data = await res.json();
             currentUser = data.user;
             updateUIForAuth();
             if (data.memories) userStats.memories = data.memories.length;
             loadUserPersonalitiesFromServer();
             localStorage.setItem('auth_time', Date.now().toString());
-            
             detectAndSaveTimezone();
-            await loadProfile();
         } else {
             updateUIForAuth();
-            const authTime = localStorage.getItem('auth_time');
-            if (authTime && (Date.now() - parseInt(authTime)) > 3600000) {
-                showNotification('Session expired. Please log in again.', 'warning');
-                showAuthModal(true);
-            }
         }
-    } catch (error) {
-        console.error('Auth check error:', error);
+    } catch {
         updateUIForAuth();
     }
 }
 
 async function loadUserPersonalitiesFromServer() {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/personalities/mine`, { credentials: 'include' });
-        if (response.ok) {
-            const personalities = await response.json();
-            customPersonalities = personalities.map(p => ({
-                name: p.name,
-                emoji: p.emoji,
-                system_prompt: p.system_prompt,
-                greeting: p.greeting,
-                id: p.id,
-                likes: p.likes,
-                uses: p.uses
+        const res = await fetch(`${API_BASE_URL}/api/personalities/mine`, { credentials: 'include' });
+        if (res.ok) {
+            const list = await res.json();
+            customPersonalities = list.map(p => ({
+                name: p.name, emoji: p.emoji, system_prompt: p.system_prompt,
+                greeting: p.greeting, id: p.id
             }));
             saveCustomPersonalitiesToStorage();
             updateCustomPersonalitiesDropdown();
         }
-    } catch (error) {}
+    } catch { /* ignore */ }
 }
 
 function updateUIForAuth() {
+    const userInfo    = $('user-info');
+    const authButtons = $('auth-buttons');
+    const userEmailEl = $('user-email');
+    const userNameEl  = $('user-name');
+    const userAvatarEl = $('user-avatar');
+
     if (currentUser && userInfo && authButtons) {
-        userInfo.style.display = 'flex';
+        userInfo.style.display    = 'flex';
         authButtons.style.display = 'none';
-        userEmail.textContent = currentUser.email;
-        userName.textContent = `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || 'User';
-        userAvatar.textContent = currentUser.first_name?.[0] || '👤';
+        if (userEmailEl)  userEmailEl.textContent  = currentUser.email || '';
+        if (userNameEl)   userNameEl.textContent   = `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() || 'Wizard';
+        if (userAvatarEl) userAvatarEl.textContent = currentUser.first_name?.[0]?.toUpperCase() || '🧙';
     } else if (userInfo && authButtons) {
-        userInfo.style.display = 'none';
+        userInfo.style.display    = 'none';
         authButtons.style.display = 'flex';
     }
 }
 
 function showAuthModal(login = true) {
     isLoginMode = login;
-    authModalTitle.textContent = login ? 'Login to Wizard.AI' : 'Create Account';
-    authSubmit.textContent = login ? 'Login' : 'Sign Up';
-    authSwitchText.textContent = login ? "Don't have an account?" : "Already have an account?";
-    authSwitchBtn.textContent = login ? 'Sign Up' : 'Login';
-    firstNameGroup.style.display = login ? 'none' : 'block';
-    lastNameGroup.style.display = login ? 'none' : 'block';
-    confirmPasswordGroup.style.display = login ? 'none' : 'block';
-    verificationGroup.style.display = 'none';
-    authEmail.value = '';
-    authPassword.value = '';
-    authConfirm.value = '';
-    firstNameInput.value = '';
-    lastNameInput.value = '';
-    authError.textContent = '';
-    openModal(authModal);
+    const title   = $('auth-modal-title');
+    const submit  = $('auth-submit');
+    const swText  = $('auth-switch-text');
+    const swBtn   = $('auth-switch-btn');
+    const vGroup  = $('verification-group');
+    const fnGroup = $('first-name-group');
+    const lnGroup = $('last-name-group');
+    const cpGroup = $('confirm-password-group');
+
+    if (title)   title.textContent   = login ? 'Login to Wizard.AI' : 'Create Account';
+    if (submit)  submit.textContent  = login ? 'Login' : 'Sign Up';
+    if (swText)  swText.textContent  = login ? "Don't have an account?" : "Already have an account?";
+    if (swBtn)   swBtn.textContent   = login ? 'Sign Up' : 'Login';
+    if (fnGroup) fnGroup.style.display = login ? 'none' : 'block';
+    if (lnGroup) lnGroup.style.display = login ? 'none' : 'block';
+    if (cpGroup) cpGroup.style.display = login ? 'none' : 'block';
+    if (vGroup)  vGroup.style.display  = 'none';
+
+    const authError = $('auth-error');
+    if (authError) authError.textContent = '';
+    ['auth-email','auth-password','auth-confirm','first-name','last-name'].forEach(id => {
+        const el = $(id);
+        if (el) el.value = '';
+    });
+    openModal($('auth-modal-overlay'));
 }
 
-function toggleAuthMode() {
-    showAuthModal(!isLoginMode);
-}
+function toggleAuthMode() { showAuthModal(!isLoginMode); }
 
 async function handleAuthSubmit() {
-    if (isLoginMode) {
-        await handleLogin();
-    } else if (verificationGroup.style.display === 'block') {
-        await handleVerify();
-    } else {
-        await handleSignup();
-    }
+    const vGroup = $('verification-group');
+    const isVerifying = vGroup && vGroup.style.display !== 'none';
+    if (isLoginMode)       await handleLogin();
+    else if (isVerifying)  await handleVerify();
+    else                   await handleSignup();
 }
 
 async function handleLogin() {
-    const email = authEmail.value.trim();
-    const password = authPassword.value.trim();
-    if (!email || !password) {
-        authError.textContent = 'Email and password required';
-        return;
-    }
+    const email    = $('auth-email')?.value.trim();
+    const password = $('auth-password')?.value.trim();
+    const authError = $('auth-error');
+
+    if (!email || !password) { if (authError) authError.textContent = 'Email and password required'; return; }
+
     try {
-        const response = await fetch(`${API_BASE_URL}/api/login`, {
+        const res  = await fetch(`${API_BASE_URL}/api/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({ email, password })
         });
-        
-        if (response.ok) {
-            const data = await response.json();
+        const data = await res.json();
+        if (res.ok) {
             currentUser = data.user;
             localStorage.setItem('auth_time', Date.now().toString());
-            
             if (data.chats) {
                 chats = {};
                 data.chats.forEach(c => chats[c.chat_id] = c);
@@ -1760,101 +1204,87 @@ async function handleLogin() {
                 activeChatId = chatIds[0];
                 messages = chats[activeChatId]?.messages || [];
             }
-            if (data.memories) userStats.memories = data.memories.length;
             updateUIForAuth();
             renderChatsList();
             renderMessages();
             updateStatsDisplay();
             loadUserPersonalitiesFromServer();
             await loadUserApiKeys();
-            closeModal(authModal);
-            
+            closeModal($('auth-modal-overlay'));
             detectAndSaveTimezone();
             await loadProfile();
-            
-            showNotification(`Welcome back, ${currentUser.first_name || ''}!`, 'success');
+            showNotification(`Welcome back, ${currentUser.first_name || 'Wizard'}! 🧙`, 'success');
         } else {
-            const error = await response.json();
-            authError.textContent = error.error || 'Login failed';
+            if (authError) authError.textContent = data.error || 'Login failed';
         }
-    } catch (error) {
-        authError.textContent = 'Connection error';
+    } catch {
+        if ($('auth-error')) $('auth-error').textContent = 'Connection error';
     }
 }
 
 async function handleSignup() {
-    const firstName = firstNameInput.value.trim();
-    const lastName = lastNameInput.value.trim();
-    const email = authEmail.value.trim();
-    const password = authPassword.value.trim();
-    const confirm = authConfirm.value.trim();
+    const firstName = $('first-name')?.value.trim();
+    const lastName  = $('last-name')?.value.trim();
+    const email     = $('auth-email')?.value.trim();
+    const password  = $('auth-password')?.value.trim();
+    const confirm   = $('auth-confirm')?.value.trim();
+    const authError = $('auth-error');
+
     if (!firstName || !lastName || !email || !password || !confirm) {
-        authError.textContent = 'All fields required';
-        return;
+        if (authError) authError.textContent = 'All fields required'; return;
     }
     if (password !== confirm) {
-        authError.textContent = 'Passwords do not match';
-        return;
+        if (authError) authError.textContent = 'Passwords do not match'; return;
     }
     try {
-        const response = await fetch(`${API_BASE_URL}/api/register/init`, {
+        const res  = await fetch(`${API_BASE_URL}/api/register/init`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({ firstName, lastName, email, password })
         });
-        if (response.ok) {
-            const data = await response.json();
+        const data = await res.json();
+        if (res.ok) {
             signupEmail = email;
-            if (data.pending_id) {
-                localStorage.setItem('wizard_pending_id', data.pending_id);
-                console.log('✅ Stored pending_id in localStorage:', data.pending_id);
-            }
-            firstNameGroup.style.display = 'none';
-            lastNameGroup.style.display = 'none';
-            confirmPasswordGroup.style.display = 'none';
-            verificationGroup.style.display = 'block';
-            authSubmit.textContent = 'Verify Code';
-            authModalTitle.textContent = 'Verify Your Email';
+            if (data.pending_id) localStorage.setItem('wizard_pending_id', data.pending_id);
+            $('first-name-group').style.display    = 'none';
+            $('last-name-group').style.display     = 'none';
+            $('confirm-password-group').style.display = 'none';
+            $('verification-group').style.display  = 'block';
+            $('auth-submit').textContent = 'Verify Code';
+            $('auth-modal-title').textContent = 'Verify Your Email';
             if (authError) {
-                if (data.dev_code) {
-                    authError.textContent = `🔐 Development code: ${data.dev_code}`;
-                    authError.style.color = '#10b981';
-                } else {
-                    authError.textContent = `📧 Verification code sent to ${email}`;
-                    authError.style.color = '#10b981';
-                }
+                authError.textContent = data.dev_code
+                    ? `🔐 Dev code: ${data.dev_code}`
+                    : `📧 Code sent to ${email}`;
+                authError.style.color = '#10b981';
             }
             showNotification('📧 Verification code sent!', 'success');
         } else {
-            const error = await response.json();
-            authError.textContent = error.error || 'Signup failed';
+            if (authError) authError.textContent = data.error || 'Signup failed';
         }
-    } catch (error) {
-        authError.textContent = 'Connection error';
+    } catch {
+        if ($('auth-error')) $('auth-error').textContent = 'Connection error';
     }
 }
 
 async function handleVerify() {
-    const code = verificationInput.value.trim();
-    if (!code || code.length !== 6) {
-        authError.textContent = 'Enter 6-digit code';
-        return;
-    }
+    const code      = $('verification-code')?.value.trim();
+    const authError = $('auth-error');
     const pendingId = localStorage.getItem('wizard_pending_id');
+
+    if (!code || code.length !== 6) {
+        if (authError) authError.textContent = 'Enter 6-digit code'; return;
+    }
     try {
-        const response = await fetch(`${API_BASE_URL}/api/register/verify`, {
+        const res  = await fetch(`${API_BASE_URL}/api/register/verify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({
-                email: signupEmail,
-                code: code,
-                pending_id: pendingId
-            })
+            body: JSON.stringify({ email: signupEmail, code, pending_id: pendingId })
         });
-        const data = await response.json();
-        if (response.ok) {
+        const data = await res.json();
+        if (res.ok) {
             localStorage.removeItem('wizard_pending_id');
             currentUser = data.user;
             if (data.chats) {
@@ -1867,214 +1297,151 @@ async function handleVerify() {
             updateUIForAuth();
             renderChatsList();
             renderMessages();
-            closeModal(authModal);
-            
+            closeModal($('auth-modal-overlay'));
             detectAndSaveTimezone();
             await loadProfile();
-            
-            showNotification('Account verified! Welcome!', 'success');
+            showNotification('Welcome to Wizard.AI! ✨', 'success');
         } else {
             if (authError) authError.textContent = data.error || 'Verification failed';
         }
-    } catch (error) {
-        console.error('Verify error:', error);
-        if (authError) authError.textContent = 'Connection error';
+    } catch {
+        if ($('auth-error')) $('auth-error').textContent = 'Connection error';
     }
 }
 
 async function resendVerificationCode() {
     const pendingId = localStorage.getItem('wizard_pending_id');
     try {
-        const response = await fetch(`${API_BASE_URL}/api/resend-code`, {
+        const res  = await fetch(`${API_BASE_URL}/api/resend-code`, {
             method: 'POST',
             credentials: 'include',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ pending_id: pendingId })
         });
-        const data = await response.json();
-        if (response.ok) {
+        const data = await res.json();
+        const authError = $('auth-error');
+        if (res.ok) {
             if (authError) {
-                if (data.dev_code) {
-                    authError.textContent = `🔐 New code: ${data.dev_code}`;
-                } else {
-                    authError.textContent = 'Verification code resent! Check your email.';
-                }
+                authError.textContent = data.dev_code ? `🔐 New code: ${data.dev_code}` : 'Code resent!';
                 authError.style.color = '#10b981';
             }
             showNotification('📧 Code resent!', 'success');
         } else {
-            const error = await response.json();
-            if (authError) authError.textContent = error.error || 'Failed to resend code';
+            if (authError) authError.textContent = data.error || 'Failed to resend';
         }
-    } catch (error) {
-        console.error('Resend error:', error);
-        if (authError) authError.textContent = 'Connection error';
+    } catch {
+        if ($('auth-error')) $('auth-error').textContent = 'Connection error';
     }
 }
 
 async function handleLogout() {
-    try {
-        await fetch(`${API_BASE_URL}/api/logout`, { method: 'POST', credentials: 'include' });
-    } catch (error) {}
-    localStorage.removeItem('wizard_pending_id');
+    try { await fetch(`${API_BASE_URL}/api/logout`, { method: 'POST', credentials: 'include' }); } catch { /* ignore */ }
     localStorage.removeItem('auth_time');
-    currentUser = null;
-    userProfile = null;
+    currentUser  = null;
+    userProfile  = null;
     updateUIForAuth();
     loadGuestData();
+    await loadUserApiKeys();
     showNotification('Logged out', 'success');
 }
 
 function loadGuestData() {
     const saved = localStorage.getItem('wizard_guest_data');
-    if (saved) {
-        try {
-            const data = JSON.parse(saved);
-            userStats = data.stats || userStats;
-            updateStatsDisplay();
-        } catch (e) {}
-    }
+    if (saved) { try { userStats = { ...userStats, ...JSON.parse(saved).stats }; updateStatsDisplay(); } catch { /* ignore */ } }
 }
 
 function startSessionCheck() {
     if (sessionCheckInterval) clearInterval(sessionCheckInterval);
     sessionCheckInterval = setInterval(async () => {
-        if (currentUser) {
-            try {
-                const response = await fetch(`${API_BASE_URL}/api/check-auth`, { credentials: 'include' });
-                if (response.status === 401) {
-                    currentUser = null;
-                    userProfile = null;
-                    updateUIForAuth();
-                    showNotification('Your session has expired. Please log in again.', 'warning');
-                    setTimeout(() => showAuthModal(true), 1000);
-                }
-            } catch (error) {}
-        }
+        if (!currentUser) return;
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/check-auth`, { credentials: 'include' });
+            if (res.status === 401) {
+                currentUser = null;
+                userProfile = null;
+                updateUIForAuth();
+                showNotification('Session expired. Please log in again.', 'warning', 5000);
+                setTimeout(() => showAuthModal(true), 1500);
+            }
+        } catch { /* ignore */ }
     }, 300000);
-}
-
-function stopSessionCheck() {
-    if (sessionCheckInterval) {
-        clearInterval(sessionCheckInterval);
-        sessionCheckInterval = null;
-    }
 }
 
 // ============================================
 // PUBLIC PERSONALITIES
 // ============================================
 async function loadPublicPersonalities() {
-    if (!personalitiesList) return;
+    const list = $('personalities-list');
+    if (!list) return;
     try {
-        const response = await fetch(`${API_BASE_URL}/api/personalities`);
-        if (response.ok) {
-            const data = await response.json();
+        const res = await fetch(`${API_BASE_URL}/api/personalities`);
+        if (res.ok) {
+            const data = await res.json();
             publicPersonalities = data;
-            if (publicPersonalities.length === 0) {
-                personalitiesList.innerHTML = '<div class="empty-state">No public personalities yet</div>';
-            } else {
-                let html = '';
-                publicPersonalities.slice(0, 5).forEach(p => {
-                    html += `<div class="personality-item" data-id="${p.id}"><span class="personality-emoji">${p.emoji || '🤖'}</span><span class="personality-name">${p.name}</span><span class="personality-likes">❤️ ${p.likes || 0}</span></div>`;
-                });
-                personalitiesList.innerHTML = html;
-                document.querySelectorAll('.personality-item').forEach(el => {
-                    el.addEventListener('click', () => usePersonality(el.dataset.id));
-                    el.addEventListener('mouseenter', e => {
-                        const p = publicPersonalities.find(p => p.id == el.dataset.id);
-                        if (p) showTooltip(p.name, e);
-                    });
-                    el.addEventListener('mouseleave', hideTooltip);
-                });
+            if (!data.length) {
+                list.innerHTML = '<div class="empty-state-sm">No public personalities yet</div>';
+                return;
             }
+            list.innerHTML = '';
+            data.slice(0, 6).forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'personality-item';
+                item.dataset.id = p.id;
+                item.innerHTML = `<span>${p.emoji || '🤖'}</span><span class="personality-name">${escapeHtml(p.name)}</span><span class="personality-likes">❤️ ${p.likes || 0}</span>`;
+                item.addEventListener('click', () => usePersonality(p.id));
+                list.appendChild(item);
+            });
         }
-    } catch (error) {
-        personalitiesList.innerHTML = '<div class="error">Failed to load</div>';
+    } catch {
+        if (list) list.innerHTML = '<div class="empty-state-sm">Failed to load</div>';
     }
-}
-
-async function usePersonality(id) {
-    const personality = publicPersonalities.find(p => p.id == id);
-    if (!personality) return;
-    try {
-        await fetch(`${API_BASE_URL}/api/personalities/${id}/use`, { method: 'POST', credentials: 'include' });
-    } catch (e) {}
-    if (!modeData[personality.name]) {
-        modeData[personality.name] = {
-            emoji: personality.emoji || '🤖',
-            name: personality.name,
-            desc: personality.system_prompt ? personality.system_prompt.substring(0, 100) + '...' : 'Custom personality',
-            model: 'Custom',
-            color: '#8b5cf6',
-            likes: personality.likes,
-            uses: personality.uses
-        };
-    }
-    selectMode(personality.name);
-    showNotification(`Switched to ${personality.name}`, 'success');
 }
 
 async function openPersonalitiesBrowser() {
-    openModal(personalitiesModal);
+    openModal($('personalities-modal-overlay'));
     await loadPersonalitiesGrid('featured');
 }
 
 async function loadPersonalitiesGrid(tab = 'featured') {
-    if (!personalitiesGrid) return;
-    personalitiesGrid.innerHTML = '<div class="loading">Loading personalities...</div>';
+    const grid = $('personalities-grid');
+    if (!grid) return;
+    grid.innerHTML = '<div style="color:var(--muted);padding:20px;text-align:center">Loading…</div>';
     try {
-        let url = `${API_BASE_URL}/api/personalities`;
-        if (tab === 'featured') url += '/featured';
-        else if (tab === 'popular') url += '/popular';
-        else if (tab === 'recent') url += '/recent';
-        else if (tab === 'mine' && currentUser) url += '/mine';
-        const response = await fetch(url, { credentials: 'include' });
-        if (response.ok) {
-            const personalities = await response.json();
-            renderPersonalitiesGrid(personalities);
+        const endpoints = {
+            featured: '/api/personalities/featured',
+            popular:  '/api/personalities/popular',
+            recent:   '/api/personalities/recent',
+            mine:     '/api/personalities/mine'
+        };
+        const res = await fetch(`${API_BASE_URL}${endpoints[tab] || '/api/personalities'}`, { credentials: 'include' });
+        if (res.ok) {
+            const list = await res.json();
+            if (!list.length) { grid.innerHTML = '<div style="color:var(--muted);padding:20px;text-align:center">No personalities found</div>'; return; }
+            grid.innerHTML = '';
+            list.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'personality-card';
+                card.innerHTML = `<span class="personality-card-emoji">${p.emoji || '🤖'}</span><div class="personality-card-name">${escapeHtml(p.name)}</div><div class="personality-card-creator">by ${escapeHtml(p.creator || 'Anonymous')}</div><div class="personality-card-stats"><span>❤️ ${p.likes || 0}</span><span>🔄 ${p.uses || 0}</span></div>`;
+                card.addEventListener('click', () => { usePersonality(p.id); closeModal($('personalities-modal-overlay')); });
+                grid.appendChild(card);
+            });
         } else {
-            personalitiesGrid.innerHTML = '<div class="error">Failed to load</div>';
+            grid.innerHTML = '<div style="color:var(--muted)">Failed to load</div>';
         }
-    } catch (error) {
-        personalitiesGrid.innerHTML = '<div class="error">Failed to load</div>';
+    } catch {
+        grid.innerHTML = '<div style="color:var(--muted)">Failed to load</div>';
     }
 }
 
-function renderPersonalitiesGrid(personalities) {
-    if (!personalitiesGrid) return;
-    if (personalities.length === 0) {
-        personalitiesGrid.innerHTML = '<div class="empty-state">No personalities found</div>';
-        return;
+async function usePersonality(id) {
+    const p = publicPersonalities.find(p => p.id == id);
+    if (!p) return;
+    try { await fetch(`${API_BASE_URL}/api/personalities/${id}/use`, { method: 'POST', credentials: 'include' }); } catch { /* ignore */ }
+    if (!modeData[p.name]) {
+        modeData[p.name] = { emoji: p.emoji || '🤖', name: p.name, desc: p.system_prompt?.substring(0,100) || 'Custom', model: 'Custom', color: '#c9a84c' };
     }
-    let html = '';
-    personalities.forEach(p => {
-        html += `<div class="personality-card" data-id="${p.id}">
-            <div class="personality-card-header">
-                <span class="personality-card-emoji">${p.emoji || '🤖'}</span>
-                <span class="personality-card-name">${p.name}</span>
-            </div>
-            <div class="personality-card-creator">by ${p.creator || 'Anonymous'}</div>
-            <div class="personality-card-stats">
-                <span class="personality-card-likes">❤️ ${p.likes || 0}</span>
-                <span class="personality-card-uses">🔄 ${p.uses || 0}</span>
-            </div>
-        </div>`;
-    });
-    personalitiesGrid.innerHTML = html;
-    document.querySelectorAll('.personality-card').forEach(el => {
-        el.addEventListener('click', () => usePersonality(el.dataset.id));
-        el.addEventListener('mouseenter', e => {
-            const p = personalities.find(p => p.id == el.dataset.id);
-            if (p) showTooltip(p.name, e);
-        });
-        el.addEventListener('mouseleave', hideTooltip);
-    });
-}
-
-function switchPersonalityTab(tab) {
-    if (tabBtns.length) tabBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
-    loadPersonalitiesGrid(tab);
+    selectMode(p.name);
+    showNotification(`Switched to ${p.name}`, 'success');
 }
 
 // ============================================
@@ -2083,86 +1450,83 @@ function switchPersonalityTab(tab) {
 async function handleFileUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
-    if (!currentUser) {
-        showNotification('Please login to upload files', 'error');
-        return;
-    }
+    if (!currentUser) { showNotification('Please login to upload files', 'error'); return; }
+
+    const uploadProgress = $('upload-progress');
+    const progressFill   = $('progress-bar-fill');
+    const progressText   = $('progress-text');
+    if (uploadProgress) uploadProgress.style.display = 'flex';
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append('chat_id', activeChatId);
-    uploadProgress.style.display = 'block';
-    progressBarFill.style.width = '0%';
-    progressText.textContent = 'Starting upload...';
+
     try {
         const xhr = new XMLHttpRequest();
-        xhr.upload.addEventListener('progress', e => {
-            if (e.lengthComputable) {
-                const pct = (e.loaded / e.total) * 100;
-                progressBarFill.style.width = pct + '%';
-                progressText.textContent = `Uploading: ${Math.round(pct)}%`;
+        xhr.upload.addEventListener('progress', ev => {
+            if (ev.lengthComputable) {
+                const pct = (ev.loaded / ev.total) * 100;
+                if (progressFill) progressFill.style.width = pct + '%';
+                if (progressText) progressText.textContent = `Uploading: ${Math.round(pct)}%`;
             }
         });
         const promise = new Promise((resolve, reject) => {
-            xhr.onload = () => {
-                if (xhr.status === 200) resolve(JSON.parse(xhr.responseText));
-                else reject(new Error('Upload failed'));
-            };
-            xhr.onerror = () => reject(new Error('Upload failed'));
+            xhr.onload  = () => (xhr.status === 200 ? resolve(JSON.parse(xhr.responseText)) : reject());
+            xhr.onerror = () => reject();
         });
         xhr.open('POST', `${API_BASE_URL}/api/upload`);
         xhr.withCredentials = true;
         xhr.send(formData);
         const data = await promise;
-        setTimeout(() => { uploadProgress.style.display = 'none'; }, 1000);
+
+        setTimeout(() => { if (uploadProgress) uploadProgress.style.display = 'none'; }, 1000);
+
         if (data.success) {
             trackFile();
-            if (data.duplicate) {
-                showNotification(`File already exists: ${data.filename}`, 'info');
-            } else {
-                showNotification(`✅ ${file.name} uploaded!`, 'success');
-                addMessage('assistant', `📎 File uploaded: ${data.filename}\n${data.preview || ''}`);
-            }
+            addMessage('assistant', `📎 **${data.filename}** uploaded successfully.\n${data.preview || ''}`);
+            showNotification(`✅ ${file.name} uploaded!`, 'success');
         } else {
-            showNotification(`❌ Upload failed: ${data.error || 'Unknown error'}`, 'error');
+            showNotification(data.error || 'Upload failed', 'error');
         }
-    } catch (error) {
-        uploadProgress.style.display = 'none';
-        showNotification('❌ Upload failed', 'error');
+    } catch {
+        if (uploadProgress) uploadProgress.style.display = 'none';
+        showNotification('Upload failed', 'error');
     }
+    // Reset file input
+    e.target.value = '';
 }
 
 // ============================================
 // CODE EXECUTION
 // ============================================
 async function executeCode() {
-    const code = codeInput.value.trim();
+    const code      = $('code-input')?.value.trim();
+    const codeOutput = $('code-output');
     if (!code) return;
-    if (!currentUser) {
-        showNotification('Please login to execute code', 'error');
-        return;
-    }
-    codeOutput.innerHTML = '<div class="loading">Running code...</div>';
+    if (!currentUser) { showNotification('Please login to execute code', 'error'); return; }
+    if (codeOutput) codeOutput.innerHTML = '<div class="loading">Running code…</div>';
+
     try {
-        const response = await fetch(`${API_BASE_URL}/api/execute`, {
+        const res  = await fetch(`${API_BASE_URL}/api/execute`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({ code })
         });
-        const data = await response.json();
-        if (data.error) {
-            codeOutput.innerHTML = `<div class="error-output">❌ Error: ${escapeHtml(data.error)}</div>`;
-        } else {
-            let html = '';
-            if (data.stdout) html += `<pre class="stdout">${escapeHtml(data.stdout)}</pre>`;
-            if (data.stderr) html += `<pre class="stderr">${escapeHtml(data.stderr)}</pre>`;
-            if (!data.stdout && !data.stderr) html = '<div class="no-output">✓ No output (code ran successfully)</div>';
-            codeOutput.innerHTML = html;
-            trackCode();
+        const data = await res.json();
+        if (codeOutput) {
+            if (data.error) {
+                codeOutput.innerHTML = `<div class="error-output">❌ Error: ${escapeHtml(data.error)}</div>`;
+            } else {
+                let html = '';
+                if (data.stdout) html += `<pre class="stdout">${escapeHtml(data.stdout)}</pre>`;
+                if (data.stderr) html += `<pre class="stderr">${escapeHtml(data.stderr)}</pre>`;
+                codeOutput.innerHTML = html || '<div class="no-output">✓ No output (ran successfully)</div>';
+            }
         }
-    } catch (error) {
-        console.error('Code execution error:', error);
-        codeOutput.innerHTML = '<div class="error-output">❌ Execution failed: Connection error</div>';
+        trackCode();
+    } catch {
+        if (codeOutput) codeOutput.innerHTML = '<div class="error-output">❌ Connection error</div>';
     }
 }
 
@@ -2170,388 +1534,179 @@ async function executeCode() {
 // IMAGE GENERATION
 // ============================================
 async function generateImage() {
-    const prompt = imagePrompt.value.trim();
-    if (!prompt) {
-        showNotification('Please enter a prompt', 'error');
-        return;
-    }
-    if (!currentUser) {
-        showNotification('Please login to generate images', 'error');
-        return;
-    }
-    
-    imageResult.innerHTML = '<div class="loading">🎨 Generating image... This may take a moment</div>';
-    generateImageBtn.disabled = true;
-    generateImageBtn.textContent = 'Generating...';
-    
+    const prompt = $('image-prompt')?.value.trim();
+    const genBtn = $('generate-image');
+    const imageResult = $('image-result');
+    if (!prompt) { showNotification('Please enter a prompt', 'error'); return; }
+    if (!currentUser) { showNotification('Please login to generate images', 'error'); return; }
+
+    if (imageResult) imageResult.innerHTML = '<div style="color:var(--muted);padding:20px;text-align:center">🎨 Generating image…</div>';
+    if (genBtn) { genBtn.disabled = true; genBtn.textContent = 'Generating…'; }
+
     try {
-        const response = await fetch(`${API_BASE_URL}/api/generate-image`, {
+        const res  = await fetch(`${API_BASE_URL}/api/generate-image`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ 
-                prompt: prompt, 
-                size: imageSize?.value || '512x512' 
-            })
+            body: JSON.stringify({ prompt, size: $('image-size')?.value || '512x512' })
         });
-        
-        const data = await response.json();
-        
-        if (response.ok && data.url) {
-            imageResult.innerHTML = `
-                <img src="${data.url}" alt="${escapeHtml(prompt)}" style="max-width:100%; border-radius:12px; box-shadow:0 0 30px rgba(139,92,246,0.5);">
-                <div class="image-actions">
-                    <button onclick="window.open('${data.url}', '_blank')" class="glass-button">🔍 View Full Size</button>
-                    <button onclick="downloadImage('${data.url}')" class="glass-button">💾 Download</button>
-                </div>
-            `;
+        const data = await res.json();
+
+        if (res.ok && data.url) {
+            if (imageResult) {
+                imageResult.innerHTML = `
+                    <img src="${data.url}" alt="${escapeHtml(prompt)}" loading="lazy">
+                    <div class="image-actions">
+                        <button class="glass-button" onclick="window.open('${escapeHtml(data.url)}','_blank')">🔍 Full Size</button>
+                        <button class="glass-button" onclick="downloadImage('${escapeHtml(data.url)}')">💾 Download</button>
+                    </div>`;
+            }
             trackImage();
-            showNotification('✅ Image generated successfully!', 'success');
+            showNotification('✅ Image generated!', 'success');
         } else {
-            const errorMsg = data.error || 'Generation failed';
-            imageResult.innerHTML = `<div class="error-output">❌ ${escapeHtml(errorMsg)}<br><small>Please try again with a different prompt</small></div>`;
-            showNotification(`Image generation failed: ${errorMsg}`, 'error');
+            if (imageResult) imageResult.innerHTML = `<div class="error-output">❌ ${escapeHtml(data.error || 'Generation failed')}</div>`;
+            showNotification(data.error || 'Failed to generate', 'error');
         }
-    } catch (error) {
-        console.error('Image generation error:', error);
-        imageResult.innerHTML = '<div class="error-output">❌ Connection error. Please check your internet and try again.</div>';
-        showNotification('Failed to generate image: Connection error', 'error');
+    } catch {
+        if (imageResult) imageResult.innerHTML = '<div class="error-output">❌ Connection error</div>';
+        showNotification('Connection error', 'error');
     } finally {
-        generateImageBtn.disabled = false;
-        generateImageBtn.textContent = 'Generate';
+        if (genBtn) { genBtn.disabled = false; genBtn.textContent = '✦ Generate'; }
     }
 }
 
 function downloadImage(url) {
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'wizard-ai-image.png';
+    a.download = `wizard-image-${Date.now()}.png`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
 }
 
 // ============================================
-// DETAILED STATS
+// API KEYS
 // ============================================
-async function loadDetailedStats() {
+async function loadUserApiKeys() {
+    const list = $('api-keys-list');
+    if (!list) return;
     if (!currentUser) {
-        showNotification('Login to view detailed stats', 'error');
+        list.innerHTML = '<div class="empty-state-sm">🔐 Login to view your API keys</div>';
         return;
     }
-    openModal(statsModal);
-    await loadStats();
-    
-    if (userProfile) {
-        const skills = Array.isArray(userProfile.skills) ? userProfile.skills : [];
-        const interests = Array.isArray(userProfile.interests) ? userProfile.interests : [];
-        const goals = Array.isArray(userProfile.goals) ? userProfile.goals : [];
-        if (statsSkillsCount) statsSkillsCount.textContent = skills.length;
-        if (statsInterestsCount) statsInterestsCount.textContent = interests.length;
-        if (statsGoalsCount) statsGoalsCount.textContent = goals.length;
-        if (statsProfileCompleteness) statsProfileCompleteness.textContent = (userProfile.profile_completeness || 0) + '%';
-    }
-}
-
-// ============================================
-// UPDATE HISTORY MODAL
-// ============================================
-function showUpdateHistory() {
-    openModal(updateModal);
-}
-
-// ============================================
-// DESKTOP APP MENU INTEGRATION
-// ============================================
-const isElectron = navigator.userAgent.includes('Electron');
-
-if (isElectron && window.electronAPI) {
-    console.log('🖥️ Desktop app detected - setting up menu handlers');
-
-    function safeClick(elementId) {
-        const el = document.getElementById(elementId);
-        if (el) {
-            el.click();
-            return true;
-        }
-        return false;
-    }
-
-    window.electronAPI.onNewChat(() => {
-        console.log('📁 Menu: New Chat');
-        if (!safeClick('new-chat-btn')) {
-            if (typeof createNewChat === 'function') createNewChat();
-        }
-    });
-
-    window.electronAPI.onClearChat(() => {
-        console.log('🗑️ Menu: Clear Chat');
-        if (!safeClick('reset-current-btn')) {
-            if (typeof resetCurrentChat === 'function') resetCurrentChat();
-        }
-    });
-
-    window.electronAPI.onOpenImageGen(() => {
-        console.log('🎨 Menu: Generate Image');
-        if (!safeClick('image-btn')) {
-            const modal = document.getElementById('image-modal-overlay');
-            if (modal && typeof openModal === 'function') openModal(modal);
-        }
-    });
-
-    window.electronAPI.onOpenCode(() => {
-        console.log('💻 Menu: Run Code');
-        if (!safeClick('code-btn')) {
-            const modal = document.getElementById('code-modal-overlay');
-            if (modal && typeof openModal === 'function') openModal(modal);
-        }
-    });
-
-    window.electronAPI.onUploadFile(() => {
-        console.log('📎 Menu: Upload File');
-        if (!safeClick('upload-btn')) {
-            const fileInput = document.getElementById('file-upload');
-            if (fileInput) fileInput.click();
-        }
-    });
-
-    window.electronAPI.onViewProfile(() => {
-        console.log('👤 Menu: View Profile');
-        if (!safeClick('profile-btn')) {
-            if (typeof openProfileModal === 'function') openProfileModal();
-        }
-    });
-
-    window.electronAPI.onViewStats(() => {
-        console.log('📊 Menu: View Stats');
-        if (!safeClick('stats-btn')) {
-            if (typeof loadDetailedStats === 'function') loadDetailedStats();
-        }
-    });
-
-    window.electronAPI.onChangeMode((mode) => {
-        console.log('🎭 Menu: Change Mode to', mode);
-        const items = document.querySelectorAll('.dropdown-item');
-        let found = false;
-        items.forEach(item => {
-            const itemMode = item.getAttribute('data-mode') || item.innerText.trim();
-            if (itemMode === mode) {
-                item.click();
-                found = true;
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/keys`, { credentials: 'include' });
+        if (res.ok) {
+            const keys = await res.json();
+            if (!keys?.length) {
+                list.innerHTML = '<div class="empty-state-sm">No API keys yet. Visit <a href="/devhub/" style="color:var(--gold)">Dev Hub</a> to create one.</div>';
+                return;
             }
-        });
-        if (!found && typeof selectMode === 'function') {
-            selectMode(mode);
+            list.innerHTML = keys.map(k => `
+                <div class="api-key-item">
+                    <div class="api-key-name">${escapeHtml(k.name)}</div>
+                    <div class="api-key-value">${k.key.substring(0,15)}…${k.key.slice(-8)}</div>
+                    <div class="api-key-stats">📊 ${k.requests || 0} requests ${k.is_active ? '✅' : '❌'}</div>
+                </div>`).join('');
+        } else {
+            list.innerHTML = '<div class="empty-state-sm">⚠️ Failed to load</div>';
         }
-    });
+    } catch {
+        list.innerHTML = '<div class="empty-state-sm">⚠️ Error loading keys</div>';
+    }
+}
 
-    window.electronAPI.onToggleTurbo((enabled) => {
-        console.log('⚡ Menu: Turbo Mode', enabled ? 'ON' : 'OFF');
-        const turboBtn = document.getElementById('turbo-btn');
-        if (turboBtn) {
-            const isActive = turboBtn.classList.contains('active');
-            if (isActive !== enabled) turboBtn.click();
-        } else if (typeof toggleTurboMode === 'function') {
-            if (turboMode !== enabled) toggleTurboMode();
-        }
+// ============================================
+// PWA
+// ============================================
+function setupPWAInstallPrompt() {
+    window.addEventListener('beforeinstallprompt', e => {
+        e.preventDefault();
+        pwaDeferredPrompt = e;
     });
+}
 
-    window.electronAPI.onToggleSearch((enabled) => {
-        console.log('🌐 Menu: Web Search', enabled ? 'ON' : 'OFF');
-        const searchBtn = document.getElementById('search-btn');
-        if (searchBtn) {
-            const isActive = searchBtn.classList.contains('active');
-            if (isActive !== enabled) searchBtn.click();
-        } else if (typeof toggleSearchMode === 'function') {
-            if (searchMode !== enabled) toggleSearchMode();
-        }
+// ============================================
+// EVENT LISTENERS
+// ============================================
+function setupEventListeners() {
+    // Send
+    const sendBtn   = $('send-btn');
+    const chatInput = $('chat-input');
+    if (sendBtn)   sendBtn.addEventListener('click', sendMessage);
+    if (chatInput) chatInput.addEventListener('keypress', e => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
     });
+    if (chatInput && 'vibrate' in navigator) {
+        sendBtn?.addEventListener('click', () => navigator.vibrate(10));
+    }
 
-    window.electronAPI.onOpenSettings(() => {
-        console.log('⚙️ Menu: Settings');
-        if (typeof showNotification === 'function') {
-            showNotification('⚙️ Settings panel coming soon!', 'info', 2000);
-        }
-    });
+    // Voice
+    $('voice-input-btn')?.addEventListener('click', toggleVoiceInput);
 
-    window.electronAPI.onExportChat(() => {
-        console.log('💾 Menu: Export Chat');
-        exportChatToFile();
-    });
+    // Toolbar buttons
+    $('turbo-btn')?.addEventListener('click', toggleTurboMode);
+    $('search-btn')?.addEventListener('click', toggleSearchMode);
+    $('upload-btn')?.addEventListener('click', () => $('file-upload')?.click());
+    $('code-btn')?.addEventListener('click', () => openModal($('code-modal-overlay')));
+    $('image-btn')?.addEventListener('click', () => openModal($('image-modal-overlay')));
+    $('profile-btn')?.addEventListener('click', openProfileModal);
+    $('stats-btn')?.addEventListener('click', () => { openModal($('stats-modal-overlay')); loadStats(); });
+    $('personalities-btn')?.addEventListener('click', openPersonalitiesBrowser);
+    $('devhub-btn')?.addEventListener('click', () => window.open('/devhub/', '_blank'));
+    $('agent-studio-btn')?.addEventListener('click', () => window.open('/agent-studio/', '_blank'));
+    $('update-history-btn')?.addEventListener('click', () => openModal($('update-modal-overlay')));
 
-    window.electronAPI.onBrowsePersonalities(() => {
-        console.log('🎭 Menu: Browse Personalities');
-        if (!safeClick('personalities-btn')) {
-            if (typeof openPersonalitiesBrowser === 'function') openPersonalitiesBrowser();
-        }
-    });
+    // Chat controls
+    $('new-chat-btn')?.addEventListener('click', createNewChat);
+    $('rename-chat-btn')?.addEventListener('click', () => openRenameModal(activeChatId));
+    $('delete-chat-btn')?.addEventListener('click', () => deleteChat(activeChatId));
+    $('reset-current-btn')?.addEventListener('click', resetCurrentChat);
 
-    window.electronAPI.onOpenAgentStudio(() => {
-        console.log('🤖 Agent Studio clicked - opening...');
-        window.open('/agent-studio/', '_blank');
-    });
+    // Rename modal actions
+    $('modal-save')?.addEventListener('click', saveRename);
+    $('modal-cancel')?.addEventListener('click', () => closeModal($('rename-modal-overlay')));
+    $('rename-input')?.addEventListener('keypress', e => { if (e.key === 'Enter') saveRename(); });
 
-    window.electronAPI.onOpenDevHub(() => {
-        console.log('🔑 Developer Hub clicked - opening...');
+    // Auth
+    $('show-login-btn')?.addEventListener('click', () => showAuthModal(true));
+    $('show-signup-btn')?.addEventListener('click', () => showAuthModal(false));
+    $('logout-btn')?.addEventListener('click', handleLogout);
+    $('auth-submit')?.addEventListener('click', handleAuthSubmit);
+    $('auth-switch-btn')?.addEventListener('click', toggleAuthMode);
+    $('resend-code-btn')?.addEventListener('click', resendVerificationCode);
+    $('auth-email')?.addEventListener('keypress', e => { if (e.key === 'Enter') handleAuthSubmit(); });
+    $('auth-password')?.addEventListener('keypress', e => { if (e.key === 'Enter') handleAuthSubmit(); });
+
+    // Profile
+    $('save-profile')?.addEventListener('click', saveProfile);
+    $('close-profile')?.addEventListener('click', () => closeModal($('profile-modal-overlay')));
+
+    // Code
+    $('run-code')?.addEventListener('click', executeCode);
+    $('clear-code')?.addEventListener('click', () => { $('code-input').value = ''; $('code-output').innerHTML = ''; });
+
+    // Image
+    $('generate-image')?.addEventListener('click', generateImage);
+    $('image-prompt')?.addEventListener('keypress', e => { if (e.key === 'Enter') generateImage(); });
+
+    // Personality creator
+    $('toggle-creator-btn')?.addEventListener('click', toggleCreatorPanel);
+    $('save-personality')?.addEventListener('click', saveCustomPersonality);
+    $('cancel-personality')?.addEventListener('click', closeCreatorPanel);
+    $('close-creator')?.addEventListener('click', closeCreatorPanel);
+
+    // File upload
+    $('file-upload')?.addEventListener('change', handleFileUpload);
+
+    // API keys
+    $('create-api-key-sidebar')?.addEventListener('click', () => {
+        if (!currentUser) { showNotification('Please login first', 'error'); showAuthModal(true); return; }
         window.open('/devhub/', '_blank');
     });
 
-    window.electronAPI.onOpenAdmin(() => {
-        console.log('👑 Admin Dashboard clicked - opening...');
-        window.open('/admin/', '_blank');
-    });
-    
-    window.electronAPI.onUpdateStatus((event, data) => {
-        console.log('Update status:', data.status);
-        if (data.status === 'downloading') {
-            showNotification(`⬇️ Downloading update v${data.version}...`, 'info', 5000);
-        } else if (data.status === 'downloaded') {
-            showNotification(`✅ Update ready! Restart to install.`, 'success', 5000);
-        }
-    });
-
-    window.electronAPI.onUpdateProgress((event, data) => {
-        console.log(`Update progress: ${data.percent}%`);
-    });
-
-    console.log('✅ All menu handlers registered');
+    // ⚠️ NOTE: All .modal-close X buttons are handled in setupModalCloseButtons()
+    // No need to duplicate them here
 }
 
-function exportChatToFile() {
-    const chatContainer = document.getElementById('chat-history');
-    if (!chatContainer || !chatContainer.children.length) {
-        if (typeof showNotification === 'function') {
-            showNotification('No messages to export', 'error');
-        }
-        return;
-    }
-    
-    const messages = document.querySelectorAll('.message');
-    let exportText = '🧙 Wizard.AI Chat Export\n';
-    exportText += '='.repeat(50) + '\n';
-    exportText += `Date: ${new Date().toLocaleString()}\n`;
-    exportText += '='.repeat(50) + '\n\n';
-    
-    messages.forEach(msg => {
-        const isUser = msg.classList.contains('user');
-        const sender = isUser ? '👤 You' : '🧙 Wizard.AI';
-        const textEl = msg.querySelector('.message-text');
-        let text = textEl ? textEl.innerText : '';
-        if (!isUser) {
-            // For AI messages, strip HTML tags for export
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = text;
-            text = tempDiv.textContent;
-        }
-        const timeEl = msg.querySelector('.message-time');
-        const time = timeEl ? timeEl.innerText : '';
-        exportText += `[${time}] ${sender}:\n${text}\n\n`;
-        exportText += '-'.repeat(40) + '\n\n';
-    });
-    
-    const blob = new Blob([exportText], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `wizard-chat-${Date.now()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    if (typeof showNotification === 'function') {
-        showNotification('✅ Chat exported!', 'success');
-    }
-}
-
-// ============================================
-// EVENT LISTENERS SETUP
-// ============================================
-function setupEventListeners() {
-    if (sendBtn) sendBtn.addEventListener('click', sendMessage);
-    if (chatInput) chatInput.addEventListener('keypress', e => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
-    });
-    if (voiceBtn) voiceBtn.addEventListener('click', toggleVoiceInput);
-    if (turboBtn) turboBtn.addEventListener('click', toggleTurboMode);
-    if (searchBtn) searchBtn.addEventListener('click', toggleSearchMode);
-    if (uploadBtn) uploadBtn.addEventListener('click', () => fileUpload.click());
-    if (codeBtn) codeBtn.addEventListener('click', () => openModal(codeModal));
-    if (imageBtn) imageBtn.addEventListener('click', () => openModal(imageModal));
-    if (profileBtn) profileBtn.addEventListener('click', openProfileModal);
-    if (statsBtn) statsBtn.addEventListener('click', loadDetailedStats);
-    if (personalitiesBtn) personalitiesBtn.addEventListener('click', openPersonalitiesBrowser);
-    if (devHubBtn) devHubBtn.addEventListener('click', () => window.open('/devhub/', '_blank'));
-    if (agentStudioBtn) agentStudioBtn.addEventListener('click', () => window.open('/agent-studio/', '_blank'));
-    if (updateHistoryBtn) updateHistoryBtn.addEventListener('click', showUpdateHistory);
-    if (closeUpdate) closeUpdate.addEventListener('click', () => closeModal(updateModal));
-    if (fileUpload) fileUpload.addEventListener('change', handleFileUpload);
-    if (newChatBtn) newChatBtn.addEventListener('click', createNewChat);
-    if (renameChatBtn) renameChatBtn.addEventListener('click', () => openRenameModal(activeChatId));
-    if (deleteChatBtn) deleteChatBtn.addEventListener('click', () => deleteChat(activeChatId));
-    if (resetCurrentBtn) resetCurrentBtn.addEventListener('click', resetCurrentChat);
-    if (saveProfileBtn) saveProfileBtn.addEventListener('click', saveProfile);
-    if (closeProfileBtn) closeProfileBtn.addEventListener('click', () => closeModal(profileModal));
-    
-    const loginBtn = document.getElementById('show-login-btn');
-    const signupBtn = document.getElementById('show-signup-btn');
-    if (loginBtn) loginBtn.addEventListener('click', () => showAuthModal(true));
-    if (signupBtn) signupBtn.addEventListener('click', () => showAuthModal(false));
-    if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
-    if (authSwitchBtn) authSwitchBtn.addEventListener('click', toggleAuthMode);
-    if (authSubmit) authSubmit.addEventListener('click', handleAuthSubmit);
-    if (closeAuth) closeAuth.addEventListener('click', () => closeModal(authModal));
-    if (resendCodeBtn) resendCodeBtn.addEventListener('click', resendVerificationCode);
-    if (closeRename) closeRename.addEventListener('click', () => closeModal(renameModal));
-    if (closeCode) closeCode.addEventListener('click', () => closeModal(codeModal));
-    if (closeImage) closeImage.addEventListener('click', () => closeModal(imageModal));
-    if (closeStats) closeStats.addEventListener('click', () => closeModal(statsModal));
-    if (closePersonalities) closePersonalities.addEventListener('click', () => closeModal(personalitiesModal));
-    if (renameSave) renameSave.addEventListener('click', saveRename);
-    if (renameCancel) renameCancel.addEventListener('click', () => closeModal(renameModal));
-    if (renameInput) renameInput.addEventListener('keypress', e => {
-        if (e.key === 'Enter') saveRename();
-    });
-    if (runCodeBtn) runCodeBtn.addEventListener('click', executeCode);
-    if (clearCodeBtn) clearCodeBtn.addEventListener('click', () => {
-        codeInput.value = '';
-        codeOutput.textContent = '';
-    });
-    if (generateImageBtn) generateImageBtn.addEventListener('click', generateImage);
-    if (toggleCreatorBtn) toggleCreatorBtn.addEventListener('click', toggleCreatorPanel);
-    if (savePersonality) savePersonality.addEventListener('click', saveCustomPersonality);
-    if (cancelPersonality) cancelPersonality.addEventListener('click', closeCreatorPanel);
-    if (closeCreator) closeCreator.addEventListener('click', closeCreatorPanel);
-    if (tabBtns.length) tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => switchPersonalityTab(btn.dataset.tab));
-    });
-    
-    window.addEventListener('click', e => {
-        if (e.target.classList.contains('modal-overlay')) closeModal(e.target);
-        if (e.target.classList.contains('profile-tab-btn')) return;
-    });
-    document.addEventListener('keydown', e => {
-        if (e.key === 'F2') {
-            e.preventDefault();
-            emergencyReset();
-        }
-    });
-}
-
-// Detect if running as PWA
-if (window.matchMedia('(display-mode: standalone)').matches) {
-    console.log('🏠 Running as installed PWA');
-    document.body.classList.add('pwa-installed');
-}
-
-// Add haptic feedback on send (if supported)
-if (sendBtn && 'vibrate' in navigator) {
-    sendBtn.addEventListener('click', () => {
-        navigator.vibrate(10);
-    });
-}
-
-console.log('✅ Wizard.AI v15.1.0 fully loaded!');
+console.log('✅ Wizard.AI v15.1.0 script loaded');
