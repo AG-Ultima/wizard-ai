@@ -1,4 +1,4 @@
-// ============================================
+ // ============================================
 // WIZARD.AI PRO v15.1.0 - WIZPROFILE UPDATE
 // Complete Frontend Controller with Profile System
 // Created by Arnav Gupta
@@ -6,6 +6,60 @@
 
 const API_BASE_URL = 'https://arnav0928.pythonanywhere.com';
 const SITE_URL = 'https://www.wizardai.dpdns.org';
+
+// ============================================
+// MARKDOWN RENDERING FUNCTION
+// ============================================
+
+function renderMarkdown(text) {
+    if (!text) return '';
+    
+    let html = text;
+    
+    // Headers
+    html = html.replace(/^### (.*$)/gm, '<h3 class="md-h3">$1</h3>');
+    html = html.replace(/^## (.*$)/gm, '<h2 class="md-h2">$1</h2>');
+    html = html.replace(/^# (.*$)/gm, '<h1 class="md-h1">$1</h1>');
+    
+    // Bold and Italic combined
+    html = html.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    
+    // Code blocks
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>');
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+    
+    // Lists
+    html = html.replace(/^\s*-\s+(.*$)/gm, '<li>$1</li>');
+    html = html.replace(/^\s*\d+\.\s+(.*$)/gm, '<li class="ordered">$1</li>');
+    
+    // Wrap consecutive list items
+    html = html.replace(/(<li>.*?<\/li>\n?)+/g, '<ul>$&</ul>');
+    html = html.replace(/<ul>(<li class="ordered">.*?<\/li>\n?)+<\/ul>/g, function(match) {
+        return match.replace(/<ul>/, '<ol>').replace(/<\/ul>/, '</ol>').replace(/<li class="ordered">/g, '<li>');
+    });
+    
+    // Blockquotes
+    html = html.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
+    html = html.replace(/<\/blockquote>\n<blockquote>/g, '<br>');
+    
+    // Horizontal rule
+    html = html.replace(/^---$/gm, '<hr>');
+    
+    // Links
+    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    
+    // Line breaks
+    html = html.replace(/\n/g, '<br>');
+    
+    // Clean up extra paragraph spacing
+    html = html.replace(/<br><br>/g, '</p><p>');
+    html = '<p>' + html + '</p>';
+    html = html.replace(/<p><\/p>/g, '');
+    
+    return html;
+}
 
 // ============================================
 // DOM ELEMENTS
@@ -165,7 +219,6 @@ const profileCompletenessText = document.getElementById('profile-completeness-te
 const saveProfileBtn = document.getElementById('save-profile');
 const closeProfileBtn = document.getElementById('close-profile');
 const profileTabBtns = document.querySelectorAll('.profile-tab-btn');
-const closeRename = document.getElementById('close-rename-modal');
 
 // ============================================
 // STATE MANAGEMENT
@@ -275,7 +328,6 @@ async function loadProfile() {
 function updateProfileForm() {
     if (!userProfile) return;
     
-    // Basic Info
     if (profileFullName) profileFullName.value = userProfile.full_name || '';
     if (profileDisplayName) profileDisplayName.value = userProfile.display_name || '';
     if (profileBirthday) profileBirthday.value = userProfile.birthday || '';
@@ -284,28 +336,20 @@ function updateProfileForm() {
     if (profilePhone) profilePhone.value = userProfile.phone || '';
     if (profileWebsite) profileWebsite.value = userProfile.website || '';
     if (profileGreeting) profileGreeting.value = userProfile.custom_greeting || '';
-    
-    // Professional
     if (profileOccupation) profileOccupation.value = userProfile.occupation || '';
     if (profileCompany) profileCompany.value = userProfile.company || '';
     if (profileExperience) profileExperience.value = userProfile.experience_years || '';
     if (profileEducation) profileEducation.value = Array.isArray(userProfile.education) ? userProfile.education.join(', ') : '';
     if (profileSkills) profileSkills.value = Array.isArray(userProfile.skills) ? userProfile.skills.join(', ') : '';
-    
-    // Interests
     if (profileInterests) profileInterests.value = Array.isArray(userProfile.interests) ? userProfile.interests.join(', ') : '';
     if (profileFavTopics) profileFavTopics.value = Array.isArray(userProfile.favorite_topics) ? userProfile.favorite_topics.join(', ') : '';
     if (profileLearning) profileLearning.value = Array.isArray(userProfile.learning_interests) ? userProfile.learning_interests.join(', ') : '';
     if (profileKnown) profileKnown.value = Array.isArray(userProfile.known_topics) ? userProfile.known_topics.join(', ') : '';
-    
-    // AI Preferences
     if (profilePreferredMode) profilePreferredMode.value = userProfile.preferred_mode || 'JARVIS';
     if (profileResponseStyle) profileResponseStyle.value = userProfile.response_style || 'balanced';
     if (profileFormality) profileFormality.value = userProfile.formality_level || 'casual';
     if (profileEmojis) profileEmojis.value = userProfile.emoji_preference !== false ? 'true' : 'false';
     if (profileInstructions) profileInstructions.value = userProfile.custom_instructions || '';
-    
-    // Goals
     if (profileGoals) profileGoals.value = Array.isArray(userProfile.goals) ? userProfile.goals.map(g => typeof g === 'object' ? g.text : g).join('\n') : '';
     if (profileReminders) profileReminders.value = Array.isArray(userProfile.reminders) ? userProfile.reminders.join('\n') : '';
 }
@@ -394,11 +438,9 @@ function initProfileTabs() {
         btn.addEventListener('click', () => {
             const tabId = btn.dataset.tab;
             
-            // Update active tab button
             profileTabBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             
-            // Update active tab content
             document.querySelectorAll('.profile-tab-content').forEach(content => {
                 content.classList.remove('active');
             });
@@ -592,7 +634,7 @@ function initMobileLayout() {
     const style = document.createElement('style');
     style.textContent = `
         @media (max-width: 768px) {
-            .message { max-width: 95% !important; }
+            .message.user .message-content { max-width: 85% !important; }
             .pro-toolbar { overflow-x: auto; justify-content: flex-start; gap: 8px; padding: 10px; }
             .pro-btn { flex-shrink: 0; }
             .input-area { margin: 10px; padding: 10px; }
@@ -1082,17 +1124,39 @@ function setupApiKeysButton() {
 // ============================================
 // CHAT MANAGEMENT
 // ============================================
-function createMessageElement(sender, text, mode = null) {
+
+// MARKDOWN RENDER FUNCTION FOR MESSAGES
+function renderMessageContent(sender, text) {
+    if (sender === 'user') {
+        return escapeHtml(text);
+    } else {
+        return renderMarkdown(text);
+    }
+}
+
+function createMessageElement(sender, text, mode = null, isStreaming = false) {
     const msg = document.createElement('div');
     msg.className = `message ${sender}`;
+    if (isStreaming) msg.classList.add('streaming');
+    
     const icon = sender === 'user' ? '👤' : (modeData[mode]?.emoji || '🧙');
-    msg.innerHTML = `
-        <div class="message-content">
-            <span class="message-icon">${icon}</span>
-            <span class="message-text">${escapeHtml(text)}</span>
-        </div>
-        <span class="message-time">${new Date().toLocaleTimeString()}</span>
-    `;
+    const renderedContent = renderMessageContent(sender, text);
+    
+    if (sender === 'user') {
+        msg.innerHTML = `
+            <div class="message-content">
+                <div class="message-text">${renderedContent}</div>
+                <div class="message-time">${new Date().toLocaleTimeString()}</div>
+            </div>
+        `;
+    } else {
+        msg.innerHTML = `
+            <div class="message-content">
+                <div class="message-text">${renderedContent}</div>
+                <div class="message-time">${new Date().toLocaleTimeString()}</div>
+            </div>
+        `;
+    }
     return msg;
 }
 
@@ -1151,13 +1215,12 @@ async function sendMessage() {
     const streamingMsgId = 'streaming-' + Date.now();
     const msgDiv = document.createElement('div');
     msgDiv.id = streamingMsgId;
-    msgDiv.className = 'message wizard streaming';
+    msgDiv.className = 'message assistant streaming';
     msgDiv.innerHTML = `
         <div class="message-content">
-            <span class="message-icon">${modeData[currentMode]?.emoji || '🧙'}</span>
-            <span class="message-text" id="streaming-text-${streamingMsgId}"></span>
+            <div class="message-text" id="streaming-text-${streamingMsgId}"></div>
+            <div class="message-time">${new Date().toLocaleTimeString()}</div>
         </div>
-        <span class="message-time">${new Date().toLocaleTimeString()}</span>
     `;
     chatHistory.appendChild(msgDiv);
     
@@ -1197,11 +1260,14 @@ async function sendMessage() {
                         const parsed = JSON.parse(data);
                         if (parsed.token) {
                             fullResponse += parsed.token;
-                            if (respSpan) respSpan.textContent = fullResponse;
+                            if (respSpan) {
+                                // Render markdown for streaming content
+                                respSpan.innerHTML = renderMarkdown(fullResponse);
+                            }
                             chatHistory.scrollTop = chatHistory.scrollHeight;
                         } else if (parsed.error) {
                             fullResponse = 'Error: ' + parsed.error;
-                            if (respSpan) respSpan.textContent = fullResponse;
+                            if (respSpan) respSpan.innerHTML = renderMarkdown(fullResponse);
                         }
                     } catch (e) {}
                 }
@@ -1231,7 +1297,7 @@ async function sendMessage() {
         
     } catch (error) {
         console.error('Stream error:', error);
-        if (respSpan) respSpan.textContent = 'Error getting response. Please try again.';
+        if (respSpan) respSpan.innerHTML = 'Error getting response. Please try again.';
         msgDiv.classList.remove('streaming');
         messages.push({
             sender: 'assistant',
@@ -1522,7 +1588,6 @@ async function loadStats() {
                 if (statsApiKeysDetailed) statsApiKeysDetailed.textContent = data.api_keys || 0;
                 if (statsProfileCompleteness) statsProfileCompleteness.textContent = (userProfile?.profile_completeness || 0) + '%';
                 
-                // Calculate derived stats
                 if (userProfile) {
                     const skills = Array.isArray(userProfile.skills) ? userProfile.skills : [];
                     const interests = Array.isArray(userProfile.interests) ? userProfile.interests : [];
@@ -2177,7 +2242,6 @@ async function loadDetailedStats() {
     openModal(statsModal);
     await loadStats();
     
-    // Update profile stats in modal
     if (userProfile) {
         const skills = Array.isArray(userProfile.skills) ? userProfile.skills : [];
         const interests = Array.isArray(userProfile.interests) ? userProfile.interests : [];
@@ -2353,7 +2417,6 @@ if (isElectron && window.electronAPI) {
     console.log('✅ All menu handlers registered');
 }
 
-// Export chat function
 function exportChatToFile() {
     const chatContainer = document.getElementById('chat-history');
     if (!chatContainer || !chatContainer.children.length) {
@@ -2373,7 +2436,13 @@ function exportChatToFile() {
         const isUser = msg.classList.contains('user');
         const sender = isUser ? '👤 You' : '🧙 Wizard.AI';
         const textEl = msg.querySelector('.message-text');
-        const text = textEl ? textEl.innerText : '';
+        let text = textEl ? textEl.innerText : '';
+        if (!isUser) {
+            // For AI messages, strip HTML tags for export
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = text;
+            text = tempDiv.textContent;
+        }
         const timeEl = msg.querySelector('.message-time');
         const time = timeEl ? timeEl.innerText : '';
         exportText += `[${time}] ${sender}:\n${text}\n\n`;
@@ -2394,8 +2463,9 @@ function exportChatToFile() {
         showNotification('✅ Chat exported!', 'success');
     }
 }
+
 // ============================================
-// EVENT LISTENERS SETUP - FIXED
+// EVENT LISTENERS SETUP
 // ============================================
 function setupEventListeners() {
     if (sendBtn) sendBtn.addEventListener('click', sendMessage);
@@ -2426,7 +2496,6 @@ function setupEventListeners() {
     if (saveProfileBtn) saveProfileBtn.addEventListener('click', saveProfile);
     if (closeProfileBtn) closeProfileBtn.addEventListener('click', () => closeModal(profileModal));
     
-    // Auth buttons
     const loginBtn = document.getElementById('show-login-btn');
     const signupBtn = document.getElementById('show-signup-btn');
     if (loginBtn) loginBtn.addEventListener('click', () => showAuthModal(true));
@@ -2436,41 +2505,34 @@ function setupEventListeners() {
     if (authSubmit) authSubmit.addEventListener('click', handleAuthSubmit);
     if (closeAuth) closeAuth.addEventListener('click', () => closeModal(authModal));
     if (resendCodeBtn) resendCodeBtn.addEventListener('click', resendVerificationCode);
-    
-    // Code modal
-    if (runCodeBtn) runCodeBtn.addEventListener('click', executeCode);
-    if (clearCodeBtn) clearCodeBtn.addEventListener('click', () => {
-        if (codeInput) codeInput.value = '';
-        if (codeOutput) codeOutput.textContent = '';
-    });
-    
-    // Image modal
-    if (generateImageBtn) generateImageBtn.addEventListener('click', generateImage);
-    
-    // Personality creator
-    if (toggleCreatorBtn) toggleCreatorBtn.addEventListener('click', toggleCreatorPanel);
-    if (savePersonality) savePersonality.addEventListener('click', saveCustomPersonality);
-    if (cancelPersonality) cancelPersonality.addEventListener('click', closeCreatorPanel);
-    if (closeCreator) closeCreator.addEventListener('click', closeCreatorPanel);
-    
-    // Rename modal
+    if (closeRename) closeRename.addEventListener('click', () => closeModal(renameModal));
+    if (closeCode) closeCode.addEventListener('click', () => closeModal(codeModal));
+    if (closeImage) closeImage.addEventListener('click', () => closeModal(imageModal));
+    if (closeStats) closeStats.addEventListener('click', () => closeModal(statsModal));
+    if (closePersonalities) closePersonalities.addEventListener('click', () => closeModal(personalitiesModal));
     if (renameSave) renameSave.addEventListener('click', saveRename);
     if (renameCancel) renameCancel.addEventListener('click', () => closeModal(renameModal));
     if (renameInput) renameInput.addEventListener('keypress', e => {
         if (e.key === 'Enter') saveRename();
     });
-    
-    // Personality tabs
+    if (runCodeBtn) runCodeBtn.addEventListener('click', executeCode);
+    if (clearCodeBtn) clearCodeBtn.addEventListener('click', () => {
+        codeInput.value = '';
+        codeOutput.textContent = '';
+    });
+    if (generateImageBtn) generateImageBtn.addEventListener('click', generateImage);
+    if (toggleCreatorBtn) toggleCreatorBtn.addEventListener('click', toggleCreatorPanel);
+    if (savePersonality) savePersonality.addEventListener('click', saveCustomPersonality);
+    if (cancelPersonality) cancelPersonality.addEventListener('click', closeCreatorPanel);
+    if (closeCreator) closeCreator.addEventListener('click', closeCreatorPanel);
     if (tabBtns.length) tabBtns.forEach(btn => {
         btn.addEventListener('click', () => switchPersonalityTab(btn.dataset.tab));
     });
     
-    // Close modals when clicking overlay
     window.addEventListener('click', e => {
         if (e.target.classList.contains('modal-overlay')) closeModal(e.target);
+        if (e.target.classList.contains('profile-tab-btn')) return;
     });
-    
-    // Emergency reset
     document.addEventListener('keydown', e => {
         if (e.key === 'F2') {
             e.preventDefault();
